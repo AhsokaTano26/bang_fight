@@ -1,5 +1,12 @@
 <template>
   <div class="game-board" v-if="game && game.players">
+    <!-- Error toast -->
+    <Transition name="error-fade">
+      <div v-if="errorMsg" class="error-toast" @click="errorMsg = null">
+        {{ errorMsg }}
+      </div>
+    </Transition>
+
     <!-- Left: hints panel -->
     <aside class="panel-left">
       <div class="panel-title">提示</div>
@@ -62,6 +69,7 @@
             :slots="deployedCharacters"
             :selectedUid="selectedCardUid"
             @select="handleDeploySelect"
+            @emptySlot="handleEmptySlot"
           />
         </div>
 
@@ -70,6 +78,7 @@
           :phase="turnPhase"
           :isMyTurn="isMyTurn"
           :selectedCard="selectedCardUid"
+          :isCharacterCard="isCharacterCard"
           :canPlayCard="selectedCardUid !== null"
           @action="handleAction"
         />
@@ -120,7 +129,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useGameStore } from '../stores/game'
 import PlayerInfo from './PlayerInfo.vue'
 import DeployZone from './DeployZone.vue'
@@ -129,6 +138,17 @@ import ActionPanel from './ActionPanel.vue'
 import BattleLog from './BattleLog.vue'
 
 const store = useGameStore()
+
+const errorMsg = ref<string | null>(null)
+let errorTimer: ReturnType<typeof setTimeout> | null = null
+
+watch(() => store.error, (msg) => {
+  if (msg) {
+    errorMsg.value = msg
+    if (errorTimer) clearTimeout(errorTimer)
+    errorTimer = setTimeout(() => { errorMsg.value = null }, 3000)
+  }
+})
 
 const game = computed(() => store.gameState)
 const currentPlayer = computed(() => store.currentPlayer)
@@ -196,6 +216,13 @@ function handleDeploySelect(uid: string) {
   }
   // Otherwise select as target
   store.selectTarget(uid)
+}
+
+function handleEmptySlot(position: number) {
+  // If a character card is selected, deploy to this empty slot
+  if (selectedCardUid.value && isCharacterCard.value) {
+    handleAction('deploy', { position })
+  }
 }
 
 function handleTargetSelect(playerId: string, charUid: string) {
@@ -501,5 +528,32 @@ async function handleAction(type: string, params: Record<string, any> = {}) {
 
 .restart-btn:hover {
   background: #d63a53;
+}
+
+/* Error toast */
+.error-toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(233, 69, 96, 0.95);
+  color: #fff;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 9999;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(233, 69, 96, 0.4);
+}
+
+.error-fade-enter-active,
+.error-fade-leave-active {
+  transition: opacity 0.3s, transform 0.3s;
+}
+.error-fade-enter-from,
+.error-fade-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-10px);
 }
 </style>

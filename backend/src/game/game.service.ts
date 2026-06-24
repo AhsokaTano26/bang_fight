@@ -358,35 +358,48 @@ export class GameService {
       return { success: false, message: 'Card is not an action card' }
     }
 
-    // Remove card from hand and add to discard pile
-    player.hand.splice(cardIndex, 1)
-    player.discardPile.push(card)
+    let result: { success: boolean; message: string; nearDeathTriggered?: boolean; retired?: boolean }
 
     switch (cardDef.actionType) {
       case 'attack':
-        return this.handleAttackCard(state, player, params)
+        result = this.handleAttackCard(state, player, params)
+        break
 
       case 'armorPierce':
-        return this.handleAttackCard(state, player, { ...params, armorPierce: true })
+        result = this.handleAttackCard(state, player, { ...params, armorPierce: true })
+        break
 
       case 'bigBlock':
-        return this.handleBigBlock(state, player)
+        result = this.handleBigBlock(state, player)
+        break
 
       case 'smallBlock':
-        return this.handleSmallBlock(state, player, params)
+        result = this.handleSmallBlock(state, player, params)
+        break
 
       case 'recovery':
-        return this.handleRecovery(state, player, params, false)
+        result = this.handleRecovery(state, player, params, false)
+        break
 
       case 'bigRecovery':
-        return this.handleBigRecovery(state, player)
+        result = this.handleBigRecovery(state, player)
+        break
 
       case 'replenish':
-        return this.handleReplenish(state, player)
+        result = this.handleReplenish(state, player)
+        break
 
       default:
-        return { success: false, message: `Unknown action type: ${cardDef.actionType}` }
+        result = { success: false, message: `Unknown action type: ${cardDef.actionType}` }
     }
+
+    // Only remove card from hand if action succeeded
+    if (result.success) {
+      player.hand.splice(cardIndex, 1)
+      player.discardPile.push(card)
+    }
+
+    return result
   }
 
   // ----------------------------------------------------------

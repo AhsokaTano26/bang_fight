@@ -51,6 +51,7 @@ const props = defineProps<{
   selectedCard?: string | null
   hasActionPoints?: boolean
   canPlayCard?: boolean
+  isCharacterCard?: boolean
 }>()
 
 defineEmits<{
@@ -69,8 +70,8 @@ const phaseName = computed(() => {
 })
 
 const canDraw = computed(() => props.isMyTurn && props.phase === 'draw')
-const canPlayCard = computed(() => props.isMyTurn && props.phase === 'action' && props.selectedCard)
-const canDeploy = computed(() => props.isMyTurn && props.phase === 'action' && props.selectedCard)
+const canPlayCard = computed(() => props.isMyTurn && props.phase === 'action' && props.selectedCard && !props.isCharacterCard)
+const canDeploy = computed(() => props.isMyTurn && props.phase === 'action' && props.selectedCard && props.isCharacterCard)
 const canEndTurn = computed(() => props.isMyTurn && (props.phase === 'action' || props.phase === 'discard'))
 </script>
 
