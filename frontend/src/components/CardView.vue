@@ -57,6 +57,9 @@
                 <span v-if="detailData.armorPierce" class="detail-tag">无视护甲</span>
                 <span v-if="detailData.affectsAll" class="detail-tag">全体</span>
               </div>
+              <div v-if="detailData.category === 'action'" class="detail-skill">
+                <span class="skill-desc">{{ getActionDescription(detailData.actionType) }}</span>
+              </div>
               <div v-if="detailData.category === 'character' && detailData.skills.length" class="detail-skill">
                 <span class="skill-name">【{{ detailData.skills[0].name }}】</span>
                 <span class="skill-desc">{{ detailData.skills[0].description }}</span>
@@ -71,7 +74,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { getCardById } from '../types/cards-data'
+import { getCardById, ACTION_CARD_DESCRIPTIONS } from '../types/cards-data'
 
 const props = defineProps<{
   cardId?: string
@@ -120,6 +123,10 @@ function actionTypeName(type: string): string {
     replenish: '补充',
   }
   return names[type] ?? type
+}
+
+function getActionDescription(type: string): string {
+  return ACTION_CARD_DESCRIPTIONS[type] ?? '未知效果'
 }
 </script>
 

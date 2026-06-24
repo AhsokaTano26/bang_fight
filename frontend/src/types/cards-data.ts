@@ -5,6 +5,17 @@
 
 import type { CharacterCard, ActionCard, StrategyCard } from './card'
 
+// 行动牌效果描述
+export const ACTION_CARD_DESCRIPTIONS: Record<string, string> = {
+  attack: '对目标造成等于使用者攻击力的伤害。',
+  armorPierce: '对目标造成伤害，无视守护和格挡效果。',
+  bigBlock: '保护己方所有角色，抵挡下一次攻击。',
+  smallBlock: '保护己方一名角色，抵挡下一次攻击。',
+  recovery: '恢复己方一名角色2点体力。',
+  bigRecovery: '恢复己方所有角色2点体力。',
+  replenish: '从牌堆摸2张牌。',
+}
+
 // ============================================================
 // Character Cards (角色牌) - 20 characters, 5 factions
 // ============================================================

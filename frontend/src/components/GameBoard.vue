@@ -45,7 +45,12 @@
       <div class="board-top">
         <div v-for="ai in aiPlayers" :key="ai.id" class="ai-area">
           <PlayerInfo :player="ai" :isCurrentTurn="currentPlayer?.id === ai.id" />
-          <DeployZone :slots="ai.deployed" :targetable="canTarget" />
+          <DeployZone
+            :slots="ai.deployed"
+            :targetable="canTarget"
+            :selectedUid="selectedTarget"
+            @select="(uid) => handleTargetSelect(ai.id, uid)"
+          />
         </div>
       </div>
 
@@ -115,7 +120,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useGameStore } from '../stores/game'
 import PlayerInfo from './PlayerInfo.vue'
 import DeployZone from './DeployZone.vue'
@@ -134,14 +139,17 @@ const aiPlayers = computed(() => store.aiPlayers)
 const handCards = computed(() => store.handCards)
 const deployedCharacters = computed(() => store.deployedCharacters)
 const selectedCardUid = computed(() => store.selectedCardUid)
+const selectedTarget = computed(() => store.selectedTarget)
+const selectedAttackerUid = ref<string | null>(null)
 
 const canTarget = computed(() => {
   if (!isMyTurn.value || turnPhase.value !== 'action') return false
-  return selectedCardUid.value?.startsWith('ATK') || selectedCardUid.value?.startsWith('ARMOR')
+  return isAttackCard.value && selectedAttackerUid.value !== null
 })
 
 const isAttackCard = computed(() => {
-  return selectedCardUid.value?.startsWith('ATK') || selectedCardUid.value?.startsWith('ARMOR')
+  if (!selectedCardUid.value) return false
+  return selectedCardUid.value.startsWith('ATK') || selectedCardUid.value.startsWith('ARMOR')
 })
 
 const isCharacterCard = computed(() => {
@@ -173,10 +181,33 @@ async function restart() {
 
 function handleCardSelect(uid: string) {
   store.selectCard(store.selectedCardUid === uid ? null : uid)
+  selectedAttackerUid.value = null
 }
 
 function handleDeploySelect(uid: string) {
+  // If it's an attack card and we haven't selected attacker yet, select attacker
+  if (isAttackCard.value && !selectedAttackerUid.value) {
+    // Check if selected character belongs to current player
+    const isMyCharacter = deployedCharacters.value.some(s => s.character?.uid === uid)
+    if (isMyCharacter) {
+      selectedAttackerUid.value = uid
+      return
+    }
+  }
+  // Otherwise select as target
   store.selectTarget(uid)
+}
+
+function handleTargetSelect(playerId: string, charUid: string) {
+  if (!isAttackCard.value || !selectedAttackerUid.value) return
+
+  // Execute attack
+  handleAction('attack', {
+    attackerCharUid: selectedAttackerUid.value,
+    targetPlayerId: playerId,
+    targetCharUid: charUid,
+    armorPierce: selectedCardUid.value?.startsWith('ARMOR') ?? false,
+  })
 }
 
 async function handleAction(type: string, params: Record<string, any> = {}) {
@@ -195,9 +226,13 @@ async function handleAction(type: string, params: Record<string, any> = {}) {
     case 'attack':
       await store.submitAction('attack', {
         cardUid: store.selectedCardUid,
+        attackerCharUid: selectedAttackerUid.value,
+        targetPlayerId: params.targetPlayerId,
+        targetCharUid: params.targetCharUid,
         armorPierce: params.armorPierce ?? false,
       })
       store.selectCard(null)
+      selectedAttackerUid.value = null
       break
     case 'endTurn':
       await store.submitAction('endTurn')
