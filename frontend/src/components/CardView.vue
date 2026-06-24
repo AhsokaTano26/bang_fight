@@ -8,8 +8,8 @@
       'card-mini': mini,
     }"
     @click="$emit('click')"
-    @mouseenter="showDetail = true"
-    @mouseleave="showDetail = false"
+    @mouseenter="onMouseEnter"
+    @mouseleave="onMouseLeave"
   >
     <div class="card-inner">
       <img
@@ -21,6 +21,10 @@
       />
       <div v-else class="card-placeholder">
         <span class="card-placeholder-text">{{ name }}</span>
+      </div>
+      <!-- Card name overlay -->
+      <div v-if="detailData" class="card-name-overlay" :class="`cat-${detailData.category}`">
+        {{ name }}
       </div>
     </div>
     <!-- HP/AP overlay for deployed characters -->
@@ -40,7 +44,8 @@
     <!-- Detail popup on hover -->
     <Teleport to="body">
       <Transition name="detail-fade">
-        <div v-if="showDetail && detailData" class="card-detail-overlay">
+        <div v-if="showDetail && detailData" class="card-detail-overlay"
+          @mouseenter="onDetailEnter" @mouseleave="onDetailLeave">
           <div class="card-detail">
             <div class="detail-image">
               <img :src="`/${detailData.imageFile}`" :alt="detailData.name" />
@@ -102,6 +107,7 @@ defineEmits<{
 }>()
 
 const showDetail = ref(false)
+let hideTimer: ReturnType<typeof setTimeout> | null = null
 
 const detailData = computed(() => {
   if (!props.cardId) return null
@@ -138,6 +144,23 @@ function getActionDescription(type: string): string {
 
 function getStrategyDescription(cardId: string): string {
   return STRATEGY_CARD_DESCRIPTIONS[cardId] ?? '未知效果'
+}
+
+function onMouseEnter() {
+  if (hideTimer) { clearTimeout(hideTimer); hideTimer = null }
+  showDetail.value = true
+}
+
+function onMouseLeave() {
+  hideTimer = setTimeout(() => { showDetail.value = false }, 100)
+}
+
+function onDetailEnter() {
+  if (hideTimer) { clearTimeout(hideTimer); hideTimer = null }
+}
+
+function onDetailLeave() {
+  hideTimer = setTimeout(() => { showDetail.value = false }, 100)
 }
 </script>
 
@@ -197,6 +220,43 @@ function getStrategyDescription(cardId: string): string {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.card-name-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 3px 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.2;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+  pointer-events: none;
+}
+
+.card-small .card-name-overlay {
+  font-size: 9px;
+  padding: 2px 3px;
+}
+
+.card-mini .card-name-overlay {
+  font-size: 8px;
+  padding: 1px 2px;
+}
+
+.cat-strategy {
+  background: linear-gradient(transparent, rgba(34, 197, 94, 0.85));
+}
+
+.cat-action {
+  background: linear-gradient(transparent, rgba(233, 69, 96, 0.85));
+}
+
+.cat-character {
+  background: linear-gradient(transparent, rgba(96, 165, 250, 0.85));
 }
 
 .card-placeholder {
@@ -263,12 +323,12 @@ function getStrategyDescription(cardId: string): string {
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 9999;
-  pointer-events: none;
+  pointer-events: auto;
 }
 
 .card-detail {
-  width: 320px;
-  max-height: 80vh;
+  width: 420px;
+  max-height: 85vh;
   background: #1a1a2e;
   border: 2px solid rgba(233, 69, 96, 0.5);
   border-radius: 14px;
@@ -289,7 +349,7 @@ function getStrategyDescription(cardId: string): string {
   height: auto;
   display: block;
   object-fit: contain;
-  max-height: 320px;
+  max-height: 450px;
 }
 
 .detail-info {
