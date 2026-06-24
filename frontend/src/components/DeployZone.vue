@@ -10,7 +10,7 @@
           'slot-targetable': targetable,
           'slot-selected': selectedUid === slot.character?.uid,
           'slot-near-death': slot.character?.state === 'nearDeath',
-          'slot-shaking': animations?.[slot.character?.uid]?.type === 'damaged',
+          'slot-shaking': slot.character && animations?.[slot.character.uid]?.type === 'damaged',
         }"
         @click="onSlotClick(i, slot)"
       >

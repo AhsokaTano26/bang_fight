@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { GameState, PlayerState, TurnPhase } from '../types/game'
+import type { GameState } from '../types/game'
 
 export const useGameStore = defineStore('game', () => {
   // State

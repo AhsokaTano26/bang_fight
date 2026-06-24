@@ -9,7 +9,7 @@
     <aside class="panel-left">
       <div class="panel-title">提示</div>
       <div class="hint-content">
-        <template v-if="game.gameOver">
+        <template v-if="game?.gameOver">
           <p class="hint-text">游戏结束！</p>
         </template>
         <template v-else-if="!isMyTurn">
@@ -76,14 +76,14 @@
     <!-- Right: battle log -->
     <aside class="panel-right">
       <div class="panel-title">战斗日志</div>
-      <BattleLog :logs="game.battleLog || []" />
+      <BattleLog :logs="game?.battleLog || []" />
     </aside>
 
     <!-- Game over overlay -->
-    <div v-if="game.gameOver" class="game-over-overlay">
+    <div v-if="game?.gameOver" class="game-over-overlay">
       <div class="game-over-modal">
-        <h2>{{ game.winner && !game.players.find(p => p.id === game.winner)?.isAi ? '你赢了！' : '你输了！' }}</h2>
-        <p>回合数: {{ game.turnNumber }}</p>
+        <h2>{{ game!.winner && !game!.players.find(p => p.id === game!.winner)?.isAi ? '你赢了！' : '你输了！' }}</h2>
+        <p>回合数: {{ game!.turnNumber }}</p>
         <button class="restart-btn" @click="restart">再来一局</button>
       </div>
     </div>
