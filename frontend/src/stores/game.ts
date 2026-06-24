@@ -40,7 +40,7 @@ export const useGameStore = defineStore('game', () => {
     loading.value = true
     error.value = null
     try {
-      const res = await fetch('http://localhost:3000/game/create', {
+      const res = await fetch('/game/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ playerCount, aiCount }),
@@ -61,7 +61,7 @@ export const useGameStore = defineStore('game', () => {
     loading.value = true
     error.value = null
     try {
-      const res = await fetch(`http://localhost:3000/game/${gameState.value.gameId}/action`, {
+      const res = await fetch(`/game/${gameState.value.gameId}/action`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -89,7 +89,7 @@ export const useGameStore = defineStore('game', () => {
   async function fetchState() {
     if (!gameState.value) return
     try {
-      const res = await fetch(`http://localhost:3000/game/${gameState.value.gameId}/state`)
+      const res = await fetch(`/game/${gameState.value.gameId}/state`)
       const data = await res.json()
       if (data.state) {
         gameState.value = data.state as GameState
@@ -104,7 +104,7 @@ export const useGameStore = defineStore('game', () => {
     loading.value = true
     error.value = null
     try {
-      const res = await fetch(`http://localhost:3000/game/${gameState.value.gameId}/ai-turn`, {
+      const res = await fetch(`/game/${gameState.value.gameId}/ai-turn`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}),
