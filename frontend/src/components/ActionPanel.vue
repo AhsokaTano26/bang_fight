@@ -50,7 +50,6 @@ const props = defineProps<{
   isMyTurn: boolean
   selectedCard?: string | null
   hasActionPoints?: boolean
-  canPlayCard?: boolean
   isCharacterCard?: boolean
 }>()
 

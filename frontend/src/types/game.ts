@@ -3,7 +3,10 @@
 // ============================================================
 
 import type { CardInstance } from './card'
-import type { CharacterState } from './card'
+import type { CharacterState, DebuffType, KeywordType } from './card'
+
+// Re-export for convenience
+export type { DebuffType, KeywordType }
 
 // ============================================================
 // Turn phases
@@ -29,6 +32,7 @@ export interface PlayerState {
   discardPile: CardInstance[] // 弃牌堆
 
   hpRecoveryUsed: number  // 本回合已使用体力值补充角色次数 (每回合上限2)
+  apUsedThisTurn: number  // 本回合已使用行动点的角色数 (每回合上限3)
 }
 
 export interface DeployedSlot {
@@ -48,6 +52,8 @@ export interface DeployedCharacter {
   armor: number           // 护甲值
   buffs: Buff[]           // 增益效果
   debuffs: Debuff[]       // 减益效果
+  keywords: KeywordType[] // 角色关键词
+  silenced: boolean       // 是否被沉默
 }
 
 // ============================================================

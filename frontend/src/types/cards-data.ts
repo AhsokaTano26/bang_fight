@@ -5,6 +5,156 @@
 
 import type { CharacterCard, ActionCard, StrategyCard } from './card'
 
+// 策略牌效果描述
+export const STRATEGY_CARD_DESCRIPTIONS: Record<string, string> = {
+  // A Series
+  A0001: '每次攻击有1/3概率拆除被攻击角色的道具牌',
+  A0002: '免疫沉默效果',
+  A0003: '缴械一名角色装备的道具牌一回合',
+  A0004: '将一名玩家手牌上尚未部署的角色送入休息室',
+  A0005: '指定一名己方角色和对方角色，双方轮流出攻击牌直到一方不能出',
+  A0006: '+1手牌上限',
+  A0007: '+1攻击力，+1护甲',
+  A0008: '使一张即将发动的即时牌失效',
+  A0009: '+1攻击力',
+  A0010: '消耗行动点，猜牌库顶花色，猜对目标退场，猜错自己濒死',
+  A0011: '当阵容技能失效时可立即使用，维持阵容技能直到下一个己方角色退场',
+  A0012: '指定一名有装备牌的角色，将该牌加入己方手牌',
+  A0013: '指定一名玩家放入判定区，花色判定不为Powerful则跳过行动阶段',
+  A0014: '指定一名己方角色在该回合获得1/3概率破甲效果',
+  A0015: '双方轮流进行概率判定，失败则强制退场',
+  A0016: '放入判定区，花色判定Powerful则返还手牌并获得花色牌',
+  // B Series
+  B0001: '+2血量，赋予"守护"',
+  B0002: '指定一名玩家放入判定区，概率判定投出5则失去行动能力',
+  B0003: '从弃牌堆里获取一张即时牌进入手牌',
+  B0004: '抽取一张角色卡并部署',
+  B0005: '弃置一张判定区的即时牌',
+  B0006: '随机抽取一名位于休息室的退场角色',
+  B0007: '+2护甲',
+  B0008: '濒死时可以弃置该牌恢复为正常状态',
+  B0009: '+1攻击力',
+  B0010: '指定一名己方角色在该回合获得暴击效果',
+  B0011: '本回合不限制行动点使用',
+  B0012: '选择手牌与玩家交换',
+  B0013: '+1攻击力',
+  B0014: '角色攻击与受击判定强制锁定为1/6',
+  B0015: '指定场上角色与己方角色进行位置互换',
+  B0016: '指定一名角色，概率判定沉默一回合',
+  // C Series
+  C0001: '查看一名玩家的所有手牌和角色牌',
+  C0002: '进入老虎机模式，进行三次投骰子触发相关效果',
+  C0003: '弃置所有手牌激活，下一回合结束全场角色退场',
+  C0004: '获得守护效果',
+  C0005: '所有玩家摸一张牌',
+  C0006: '部署角色退场前可打出此牌让其以正常状态继续存活',
+  C0007: '每次攻击附带"破甲"',
+  C0008: '1/2概率无视一次针对己方的角色技能',
+  C0009: '+2护甲',
+  C0010: '指定一名玩家放入判定区，花色判定不为Happy则跳过摸牌阶段',
+  C0011: '使指定玩家的阵营技失效',
+  C0012: '指定两个角色分别进行概率判定，结果虚弱',
+  C0013: '+2攻击力，-2血量',
+  C0014: '消耗行动点，翻出牌堆顶五张牌，选择其中两张加入手牌',
+  C0015: '抽取三张手牌；或五同阵营造成3伤害',
+  // D Series
+  D0001: '赋予"不可选中"',
+  D0002: '从弃牌堆里选择一张牌加入手牌',
+  D0003: '概率判定时可消耗行动点放置手牌',
+  D0004: '指定一名己方角色，将该角色翻面进入"地藏"一回合',
+  D0005: '可弃置该牌抽取一张手牌',
+  D0006: '抽取一张手牌，若场上存在邪神角色则将其送入休息室',
+  D0007: '+2攻击力',
+  D0008: '概率判定涉及到己方时强制成功或变为1/2',
+  D0009: '解除一个常规负面效果',
+  D0010: '每次攻击有1/3概率赋予被攻击角色一回合沉默',
+  D0011: '指定一名玩家，该玩家的阵营技失效一回合',
+  D0012: '在其他角色发动技能时，使本次发动的技能无效',
+  D0013: '+1攻击力',
+  D0014: '指定一名玩家放入判定区，花色判定不为Pure则角色地藏',
+  D0015: '赋予"无视守护"',
+  D0016: '+1攻击力',
+  D0017: '-1血量，+2护甲',
+}
+
+// ============================================================
+// Strategy Cards (策略牌) - 64 cards, A-D series
+// ============================================================
+
+export const STRATEGY_CARDS: StrategyCard[] = [
+  // A Series (16 cards)
+  { id: 'A0001', name: '破坏者之钳', category: 'strategy', strategyType: 'deployable', imageFile: 'cards/策略牌/A0001.png', description: '每次攻击有1/3概率拆除被攻击角色的道具牌', requiresTarget: true },
+  { id: 'A0002', name: '难绷假面', category: 'strategy', strategyType: 'deployable', imageFile: 'cards/策略牌/A0002.png', description: '免疫沉默效果', requiresTarget: true },
+  { id: 'A0003', name: '禁止事项', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/A0003.png', description: '缴械一名角色装备的道具牌一回合', requiresTarget: true },
+  { id: 'A0004', name: '财团B的阴谋', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/A0004.png', description: '将一名玩家手牌上尚未部署的角色送入休息室', requiresTarget: true },
+  { id: 'A0005', name: '无限制live格斗', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/A0005.png', description: '指定一名己方角色和对方角色，双方轮流出攻击牌', requiresTarget: true },
+  { id: 'A0006', name: '米歇尔红豆饼', category: 'strategy', strategyType: 'deployable', imageFile: 'cards/策略牌/A0006.png', description: '+1手牌上限', requiresTarget: true },
+  { id: 'A0007', name: '原装米歇尔', category: 'strategy', strategyType: 'deployable', imageFile: 'cards/策略牌/A0007.png', description: '+1攻击力，+1护甲', requiresTarget: true },
+  { id: 'A0008', name: '我有异议', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/A0008.png', description: '使一张即将发动的即时牌失效', requiresTarget: false },
+  { id: 'A0009', name: '战斗用Random star', category: 'strategy', strategyType: 'deployable', imageFile: 'cards/策略牌/A0009.png', description: '+1攻击力', requiresTarget: true },
+  { id: 'A0010', name: '黑色笔记本', category: 'strategy', strategyType: 'deployable', imageFile: 'cards/策略牌/A0010.png', description: '猜牌库顶花色，猜对目标退场，猜错自己濒死', requiresTarget: true },
+  { id: 'A0011', name: '世界守护者', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/A0011.png', description: '维持阵容技能直到下一个己方角色退场', requiresTarget: false },
+  { id: 'A0012', name: '拿来吧你', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/A0012.png', description: '指定有装备牌的角色，将该牌加入己方手牌', requiresTarget: true },
+  { id: 'A0013', name: '乐', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/A0013.png', description: '指定一名玩家放入判定区，花色判定不为Powerful则跳过行动阶段', requiresTarget: true },
+  { id: 'A0014', name: '巧克力螺', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/A0014.png', description: '指定一名己方角色在该回合获得破甲效果', requiresTarget: true },
+  { id: 'A0015', name: '俄罗斯轮盘', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/A0015.png', description: '双方轮流进行概率判定，失败则强制退场', requiresTarget: true },
+  { id: 'A0016', name: '小星星无限loop', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/A0016.png', description: '花色判定Powerful则返还手牌并获得花色牌', requiresTarget: false },
+
+  // B Series (16 cards)
+  { id: 'B0001', name: '钢巴歇尔', category: 'strategy', strategyType: 'deployable', imageFile: 'cards/策略牌/B0001.png', description: '+2血量，赋予"守护"', requiresTarget: true },
+  { id: 'B0002', name: '五字不行', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/B0002.png', description: '指定一名玩家放入判定区，概率判定投出5则失去行动能力', requiresTarget: true },
+  { id: 'B0003', name: '轨迹展', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/B0003.png', description: '从弃牌堆里获取一张即时牌进入手牌', requiresTarget: false },
+  { id: 'B0004', name: '星光魔方', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/B0004.png', description: '抽取一张角色卡并部署', requiresTarget: false },
+  { id: 'B0005', name: '拆弹专家', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/B0005.png', description: '弃置一张判定区的即时牌', requiresTarget: false },
+  { id: 'B0006', name: '复活赛', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/B0006.png', description: '随机抽取一名位于休息室的退场角色', requiresTarget: false },
+  { id: 'B0007', name: '石头', category: 'strategy', strategyType: 'deployable', imageFile: 'cards/策略牌/B0007.png', description: '+2护甲', requiresTarget: true },
+  { id: 'B0008', name: '小·珍妮弗', category: 'strategy', strategyType: 'deployable', imageFile: 'cards/策略牌/B0008.png', description: '濒死时可以弃置该牌恢复为正常状态', requiresTarget: true },
+  { id: 'B0009', name: '折叠椅', category: 'strategy', strategyType: 'deployable', imageFile: 'cards/策略牌/B0009.png', description: '+1攻击力', requiresTarget: true },
+  { id: 'B0010', name: '阿提斯特', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/B0010.png', description: '指定一名己方角色在该回合获得暴击效果', requiresTarget: true },
+  { id: 'B0011', name: '诡异的蘑菇', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/B0011.png', description: '本回合不限制行动点使用', requiresTarget: false },
+  { id: 'B0012', name: '何意味', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/B0012.png', description: '选择手牌与玩家交换', requiresTarget: false },
+  { id: 'B0013', name: '丸君', category: 'strategy', strategyType: 'deployable', imageFile: 'cards/策略牌/B0013.png', description: '+1攻击力', requiresTarget: true },
+  { id: 'B0014', name: '铁打的距离感', category: 'strategy', strategyType: 'deployable', imageFile: 'cards/策略牌/B0014.png', description: '角色攻击与受击判定强制锁定为1/6', requiresTarget: true },
+  { id: 'B0015', name: '灵魂互换', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/B0015.png', description: '指定场上角色与己方角色进行位置互换', requiresTarget: true },
+  { id: 'B0016', name: '是不想说话吗', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/B0016.png', description: '指定一名角色，概率判定沉默一回合', requiresTarget: true },
+
+  // C Series (15 cards)
+  { id: 'C0001', name: '视奸', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/C0001.png', description: '查看一名玩家的所有手牌和角色牌', requiresTarget: true },
+  { id: 'C0002', name: '老虎机', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/C0002.png', description: '进入老虎机模式，进行三次投骰子触发相关效果', requiresTarget: false },
+  { id: 'C0003', name: '地狱火炸弹', category: 'strategy', strategyType: 'deployable', imageFile: 'cards/策略牌/C0003.png', description: '弃置所有手牌激活，下一回合结束全场角色退场', requiresTarget: true },
+  { id: 'C0004', name: '孔雀', category: 'strategy', strategyType: 'deployable', imageFile: 'cards/策略牌/C0004.png', description: '获得守护效果', requiresTarget: true },
+  { id: 'C0005', name: '恩！情！', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/C0005.png', description: '所有玩家摸一张牌', requiresTarget: false },
+  { id: 'C0006', name: '屹立不倒', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/C0006.png', description: '部署角色退场前可打出此牌让其以正常状态继续存活', requiresTarget: false },
+  { id: 'C0007', name: '武士刀', category: 'strategy', strategyType: 'deployable', imageFile: 'cards/策略牌/C0007.png', description: '每次攻击附带"破甲"', requiresTarget: true },
+  { id: 'C0008', name: '灵光一闪', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/C0008.png', description: '1/2概率无视一次针对己方的角色技能', requiresTarget: false },
+  { id: 'C0009', name: '熊霸米歇尔', category: 'strategy', strategyType: 'deployable', imageFile: 'cards/策略牌/C0009.png', description: '+2护甲', requiresTarget: true },
+  { id: 'C0010', name: '金玉', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/C0010.png', description: '指定一名玩家放入判定区，花色判定不为Happy则跳过摸牌阶段', requiresTarget: true },
+  { id: 'C0011', name: '不仲蕾', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/C0011.png', description: '使指定玩家的阵营技失效', requiresTarget: true },
+  { id: 'C0012', name: '做了！', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/C0012.png', description: '指定两个角色分别进行概率判定，结果虚弱', requiresTarget: true },
+  { id: 'C0013', name: '村好剑', category: 'strategy', strategyType: 'deployable', imageFile: 'cards/策略牌/C0013.png', description: '+2攻击力，-2血量', requiresTarget: true },
+  { id: 'C0014', name: '街边的星星贴纸', category: 'strategy', strategyType: 'deployable', imageFile: 'cards/策略牌/C0014.png', description: '消耗行动点，翻出牌堆顶五张牌，选择其中两张加入手牌', requiresTarget: true },
+  { id: 'C0015', name: 'Fever!!!!!', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/C0015.png', description: '抽取三张手牌；或五同阵营造成3伤害', requiresTarget: false },
+
+  // D Series (17 cards)
+  { id: 'D0001', name: '家虎根绝', category: 'strategy', strategyType: 'deployable', imageFile: 'cards/策略牌/D0001.png', description: '赋予"不可选中"', requiresTarget: true },
+  { id: 'D0002', name: '回收站', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/D0002.png', description: '从弃牌堆里选择一张牌加入手牌', requiresTarget: false },
+  { id: 'D0003', name: '筹码', category: 'strategy', strategyType: 'deployable', imageFile: 'cards/策略牌/D0003.png', description: '概率判定时可消耗行动点放置手牌', requiresTarget: true },
+  { id: 'D0004', name: '我是纯良', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/D0004.png', description: '指定一名己方角色，将该角色翻面进入"地藏"一回合', requiresTarget: true },
+  { id: 'D0005', name: '利根川', category: 'strategy', strategyType: 'deployable', imageFile: 'cards/策略牌/D0005.png', description: '可弃置该牌抽取一张手牌', requiresTarget: true },
+  { id: 'D0006', name: '禁止947', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/D0006.png', description: '抽取一张手牌，若场上存在邪神角色则将其送入休息室', requiresTarget: false },
+  { id: 'D0007', name: '野蛮米歇尔', category: 'strategy', strategyType: 'deployable', imageFile: 'cards/策略牌/D0007.png', description: '+2攻击力', requiresTarget: true },
+  { id: 'D0008', name: '幸运四叶草', category: 'strategy', strategyType: 'deployable', imageFile: 'cards/策略牌/D0008.png', description: '概率判定涉及到己方时强制成功或变为1/2', requiresTarget: true },
+  { id: 'D0009', name: '巴巴恩波神之力', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/D0009.png', description: '解除一个常规负面效果', requiresTarget: false },
+  { id: 'D0010', name: '维修扳手', category: 'strategy', strategyType: 'deployable', imageFile: 'cards/策略牌/D0010.png', description: '每次攻击有1/3概率赋予被攻击角色一回合沉默', requiresTarget: true },
+  { id: 'D0011', name: '啥是XXX', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/D0011.png', description: '指定一名玩家，该玩家的阵营技失效一回合', requiresTarget: true },
+  { id: 'D0012', name: '绿接粉', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/D0012.png', description: '在其他角色发动技能时，使本次发动的技能无效', requiresTarget: false },
+  { id: 'D0013', name: '苦瓜', category: 'strategy', strategyType: 'deployable', imageFile: 'cards/策略牌/D0013.png', description: '+1攻击力', requiresTarget: true },
+  { id: 'D0014', name: '噜不动了', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/D0014.png', description: '指定一名玩家放入判定区，花色判定不为Pure则角色地藏', requiresTarget: true },
+  { id: 'D0015', name: '抹茶巴菲', category: 'strategy', strategyType: 'deployable', imageFile: 'cards/策略牌/D0015.png', description: '赋予"无视守护"', requiresTarget: true },
+  { id: 'D0016', name: '黄瓜', category: 'strategy', strategyType: 'deployable', imageFile: 'cards/策略牌/D0016.png', description: '+1攻击力', requiresTarget: true },
+  { id: 'D0017', name: '朝日啤酒', category: 'strategy', strategyType: 'deployable', imageFile: 'cards/策略牌/D0017.png', description: '-1血量，+2护甲', requiresTarget: true },
+]
+
 // 行动牌效果描述
 export const ACTION_CARD_DESCRIPTIONS: Record<string, string> = {
   attack: '对目标造成等于使用者攻击力的伤害。',
@@ -30,6 +180,7 @@ export const CHARACTER_CARDS: CharacterCard[] = [
     faction: 'AG',
     maxHp: 5,
     attack: 2,
+    keywords: [],
     skills: [
       {
         name: '一直摸兜里',
@@ -47,6 +198,7 @@ export const CHARACTER_CARDS: CharacterCard[] = [
     faction: 'AG',
     maxHp: 6,
     attack: 2,
+    keywords: [],
     skills: [
       {
         name: '积分卡收集',
@@ -64,6 +216,7 @@ export const CHARACTER_CARDS: CharacterCard[] = [
     faction: 'AG',
     maxHp: 6,
     attack: 2,
+    keywords: [],
     skills: [
       {
         name: '一呼零应',
@@ -81,6 +234,7 @@ export const CHARACTER_CARDS: CharacterCard[] = [
     faction: 'AG',
     maxHp: 7,
     attack: 1,
+    keywords: ['guardian', 'counter'],
     skills: [
       {
         name: 'SOIYA',
@@ -98,6 +252,7 @@ export const CHARACTER_CARDS: CharacterCard[] = [
     faction: 'AG',
     maxHp: 5,
     attack: 3,
+    keywords: [],
     skills: [
       {
         name: '查卡',
@@ -117,6 +272,7 @@ export const CHARACTER_CARDS: CharacterCard[] = [
     faction: 'PPP',
     maxHp: 5,
     attack: 1,
+    keywords: ['aoeAttack'],
     skills: [
       {
         name: 'CDD',
@@ -134,6 +290,7 @@ export const CHARACTER_CARDS: CharacterCard[] = [
     faction: 'PPP',
     maxHp: 6,
     attack: 2,
+    keywords: [],
     skills: [
       {
         name: '仓库大王',
@@ -151,6 +308,7 @@ export const CHARACTER_CARDS: CharacterCard[] = [
     faction: 'PPP',
     maxHp: 5,
     attack: 2,
+    keywords: [],
     skills: [
       {
         name: '迷兔花园',
@@ -168,6 +326,7 @@ export const CHARACTER_CARDS: CharacterCard[] = [
     faction: 'PPP',
     maxHp: 6,
     attack: 2,
+    keywords: [],
     skills: [
       {
         name: '面包圣母',
@@ -185,6 +344,7 @@ export const CHARACTER_CARDS: CharacterCard[] = [
     faction: 'PPP',
     maxHp: 6,
     attack: 1,
+    keywords: [],
     skills: [
       {
         name: '螺包狂热者',
@@ -204,6 +364,7 @@ export const CHARACTER_CARDS: CharacterCard[] = [
     faction: 'ROS',
     maxHp: 5,
     attack: 2,
+    keywords: [],
     skills: [
       {
         name: '压',
@@ -221,6 +382,7 @@ export const CHARACTER_CARDS: CharacterCard[] = [
     faction: 'ROS',
     maxHp: 5,
     attack: 2,
+    keywords: ['veteran'],
     skills: [
       {
         name: '吉他店老板',
@@ -238,6 +400,7 @@ export const CHARACTER_CARDS: CharacterCard[] = [
     faction: 'ROS',
     maxHp: 6,
     attack: 2,
+    keywords: [],
     skills: [
       {
         name: '魅惑女神',
@@ -255,6 +418,7 @@ export const CHARACTER_CARDS: CharacterCard[] = [
     faction: 'ROS',
     maxHp: 5,
     attack: 2,
+    keywords: [],
     skills: [
       {
         name: '骑骑开花',
@@ -272,6 +436,7 @@ export const CHARACTER_CARDS: CharacterCard[] = [
     faction: 'ROS',
     maxHp: 6,
     attack: 2,
+    keywords: [],
     skills: [
       {
         name: '大魔姬封印',
@@ -291,6 +456,7 @@ export const CHARACTER_CARDS: CharacterCard[] = [
     faction: 'HHW',
     maxHp: 5,
     attack: 2,
+    keywords: [],
     skills: [
       {
         name: '弦卷家的大手',
@@ -308,6 +474,7 @@ export const CHARACTER_CARDS: CharacterCard[] = [
     faction: 'HHW',
     maxHp: 4,
     attack: 2,
+    keywords: [],
     skills: [
       {
         name: '欧数尔万事',
@@ -327,6 +494,7 @@ export const CHARACTER_CARDS: CharacterCard[] = [
     faction: 'PAS',
     maxHp: 5,
     attack: 2,
+    keywords: ['armorPierce'],
     skills: [
       {
         name: '劈瓦',
@@ -344,6 +512,7 @@ export const CHARACTER_CARDS: CharacterCard[] = [
     faction: 'PAS',
     maxHp: 5,
     attack: 2,
+    keywords: [],
     skills: [
       {
         name: '猫狗饲主',
@@ -361,6 +530,7 @@ export const CHARACTER_CARDS: CharacterCard[] = [
     faction: 'PAS',
     maxHp: 6,
     attack: 2,
+    keywords: [],
     skills: [
       {
         name: '求雨',
@@ -643,8 +813,8 @@ export const ACTION_CARDS: ActionCard[] = [
 // Card lookup helpers
 // ============================================================
 
-export function getCardById(id: string): CharacterCard | ActionCard | undefined {
-  return CHARACTER_CARDS.find(c => c.id === id) || ACTION_CARDS.find(c => c.id === id)
+export function getCardById(id: string): CharacterCard | ActionCard | StrategyCard | undefined {
+  return CHARACTER_CARDS.find(c => c.id === id) || ACTION_CARDS.find(c => c.id === id) || STRATEGY_CARDS.find(c => c.id === id)
 }
 
 export function getCharacterCardsByFaction(faction: string): CharacterCard[] {

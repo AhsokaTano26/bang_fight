@@ -59,7 +59,8 @@
             <div v-if="stepType === 'selectTarget'" class="target-list">
               <div v-for="enemy in enemyPlayers" :key="enemy.id" class="enemy-group">
                 <span class="enemy-label">{{ enemy.name }}</span>
-                <div class="select-grid">
+                <!-- Show deployed characters -->
+                <div class="select-grid" v-if="enemy.deployed.some(s => s.character)">
                   <div
                     v-for="slot in enemy.deployed.filter(s => s.character)"
                     :key="slot.character!.uid"
@@ -73,6 +74,20 @@
                       <span class="sel-hp">HP {{ slot.character!.currentHp }}/{{ slot.character!.maxHp }}</span>
                       <span class="sel-atk">ATK {{ slot.character!.attack }}</span>
                       <span v-if="slot.character!.state === 'nearDeath'" class="sel-badge-s">濒死</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Show player as target when no deployed chars -->
+                <div v-else class="select-grid">
+                  <div
+                    class="select-card sel-enemy"
+                    :class="{ 'sel-selected-enemy': selectedUid === enemy.id }"
+                    @click="$emit('select', enemy.id, enemy.id)"
+                  >
+                    <div class="sel-info">
+                      <span class="sel-name">{{ enemy.name }}</span>
+                      <span class="sel-hp">HP {{ enemy.hp }}/{{ enemy.maxHp }}</span>
+                      <span class="sel-badge-s">直接攻击玩家</span>
                     </div>
                   </div>
                 </div>
@@ -126,6 +141,136 @@
                 </template>
               </div>
             </div>
+
+            <!-- Select Replacement (choose deployed char to replace) -->
+            <div v-if="stepType === 'selectReplacement'" class="select-grid">
+              <div
+                v-for="slot in myDeployed.filter(s => s.character)"
+                :key="slot.character!.uid"
+                class="select-card"
+                :class="{ 'sel-selected': slot.character!.uid === selectedUid }"
+                @click="$emit('select', slot.character!.uid)"
+              >
+                <img :src="`/${getCharImg(slot.character!.cardId)}`" class="sel-img" />
+                <div class="sel-info">
+                  <span class="sel-name">{{ getCharName(slot.character!.cardId) }}</span>
+                  <span class="sel-hp">HP {{ slot.character!.currentHp }}/{{ slot.character!.maxHp }}</span>
+                </div>
+              </div>
+              <p v-if="!myDeployed.some(s => s.character)" class="sel-empty">没有可替换的角色</p>
+            </div>
+
+            <!-- Choose Replenish Mode -->
+            <div v-if="stepType === 'chooseReplenishMode'" class="mode-grid">
+              <div class="mode-card" :class="{ 'mode-selected': selectedMode === 'draw' }" @click="$emit('selectMode', 'draw')">
+                <div class="mode-icon">🃏</div>
+                <span class="mode-label">抽牌模式</span>
+                <span class="mode-desc">从牌堆抽取2张牌</span>
+              </div>
+              <div class="mode-card" :class="{ 'mode-selected': selectedMode === 'recruit' }" @click="$emit('selectMode', 'recruit')">
+                <div class="mode-icon">👤</div>
+                <span class="mode-label">招揽模式</span>
+                <span class="mode-desc">从角色池招揽1张角色牌</span>
+              </div>
+            </div>
+
+            <!-- Choose Recovery Mode -->
+            <div v-if="stepType === 'chooseRecoveryMode'" class="mode-grid">
+              <div class="mode-card" :class="{ 'mode-selected': selectedMode === 'character' }" @click="$emit('selectMode', 'character')">
+                <div class="mode-icon">⚔️</div>
+                <span class="mode-label">回复角色</span>
+                <span class="mode-desc">回复一名己方角色的体力</span>
+              </div>
+              <div class="mode-card" :class="{ 'mode-selected': selectedMode === 'player' }" @click="$emit('selectMode', 'player')">
+                <div class="mode-icon">💚</div>
+                <span class="mode-label">回复玩家</span>
+                <span class="mode-desc">回复玩家的体力值</span>
+              </div>
+            </div>
+
+            <!-- Select Player Target (when enemy has no deployed chars) -->
+            <div v-if="stepType === 'selectPlayerTarget'" class="target-list">
+              <div v-for="enemy in enemyPlayers" :key="enemy.id" class="enemy-group">
+                <span class="enemy-label">{{ enemy.name }}</span>
+                <div class="select-card sel-enemy" :class="{ 'sel-selected-enemy': selectedUid === enemy.id }" @click="$emit('select', enemy.id, enemy.id)">
+                  <div class="sel-info">
+                    <span class="sel-name">{{ enemy.name }}</span>
+                    <span class="sel-hp">HP {{ enemy.hp }}/{{ enemy.maxHp }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Select Equipment Target (for deployable strategy cards) -->
+            <div v-if="stepType === 'selectEquipmentTarget'" class="select-grid">
+              <div
+                v-for="slot in myDeployed.filter(s => s.character)"
+                :key="slot.character!.uid"
+                class="select-card"
+                :class="{
+                  'sel-selected': slot.character!.uid === selectedUid,
+                  'sel-disabled': !!slot.equipment
+                }"
+                @click="!slot.equipment && $emit('select', slot.character!.uid)"
+              >
+                <img :src="`/${getCharImg(slot.character!.cardId)}`" class="sel-img" />
+                <div class="sel-info">
+                  <span class="sel-name">{{ getCharName(slot.character!.cardId) }}</span>
+                  <span class="sel-hp">HP {{ slot.character!.currentHp }}/{{ slot.character!.maxHp }}</span>
+                  <span v-if="slot.equipment" class="sel-badge">已有装备</span>
+                </div>
+              </div>
+              <p v-if="!myDeployed.some(s => s.character)" class="sel-empty">没有可用的角色</p>
+            </div>
+
+            <!-- Select Strategy Target (for instant strategy cards with requiresTarget) -->
+            <div v-if="stepType === 'selectStrategyTarget'" class="target-list">
+              <div class="enemy-group">
+                <span class="enemy-label">己方角色</span>
+                <div class="select-grid" v-if="myDeployed.some(s => s.character)">
+                  <div
+                    v-for="slot in myDeployed.filter(s => s.character)"
+                    :key="slot.character!.uid"
+                    class="select-card"
+                    :class="{ 'sel-selected': slot.character!.uid === selectedUid }"
+                    @click="$emit('select', slot.character!.uid)"
+                  >
+                    <img :src="`/${getCharImg(slot.character!.cardId)}`" class="sel-img" />
+                    <div class="sel-info">
+                      <span class="sel-name">{{ getCharName(slot.character!.cardId) }}</span>
+                      <span class="sel-hp">HP {{ slot.character!.currentHp }}/{{ slot.character!.maxHp }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div v-for="enemy in enemyPlayers" :key="enemy.id" class="enemy-group">
+                <span class="enemy-label">{{ enemy.name }}</span>
+                <div class="select-grid" v-if="enemy.deployed.some(s => s.character)">
+                  <div
+                    v-for="slot in enemy.deployed.filter(s => s.character)"
+                    :key="slot.character!.uid"
+                    class="select-card sel-enemy"
+                    :class="{ 'sel-selected-enemy': slot.character!.uid === selectedUid }"
+                    @click="$emit('select', slot.character!.uid, enemy.id)"
+                  >
+                    <img :src="`/${getCharImg(slot.character!.cardId)}`" class="sel-img" />
+                    <div class="sel-info">
+                      <span class="sel-name">{{ getCharName(slot.character!.cardId) }}</span>
+                      <span class="sel-hp">HP {{ slot.character!.currentHp }}/{{ slot.character!.maxHp }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div v-else class="select-grid">
+                  <div class="select-card sel-enemy" :class="{ 'sel-selected-enemy': selectedUid === enemy.id }" @click="$emit('select', enemy.id, enemy.id)">
+                    <div class="sel-info">
+                      <span class="sel-name">{{ enemy.name }}</span>
+                      <span class="sel-hp">HP {{ enemy.hp }}/{{ enemy.maxHp }}</span>
+                      <span class="sel-badge-s">玩家</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- Footer -->
@@ -148,6 +293,8 @@ import { CHARACTER_CARDS } from '../types/cards-data'
 import type { DeployedSlot, PlayerState } from '../types/game'
 
 type StepType = 'selectAttacker' | 'selectTarget' | 'selectAlly' | 'confirm' | 'selectSlot'
+  | 'selectReplacement' | 'chooseReplenishMode' | 'chooseRecoveryMode' | 'selectPlayerTarget'
+  | 'selectEquipmentTarget' | 'selectStrategyTarget'
 
 const props = defineProps<{
   visible: boolean
@@ -166,6 +313,7 @@ const props = defineProps<{
   selectedSlot?: number | null
   selectedName?: string
   selectedImage?: string
+  selectedMode?: string | null
   confirmSummary: string
   myDeployed: DeployedSlot[]
   enemyPlayers: PlayerState[]
@@ -174,6 +322,7 @@ const props = defineProps<{
 
 defineEmits<{
   select: [uid: string, playerId?: string]
+  selectMode: [mode: string]
   confirm: []
   cancel: []
   back: []
@@ -184,11 +333,16 @@ const typeName = computed(() => props.cardTypeName)
 const hasEnemies = computed(() => props.enemyPlayers.some(e => e.deployed.some(s => s.character)))
 
 const canConfirm = computed(() => {
-  if (props.stepType === 'selectAttacker' || props.stepType === 'selectTarget' || props.stepType === 'selectAlly') {
+  if (props.stepType === 'selectAttacker' || props.stepType === 'selectTarget' || props.stepType === 'selectAlly'
+    || props.stepType === 'selectReplacement' || props.stepType === 'selectPlayerTarget'
+    || props.stepType === 'selectEquipmentTarget' || props.stepType === 'selectStrategyTarget') {
     return !!props.selectedUid
   }
   if (props.stepType === 'selectSlot') {
     return props.selectedSlot !== null && props.selectedSlot !== undefined
+  }
+  if (props.stepType === 'chooseReplenishMode' || props.stepType === 'chooseRecoveryMode') {
+    return !!props.selectedMode
   }
   return true
 })
@@ -232,6 +386,7 @@ function getCharName(cardId: string): string {
 .modal-card-type { display: inline-block; padding: 2px 10px; border-radius: 4px; font-size: 12px; font-weight: 600; margin-bottom: 8px; }
 .type-character { background: rgba(167,139,250,0.2); color: #a78bfa; }
 .type-action { background: rgba(96,165,250,0.2); color: #60a5fa; }
+.type-strategy { background: rgba(74,222,128,0.2); color: #4ade80; }
 .modal-card-desc { font-size: 13px; color: #aaa; margin: 0 0 8px; line-height: 1.5; }
 .modal-card-stats { display: flex; gap: 8px; }
 .stat-hp { color: #ff6b81; font-size: 13px; font-weight: 600; }
@@ -261,11 +416,21 @@ function getCharName(cardId: string): string {
   display: flex; flex-direction: column; align-items: center; gap: 6px;
 }
 .select-card:hover { border-color: rgba(245,166,35,0.4); transform: translateY(-2px); }
-.sel-selected { border-color: #f5a623 !important; box-shadow: 0 0 15px rgba(245,166,35,0.3); }
+.sel-selected { border-color: #f5a623 !important; box-shadow: 0 0 15px rgba(245,166,35,0.3); animation: selected-glow 1.5s ease-in-out infinite; }
+.sel-selected-enemy { border-color: #e94560 !important; box-shadow: 0 0 15px rgba(233,69,96,0.3); animation: selected-glow-red 1.5s ease-in-out infinite; }
+
+@keyframes selected-glow {
+  0%, 100% { box-shadow: 0 0 15px rgba(245,166,35,0.3); }
+  50% { box-shadow: 0 0 25px rgba(245,166,35,0.6); }
+}
+
+@keyframes selected-glow-red {
+  0%, 100% { box-shadow: 0 0 15px rgba(233,69,96,0.3); }
+  50% { box-shadow: 0 0 25px rgba(233,69,96,0.6); }
+}
 .sel-disabled { opacity: 0.4; cursor: not-allowed; }
 .sel-disabled:hover { border-color: transparent; transform: none; }
 .sel-enemy:hover { border-color: rgba(233,69,96,0.4); }
-.sel-selected-enemy { border-color: #e94560 !important; box-shadow: 0 0 15px rgba(233,69,96,0.3); }
 .sel-img { width: 60px; height: 60px; border-radius: 6px; object-fit: cover; }
 .sel-info { display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .sel-name { font-size: 12px; font-weight: 600; color: #fff; }
@@ -285,6 +450,20 @@ function getCharName(cardId: string): string {
 .confirm-text { font-size: 16px; color: #ccc; margin: 0 0 16px; }
 .confirm-chip { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); padding: 8px 16px; border-radius: 8px; font-size: 14px; color: #fff; }
 .confirm-chip-img { width: 32px; height: 32px; border-radius: 4px; object-fit: cover; }
+
+/* Mode selection */
+.mode-grid { display: flex; gap: 16px; justify-content: center; }
+.mode-card {
+  flex: 1; max-width: 200px; border: 2px solid transparent; border-radius: 12px;
+  padding: 20px 16px; cursor: pointer; transition: all 0.2s;
+  background: rgba(255,255,255,0.03); text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.mode-card:hover { border-color: rgba(245,166,35,0.4); transform: translateY(-2px); }
+.mode-selected { border-color: #f5a623 !important; box-shadow: 0 0 15px rgba(245,166,35,0.3); background: rgba(245,166,35,0.08); }
+.mode-icon { font-size: 28px; }
+.mode-label { font-size: 14px; font-weight: 600; color: #fff; }
+.mode-desc { font-size: 12px; color: #999; }
 
 /* Deploy slots */
 .slot-grid { display: flex; gap: 10px; justify-content: center; }

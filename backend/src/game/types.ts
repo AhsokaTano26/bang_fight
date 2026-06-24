@@ -25,6 +25,33 @@ export type CharacterState = 'normal' | 'nearDeath' | 'retired'
 export type Suit = 'hearts' | 'diamonds' | 'clubs' | 'spades'
 
 // ------------------------------------------------------------
+// Debuff types
+// ------------------------------------------------------------
+
+export type DebuffType =
+  | 'skipDraw'      // 跳过摸牌
+  | 'skipAction'    // 跳过行动
+  | 'loseAbility'   // 失去行动能力
+  | 'silence'       // 沉默（无法使用技能）
+  | 'weaken'        // 虚弱（攻击力-2）
+  | 'disarm'        // 缴械（无法攻击）
+
+// ------------------------------------------------------------
+// Keyword types
+// ------------------------------------------------------------
+
+export type KeywordType =
+  | 'guardian'      // 守护：替相邻角色承受攻击
+  | 'counter'       // 反击：被攻击后反击攻击者
+  | 'aoeAttack'     // 群攻：攻击所有敌方角色
+  | 'veteran'       // 历战：受伤后下次攻击+2
+  | 'immunity'      // 免伤：不受伤害
+  | 'untargetable'  // 不可选中：无法被选为目标
+  | 'earthStore'    // 地藏：濒死时保留1HP
+  | 'spread'        // 扩散：伤害扩散到相邻角色
+  | 'armorPierce'   // 穿甲：无视护甲
+
+// ------------------------------------------------------------
 // Card definitions (static data)
 // ------------------------------------------------------------
 
@@ -47,6 +74,7 @@ export interface CharacterCardDef {
   faction: Faction
   maxHp: number
   attack: number
+  keywords: KeywordType[]
   skills: CharacterSkill[]
 }
 
@@ -60,7 +88,56 @@ export interface ActionCardDef {
   armorPierce?: boolean
 }
 
-export type CardDef = CharacterCardDef | ActionCardDef
+// ------------------------------------------------------------
+// Strategy card types
+// ------------------------------------------------------------
+
+export type StrategyType = 'deployable' | 'instant'
+
+export type EquipEffectType =
+  | 'attackBoost'
+  | 'hpBoost'
+  | 'armorBoost'
+  | 'handLimitBoost'
+  | 'grantKeyword'
+  | 'silenceImmunity'
+  | 'armorPierceOnAttack'
+  | 'nearDeathRecover'
+  | 'unTargetable'
+  | 'critOnAttack'
+  | 'ignoreGuardian'
+  | 'counterSilence'
+  | 'forceRetireOnHit'
+  | 'conditionalBonus'
+
+export interface EquipEffect {
+  type: EquipEffectType
+  value?: number
+  keyword?: KeywordType
+  condition?: string
+}
+
+export interface JudgmentEffect {
+  type: 'suitCheck' | 'probabilityCheck' | 'moveToNext'
+  suitCondition?: string
+  onFail?: string
+  onSuccess?: string
+}
+
+export interface StrategyCardDef {
+  id: string
+  name: string
+  category: 'strategy'
+  strategyType: StrategyType
+  imageFile: string
+  description: string
+  requiresTarget: boolean
+  equipEffects?: EquipEffect[]
+  instantType?: string
+  judgmentEffect?: JudgmentEffect
+}
+
+export type CardDef = CharacterCardDef | ActionCardDef | StrategyCardDef
 
 // ------------------------------------------------------------
 // Card instance (runtime, per-game)
@@ -94,8 +171,10 @@ export interface PlayerState {
   deployed: DeployedSlot[]
   graveyard: CardInstance[]
   discardPile: CardInstance[]
+  judgmentZone: CardInstance[]
 
   hpRecoveryUsed: number // how many times player recovered HP this turn (max 2)
+  apUsedThisTurn: number // how many characters have used AP this turn (max 3)
 }
 
 export interface DeployedSlot {
@@ -115,6 +194,8 @@ export interface DeployedCharacter {
   armor: number
   buffs: Buff[]
   debuffs: Debuff[]
+  keywords: KeywordType[]
+  silenced: boolean
 }
 
 // ------------------------------------------------------------

@@ -56,8 +56,8 @@ export const useGameStore = defineStore('game', () => {
     }
   }
 
-  async function submitAction(type: string, params: Record<string, any> = {}) {
-    if (!gameState.value) return
+  async function submitAction(type: string, params: Record<string, any> = {}): Promise<Record<string, any> | null> {
+    if (!gameState.value) return null
     loading.value = true
     error.value = null
     try {
@@ -77,8 +77,10 @@ export const useGameStore = defineStore('game', () => {
       if (data.message && !data.success) {
         error.value = data.message
       }
+      return data
     } catch (e) {
       error.value = String(e)
+      return null
     } finally {
       loading.value = false
     }

@@ -14,6 +14,7 @@ export const CHARACTER_CARDS: CharacterCardDef[] = [
     faction: 'AG',
     maxHp: 5,
     attack: 2,
+    keywords: [],
     skills: [
       {
         name: '一直摸兜里',
@@ -30,6 +31,7 @@ export const CHARACTER_CARDS: CharacterCardDef[] = [
     faction: 'AG',
     maxHp: 6,
     attack: 2,
+    keywords: [],
     skills: [
       {
         name: '积分卡收集',
@@ -46,6 +48,7 @@ export const CHARACTER_CARDS: CharacterCardDef[] = [
     faction: 'AG',
     maxHp: 6,
     attack: 2,
+    keywords: [],
     skills: [
       {
         name: '一呼零应',
@@ -62,6 +65,7 @@ export const CHARACTER_CARDS: CharacterCardDef[] = [
     faction: 'AG',
     maxHp: 7,
     attack: 1,
+    keywords: ['guardian', 'counter'],
     skills: [
       {
         name: 'SOIYA',
@@ -78,6 +82,7 @@ export const CHARACTER_CARDS: CharacterCardDef[] = [
     faction: 'AG',
     maxHp: 5,
     attack: 3,
+    keywords: [],
     skills: [
       {
         name: '查卡',
@@ -96,6 +101,7 @@ export const CHARACTER_CARDS: CharacterCardDef[] = [
     faction: 'PPP',
     maxHp: 5,
     attack: 1,
+    keywords: ['aoeAttack'],
     skills: [
       {
         name: 'CDD',
@@ -112,6 +118,7 @@ export const CHARACTER_CARDS: CharacterCardDef[] = [
     faction: 'PPP',
     maxHp: 6,
     attack: 2,
+    keywords: [],
     skills: [
       {
         name: '仓库大王',
@@ -128,6 +135,7 @@ export const CHARACTER_CARDS: CharacterCardDef[] = [
     faction: 'PPP',
     maxHp: 5,
     attack: 2,
+    keywords: [],
     skills: [
       {
         name: '迷兔花园',
@@ -144,6 +152,7 @@ export const CHARACTER_CARDS: CharacterCardDef[] = [
     faction: 'PPP',
     maxHp: 6,
     attack: 2,
+    keywords: [],
     skills: [
       {
         name: '面包圣母',
@@ -160,6 +169,7 @@ export const CHARACTER_CARDS: CharacterCardDef[] = [
     faction: 'PPP',
     maxHp: 6,
     attack: 1,
+    keywords: [],
     skills: [
       {
         name: '螺包狂热者',
@@ -178,6 +188,7 @@ export const CHARACTER_CARDS: CharacterCardDef[] = [
     faction: 'ROS',
     maxHp: 5,
     attack: 2,
+    keywords: [],
     skills: [
       {
         name: '压',
@@ -194,6 +205,7 @@ export const CHARACTER_CARDS: CharacterCardDef[] = [
     faction: 'ROS',
     maxHp: 5,
     attack: 2,
+    keywords: ['veteran'],
     skills: [
       {
         name: '吉他店老板',
@@ -210,6 +222,7 @@ export const CHARACTER_CARDS: CharacterCardDef[] = [
     faction: 'ROS',
     maxHp: 6,
     attack: 2,
+    keywords: [],
     skills: [
       {
         name: '魅惑女神',
@@ -226,6 +239,7 @@ export const CHARACTER_CARDS: CharacterCardDef[] = [
     faction: 'ROS',
     maxHp: 5,
     attack: 2,
+    keywords: [],
     skills: [
       {
         name: '骑骑开花',
@@ -242,6 +256,7 @@ export const CHARACTER_CARDS: CharacterCardDef[] = [
     faction: 'ROS',
     maxHp: 6,
     attack: 2,
+    keywords: [],
     skills: [
       {
         name: '大魔姬封印',
@@ -260,6 +275,7 @@ export const CHARACTER_CARDS: CharacterCardDef[] = [
     faction: 'HHW',
     maxHp: 5,
     attack: 2,
+    keywords: [],
     skills: [
       {
         name: '弦卷家的大手',
@@ -276,6 +292,7 @@ export const CHARACTER_CARDS: CharacterCardDef[] = [
     faction: 'HHW',
     maxHp: 4,
     attack: 2,
+    keywords: [],
     skills: [
       {
         name: '欧数尔万事',
@@ -294,6 +311,7 @@ export const CHARACTER_CARDS: CharacterCardDef[] = [
     faction: 'PAS',
     maxHp: 5,
     attack: 2,
+    keywords: ['armorPierce'],
     skills: [
       {
         name: '劈瓦',
@@ -310,6 +328,7 @@ export const CHARACTER_CARDS: CharacterCardDef[] = [
     faction: 'PAS',
     maxHp: 5,
     attack: 2,
+    keywords: [],
     skills: [
       {
         name: '猫狗饲主',
@@ -326,6 +345,7 @@ export const CHARACTER_CARDS: CharacterCardDef[] = [
     faction: 'PAS',
     maxHp: 6,
     attack: 2,
+    keywords: [],
     skills: [
       {
         name: '求雨',

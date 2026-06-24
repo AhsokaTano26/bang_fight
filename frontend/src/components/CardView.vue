@@ -60,6 +60,13 @@
               <div v-if="detailData.category === 'action'" class="detail-skill">
                 <span class="skill-desc">{{ getActionDescription(detailData.actionType) }}</span>
               </div>
+              <div v-if="detailData.category === 'strategy'" class="detail-stats">
+                <span class="detail-type">{{ detailData.strategyType === 'deployable' ? '道具牌' : '即时牌' }}</span>
+                <span v-if="detailData.requiresTarget" class="detail-tag">需要目标</span>
+              </div>
+              <div v-if="detailData.category === 'strategy'" class="detail-skill">
+                <span class="skill-desc">{{ getStrategyDescription(detailData.id) }}</span>
+              </div>
               <div v-if="detailData.category === 'character' && detailData.skills.length" class="detail-skill">
                 <span class="skill-name">【{{ detailData.skills[0].name }}】</span>
                 <span class="skill-desc">{{ detailData.skills[0].description }}</span>
@@ -74,7 +81,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { getCardById, ACTION_CARD_DESCRIPTIONS } from '../types/cards-data'
+import { getCardById, ACTION_CARD_DESCRIPTIONS, STRATEGY_CARD_DESCRIPTIONS } from '../types/cards-data'
 
 const props = defineProps<{
   cardId?: string
@@ -127,6 +134,10 @@ function actionTypeName(type: string): string {
 
 function getActionDescription(type: string): string {
   return ACTION_CARD_DESCRIPTIONS[type] ?? '未知效果'
+}
+
+function getStrategyDescription(cardId: string): string {
+  return STRATEGY_CARD_DESCRIPTIONS[cardId] ?? '未知效果'
 }
 </script>
 

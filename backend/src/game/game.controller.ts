@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common'
 import { GameService } from './game.service'
 import { GameStateService } from './game-state.service'
+import { CombatService } from './combat.service'
 import { AiService } from './ai.service'
 import { getCharacterDef } from './character-data'
 import type { GameAction, GameState, PlayerState } from './types'
@@ -45,6 +46,7 @@ export class GameController {
   constructor(
     private readonly gameService: GameService,
     private readonly stateService: GameStateService,
+    private readonly combatService: CombatService,
     private readonly aiService: AiService,
   ) {}
 
@@ -57,7 +59,7 @@ export class GameController {
     const { playerCount, aiCount } = body
     if (playerCount < 1 || aiCount < 1) {
       throw new HttpException(
-        'Must have at least 1 human player and 1 AI player',
+        '至少需要1名人类玩家和1名AI玩家',
         HttpStatus.BAD_REQUEST,
       )
     }
@@ -77,7 +79,7 @@ export class GameController {
   getState(@Param('id') id: string) {
     const state = this.stateService.get(id)
     if (!state) {
-      throw new HttpException('Game not found', HttpStatus.NOT_FOUND)
+      throw new HttpException('未找到游戏', HttpStatus.NOT_FOUND)
     }
     return {
       success: true,
@@ -93,10 +95,10 @@ export class GameController {
   submitAction(@Param('id') id: string, @Body() body: ActionDto) {
     const state = this.stateService.get(id)
     if (!state) {
-      throw new HttpException('Game not found', HttpStatus.NOT_FOUND)
+      throw new HttpException('未找到游戏', HttpStatus.NOT_FOUND)
     }
     if (state.gameOver) {
-      throw new HttpException('Game is already over', HttpStatus.BAD_REQUEST)
+      throw new HttpException('游戏已经结束', HttpStatus.BAD_REQUEST)
     }
 
     const { type, playerId, params } = body
@@ -106,8 +108,7 @@ export class GameController {
     switch (type) {
       case 'startTurn': {
         this.gameService.startTurn(state)
-        this.gameService.drawPhase(state)
-        result = { success: true, message: 'Turn started' }
+        result = { success: true, message: '回合开始' }
         break
       }
 
@@ -131,35 +132,49 @@ export class GameController {
 
       case 'endTurn': {
         this.gameService.endTurn(state)
-        // Auto-start next turn
-        if (!state.gameOver) {
-          this.gameService.startTurn(state)
-          this.gameService.drawPhase(state)
-        }
-        result = { success: true, message: 'Turn ended' }
+        result = { success: true, message: '回合结束' }
         break
       }
 
       case 'attack': {
         const { attackerCharUid, targetPlayerId, targetCharUid, armorPierce } = params
-        result = this.gameService.playCard(state, playerId, params.cardUid ?? '', {
+        result = this.combatService.resolveAttack(
+          state,
+          playerId,
           attackerCharUid,
           targetPlayerId,
           targetCharUid,
-          armorPierce,
-        })
+          armorPierce ?? false,
+        )
+        break
+      }
+
+      case 'directAttack': {
+        const { attackerCharUid, targetPlayerId } = params
+        result = this.combatService.resolveDirectAttack(
+          state,
+          playerId,
+          attackerCharUid,
+          targetPlayerId,
+        )
+        break
+      }
+
+      case 'replaceCharacter': {
+        const { deployedUid, handCardUid } = params
+        result = this.gameService.replaceCharacter(state, playerId, deployedUid, handCardUid)
         break
       }
 
       case 'draw': {
         // Already handled by startTurn, but allow explicit draw
         this.gameService.drawPhase(state)
-        result = { success: true, message: 'Drew cards' }
+        result = { success: true, message: '摸牌成功' }
         break
       }
 
       default:
-        throw new HttpException(`Unknown action type: ${type}`, HttpStatus.BAD_REQUEST)
+        throw new HttpException(`未知操作类型: ${type}`, HttpStatus.BAD_REQUEST)
     }
 
     return {
@@ -176,35 +191,47 @@ export class GameController {
   aiTurn(@Param('id') id: string, @Body() body?: AiTurnDto) {
     const state = this.stateService.get(id)
     if (!state) {
-      throw new HttpException('Game not found', HttpStatus.NOT_FOUND)
+      throw new HttpException('未找到游戏', HttpStatus.NOT_FOUND)
     }
     if (state.gameOver) {
-      throw new HttpException('Game is already over', HttpStatus.BAD_REQUEST)
+      throw new HttpException('游戏已经结束', HttpStatus.BAD_REQUEST)
     }
 
     // Find the current AI player
     const currentPlayer = state.players[state.currentPlayerIndex]
     if (!currentPlayer.isAi) {
-      throw new HttpException('Current player is not an AI', HttpStatus.BAD_REQUEST)
+      throw new HttpException('当前玩家不是AI', HttpStatus.BAD_REQUEST)
     }
+
+    // Start AI's turn (refresh AP, draw cards, set phase to 'action')
+    this.gameService.startTurn(state)
+    this.gameService.drawPhase(state)
 
     // Use AI service
     this.aiService.executeTurn(state, currentPlayer)
 
+    // End AI's turn (advance to next player)
+    this.gameService.endTurn(state)
+
     return {
       success: true,
-      message: `AI turn completed for ${currentPlayer.name}`,
+      message: `${currentPlayer.name}的AI回合已完成`,
       state: this.sanitizeState(state),
     }
   }
 
   /**
    * Strip sensitive info before sending state to clients.
+   * Hides enemy hand cards (only shows count).
    */
   private sanitizeState(state: GameState): Partial<GameState> {
     return {
       gameId: state.gameId,
-      players: state.players,
+      players: state.players.map(p => ({
+        ...p,
+        // Hide AI hands — only reveal card count
+        hand: p.isAi ? p.hand.map(() => ({ uid: '?', cardId: '?', suit: 'hearts' as any })) : p.hand,
+      })),
       currentPlayerIndex: state.currentPlayerIndex,
       turnNumber: state.turnNumber,
       turnPhase: state.turnPhase,

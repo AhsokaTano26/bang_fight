@@ -34,9 +34,10 @@
         </template>
         <div class="rules-ref">
           <p class="rules-title">规则速查</p>
-          <p class="rules-item">攻击消耗行动点，每回合最多用 3 个角色的行动点</p>
-          <p class="rules-item">格挡消耗行动点，回复大不消耗</p>
+          <p class="rules-item">攻击/格挡消耗行动点，每回合最多用 3 个角色的行动点</p>
+          <p class="rules-item">格挡即时触发一次后消失，回复回满体力+恢复行动点</p>
           <p class="rules-item">伤害 > 血量 → 退场；伤害 ≤ 血量 → 概率濒死</p>
+          <p class="rules-item">手牌上限 5 张（角色牌不占上限）</p>
         </div>
       </div>
     </aside>
@@ -46,14 +47,14 @@
       <div class="board-top">
         <div v-for="ai in aiPlayers" :key="ai.id" class="ai-area">
           <PlayerInfo :player="ai" :isCurrentTurn="currentPlayer?.id === ai.id" />
-          <DeployZone :slots="ai.deployed" />
+          <DeployZone :slots="ai.deployed" :animations="activeAnimations" />
         </div>
       </div>
 
       <div class="board-bottom">
         <div class="player-area" v-if="playerState">
           <PlayerInfo :player="playerState" :isCurrentTurn="isMyTurn" />
-          <DeployZone :slots="deployedCharacters" />
+          <DeployZone :slots="deployedCharacters" :animations="activeAnimations" />
         </div>
 
         <ActionPanel
@@ -61,7 +62,6 @@
           :isMyTurn="isMyTurn"
           :selectedCard="selectedCardUid"
           :isCharacterCard="isCharacterCard"
-          :canPlayCard="selectedCardUid !== null && !actionFlow.active"
           @action="handleAction"
         />
 
@@ -89,7 +89,26 @@
     </div>
   </div>
 
-  <!-- Action Modal -->
+  <!-- Lobby (must be adjacent to v-if above) -->
+  <div v-else class="lobby">
+    <div class="lobby-content">
+      <h1 class="lobby-title">邦邦武斗传</h1>
+      <p class="lobby-subtitle">BANG BANG FIGHT</p>
+      <p class="lobby-ver">内测版 1.0</p>
+      <div class="lobby-options">
+        <button class="start-btn" @click="startGame(1, 1)">
+          <span class="start-label">1 对 1</span>
+          <span class="start-desc">挑战 AI 对手</span>
+        </button>
+        <button class="start-btn" @click="startGame(1, 2)">
+          <span class="start-label">1 对 2</span>
+          <span class="start-desc">同时对抗两个 AI</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Modal (outside v-if/v-else, uses Teleport) -->
   <ActionModal
     :visible="actionFlow.active"
     :step="actionFlow.step"
@@ -107,41 +126,24 @@
     :selectedSlot="actionFlow.selectedSlot"
     :selectedName="actionFlow.selectedName"
     :selectedImage="actionFlow.selectedImage"
+    :selectedMode="actionFlow.selectedMode"
     :confirmSummary="actionFlow.confirmSummary"
     :myDeployed="deployedCharacters"
     :enemyPlayers="aiPlayers"
     :loading="store.loading"
     @select="onModalSelect"
+    @selectMode="onModalSelectMode"
     @confirm="onModalConfirm"
     @cancel="onModalCancel"
     @back="onModalBack"
   />
-
-  <!-- Lobby -->
-  <div v-else class="lobby">
-    <div class="lobby-content">
-      <h1 class="lobby-title">邦邦武斗传</h1>
-      <p class="lobby-subtitle">BANG BANG FIGHT</p>
-      <p class="lobby-ver">内测版 1.0</p>
-      <div class="lobby-options">
-        <button class="start-btn" @click="startGame(2, 1)">
-          <span class="start-label">1 对 1</span>
-          <span class="start-desc">挑战 AI 对手</span>
-        </button>
-        <button class="start-btn" @click="startGame(3, 2)">
-          <span class="start-label">1 对 2</span>
-          <span class="start-desc">同时对抗两个 AI</span>
-        </button>
-      </div>
-    </div>
-  </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, reactive, watch } from 'vue'
 import { useGameStore } from '../stores/game'
-import { getCardById, CHARACTER_CARDS, ACTION_CARD_DESCRIPTIONS } from '../types/cards-data'
-import type { ActionCard } from '../types/card'
+import { getCardById, CHARACTER_CARDS, ACTION_CARD_DESCRIPTIONS, STRATEGY_CARD_DESCRIPTIONS } from '../types/cards-data'
+import type { ActionCard, StrategyCard } from '../types/card'
 import PlayerInfo from './PlayerInfo.vue'
 import DeployZone from './DeployZone.vue'
 import CardHand from './CardHand.vue'
@@ -173,6 +175,15 @@ const handCards = computed(() => store.handCards)
 const deployedCharacters = computed(() => store.deployedCharacters)
 const selectedCardUid = computed(() => store.selectedCardUid)
 
+// ---- Battle Animation System ----
+type AnimationType = 'attack' | 'damaged' | 'block' | 'heal' | 'deploy' | 'near-death'
+interface AnimationEntry {
+  type: AnimationType
+  value?: number
+  duration: number
+}
+const activeAnimations = reactive<Record<string, AnimationEntry>>({})
+
 const isCharacterCard = computed(() => {
   if (!selectedCardUid.value || !playerState.value) return false
   const card = playerState.value.hand.find(c => c.uid === selectedCardUid.value)
@@ -184,6 +195,8 @@ const deployedCount = computed(() => deployedCharacters.value.filter(s => s.char
 
 // ---- Action Flow State Machine ----
 type StepType = 'selectAttacker' | 'selectTarget' | 'selectAlly' | 'confirm' | 'selectSlot'
+  | 'selectReplacement' | 'chooseReplenishMode' | 'chooseRecoveryMode' | 'selectPlayerTarget'
+  | 'selectEquipmentTarget' | 'selectStrategyTarget'
 
 interface FlowState {
   active: boolean
@@ -201,10 +214,12 @@ interface FlowState {
   cardAtk?: number
   actionType: string
   selectedUid: string | null
+  selectedAttackerUid: string | null
   selectedTargetPlayerId: string | null
   selectedSlot: number | null
   selectedName: string
   selectedImage: string
+  selectedMode: string | null
   confirmSummary: string
   armorPierce: boolean
 }
@@ -225,10 +240,12 @@ const actionFlow = reactive<FlowState>({
   cardAtk: undefined,
   actionType: '',
   selectedUid: null,
+  selectedAttackerUid: null,
   selectedTargetPlayerId: null,
   selectedSlot: null,
   selectedName: '',
   selectedImage: '',
+  selectedMode: null,
   confirmSummary: '',
   armorPierce: false,
 })
@@ -238,8 +255,8 @@ function resetFlow() {
     active: false, step: 0, totalSteps: 0, stepType: 'confirm', stepLabel: '',
     cardUid: null, cardImage: '', cardName: '', cardDesc: '', cardTypeClass: '', cardTypeName: '',
     cardHp: undefined, cardAtk: undefined, actionType: '',
-    selectedUid: null, selectedTargetPlayerId: null, selectedSlot: null,
-    selectedName: '', selectedImage: '', confirmSummary: '', armorPierce: false,
+    selectedUid: null, selectedAttackerUid: null, selectedTargetPlayerId: null, selectedSlot: null,
+    selectedName: '', selectedImage: '', selectedMode: null, confirmSummary: '', armorPierce: false,
   })
 }
 
@@ -254,7 +271,12 @@ function resolveActionType(cardUid: string): { actionType: string; cardDef: any 
   if (!card) return null
   const def = getCardById(card.cardId)
   if (!def) return null
-  return { actionType: def.category === 'character' ? 'deploy' : (def as ActionCard).actionType, cardDef: def }
+  if (def.category === 'character') return { actionType: 'deploy', cardDef: def }
+  if (def.category === 'strategy') {
+    const st = (def as StrategyCard).strategyType
+    return { actionType: st === 'deployable' ? 'equipStrategy' : 'instantStrategy', cardDef: def }
+  }
+  return { actionType: (def as ActionCard).actionType, cardDef: def }
 }
 
 // ---- Open modal ----
@@ -274,26 +296,59 @@ function openActionModal(cardUid: string) {
     if (at === 'attack' || at === 'armorPierce') {
       totalSteps = 3
       firstStepType = 'selectAttacker'
-    } else if (at === 'smallBlock' || at === 'recovery') {
+    } else if (at === 'smallBlock') {
       totalSteps = 2
       firstStepType = 'selectAlly'
+    } else if (at === 'recovery') {
+      totalSteps = 3 // chooseRecoveryMode → selectAlly → confirm
+      firstStepType = 'chooseRecoveryMode'
+    } else if (at === 'bigRecovery') {
+      totalSteps = 2 // chooseRecoveryMode → confirm
+      firstStepType = 'chooseRecoveryMode'
+    } else if (at === 'replenish') {
+      totalSteps = 2 // chooseReplenishMode → confirm
+      firstStepType = 'chooseReplenishMode'
+    } else {
+      totalSteps = 1
+      firstStepType = 'confirm'
+    }
+  } else if (cardDef.category === 'strategy') {
+    const st = (cardDef as StrategyCard).strategyType
+    if (st === 'deployable') {
+      totalSteps = 2
+      firstStepType = 'selectEquipmentTarget'
+    } else if (cardDef.requiresTarget) {
+      totalSteps = 2
+      firstStepType = 'selectStrategyTarget'
     } else {
       totalSteps = 1
       firstStepType = 'confirm'
     }
   } else if (isChar) {
-    totalSteps = 2
-    firstStepType = 'selectSlot'
+    // Character card: if deployed count > 0, offer replacement; otherwise deploy to empty slot
+    const hasDeployed = deployedCharacters.value.some(s => s.character !== null)
+    if (hasDeployed) {
+      totalSteps = 2
+      firstStepType = 'selectSlot' // Will be changed to selectReplacement if slot occupied
+    } else {
+      totalSteps = 2
+      firstStepType = 'selectSlot'
+    }
   }
 
-  const atype = isAction ? (cardDef as ActionCard).actionType : 'deploy'
+  const isStrat = cardDef.category === 'strategy'
+  const atype = isStrat
+    ? ((cardDef as StrategyCard).strategyType === 'deployable' ? 'equipStrategy' : 'instantStrategy')
+    : (isAction ? (cardDef as ActionCard).actionType : 'deploy')
   const desc = isChar
     ? (cardDef.skills.length ? cardDef.skills[0].description : '')
-    : (ACTION_CARD_DESCRIPTIONS[(cardDef as ActionCard).actionType] ?? '')
+    : isStrat
+      ? (STRATEGY_CARD_DESCRIPTIONS[cardDef.id] ?? (cardDef as StrategyCard).description ?? '')
+      : (ACTION_CARD_DESCRIPTIONS[(cardDef as ActionCard).actionType] ?? '')
   const hp = isChar ? (cardDef as any).maxHp : undefined
   const atk = isChar ? (cardDef as any).attack : undefined
-  const typeClass = isChar ? 'type-character' : 'type-action'
-  const typeName = isChar ? '角色牌' : getActionTypeName(atype)
+  const typeClass = isChar ? 'type-character' : isStrat ? 'type-strategy' : 'type-action'
+  const typeName = isChar ? '角色牌' : isStrat ? ((cardDef as StrategyCard).strategyType === 'deployable' ? '道具牌' : '即时牌') : getActionTypeName(atype)
 
   Object.assign(actionFlow, {
     active: true,
@@ -311,6 +366,7 @@ function openActionModal(cardUid: string) {
     cardAtk: atk,
     actionType: atype,
     selectedUid: null,
+    selectedAttackerUid: null,
     selectedTargetPlayerId: null,
     selectedSlot: null,
     selectedName: '',
@@ -336,6 +392,12 @@ function getStepLabel(stepType: StepType): string {
     selectAlly: '选择目标角色',
     confirm: '确认使用',
     selectSlot: '选择部署位置',
+    selectReplacement: '选择要替换的场上角色',
+    chooseReplenishMode: '选择补充方式',
+    chooseRecoveryMode: '选择回复目标',
+    selectPlayerTarget: '选择攻击目标（玩家）',
+    selectEquipmentTarget: '选择装备目标角色',
+    selectStrategyTarget: '选择目标',
   }
   return labels[stepType]
 }
@@ -350,20 +412,70 @@ function getConfirmSummary(actionType: string): string {
     bigRecovery: '将回复所有己方角色的体力',
     replenish: '将从牌堆抽取 2 张牌',
     deploy: '将部署该角色到选中的位置',
+    equipStrategy: '将道具装备到选中的角色',
+    instantStrategy: '确认使用即时牌？',
   }
   return summaries[actionType] ?? '确认执行此操作？'
 }
 
 function advanceStep() {
-  const { actionType, step, totalSteps } = actionFlow
+  const { actionType, step, totalSteps, stepType } = actionFlow
+
+  // Handle mode selection → advance to next step based on mode
+  if (stepType === 'chooseRecoveryMode') {
+    const nextStep = step + 1
+    if (actionFlow.selectedMode === 'player') {
+      // Player mode: skip selectAlly, go to confirm
+      Object.assign(actionFlow, {
+        step: nextStep,
+        stepType: 'confirm' as StepType,
+        stepLabel: getStepLabel('confirm'),
+        confirmSummary: `将回复玩家的体力`,
+      })
+    } else {
+      // Character mode: go to selectAlly
+      Object.assign(actionFlow, {
+        step: nextStep,
+        stepType: 'selectAlly' as StepType,
+        stepLabel: getStepLabel('selectAlly'),
+      })
+    }
+    return
+  }
+
+  if (stepType === 'chooseReplenishMode') {
+    const nextStep = step + 1
+    const modeLabel = actionFlow.selectedMode === 'recruit' ? '从角色池招揽1张角色牌' : '从牌堆抽取2张牌'
+    Object.assign(actionFlow, {
+      step: nextStep,
+      stepType: 'confirm' as StepType,
+      stepLabel: getStepLabel('confirm'),
+      confirmSummary: `将使用补充牌：${modeLabel}`,
+    })
+    return
+  }
 
   if (step < totalSteps) {
     const nextStep = step + 1
     let nextStepType: StepType = 'confirm'
 
-    if (actionType === 'attack' || actionType === 'armorPierce') {
+    // If current step is selectAlly (from recovery character mode), go to confirm
+    if (stepType === 'selectAlly') {
+      nextStepType = 'confirm'
+    } else if (stepType === 'selectEquipmentTarget' || stepType === 'selectStrategyTarget') {
+      nextStepType = 'confirm'
+    } else if (actionType === 'attack' || actionType === 'armorPierce') {
       nextStepType = nextStep === 2 ? 'selectTarget' : 'confirm'
-    } else if (actionType === 'smallBlock' || actionType === 'recovery') {
+    } else if (actionType === 'smallBlock') {
+      nextStepType = 'confirm'
+    } else if (actionType === 'recovery') {
+      // Recovery flow handled by chooseRecoveryMode handler above
+      nextStepType = 'confirm'
+    } else if (actionType === 'bigRecovery') {
+      // Big recovery flow handled by chooseRecoveryMode handler above
+      nextStepType = 'confirm'
+    } else if (actionType === 'replenish') {
+      // Replenish flow handled by chooseReplenishMode handler above
       nextStepType = 'confirm'
     } else if (actionType === 'deploy') {
       nextStepType = 'confirm'
@@ -376,7 +488,7 @@ function advanceStep() {
 
     if (nextStepType === 'confirm') {
       if (actionType === 'attack' || actionType === 'armorPierce') {
-        const atkChar = getCharDefFromDeployed(actionFlow.selectedUid)
+        const atkChar = getCharDefFromDeployed(actionFlow.selectedAttackerUid)
         selectedName = atkChar?.name ?? ''
         selectedImage = atkChar?.imageFile ?? ''
         confirmSummary = `使用 ${actionFlow.cardName}：${selectedName} 攻击目标`
@@ -398,6 +510,17 @@ function advanceStep() {
           selectedImage = def?.imageFile ?? ''
         }
         confirmSummary = `将 ${selectedName} 部署到位置 ${actionFlow.selectedSlot! + 1}`
+      } else if (actionType === 'equipStrategy') {
+        const char = getCharDefFromDeployed(actionFlow.selectedUid)
+        selectedName = char?.name ?? ''
+        selectedImage = char?.imageFile ?? ''
+        confirmSummary = `将 ${actionFlow.cardName} 装备到 ${selectedName}`
+      } else if (actionType === 'instantStrategy') {
+        selectedName = actionFlow.selectedName
+        selectedImage = actionFlow.selectedImage
+        confirmSummary = selectedName
+          ? `使用 ${actionFlow.cardName} → ${selectedName}`
+          : `使用 ${actionFlow.cardName}`
       } else {
         confirmSummary = getConfirmSummary(actionType)
       }
@@ -440,6 +563,7 @@ function getCharDefFromEnemy(uid: string | null) {
 function onModalSelect(uid: string, playerId?: string) {
   if (actionFlow.stepType === 'selectAttacker') {
     actionFlow.selectedUid = uid
+    actionFlow.selectedAttackerUid = uid
     const char = getCharDefFromDeployed(uid)
     actionFlow.selectedName = char?.name ?? ''
     actionFlow.selectedImage = char?.imageFile ?? ''
@@ -456,15 +580,42 @@ function onModalSelect(uid: string, playerId?: string) {
     actionFlow.selectedImage = char?.imageFile ?? ''
   } else if (actionFlow.stepType === 'selectSlot') {
     actionFlow.selectedSlot = parseInt(uid, 10)
+  } else if (actionFlow.stepType === 'selectReplacement') {
+    actionFlow.selectedUid = uid
+    const char = getCharDefFromDeployed(uid)
+    actionFlow.selectedName = char?.name ?? ''
+    actionFlow.selectedImage = char?.imageFile ?? ''
+  } else if (actionFlow.stepType === 'selectPlayerTarget') {
+    actionFlow.selectedUid = uid
+    actionFlow.selectedTargetPlayerId = uid
+    actionFlow.selectedName = playerId ?? uid
+  } else if (actionFlow.stepType === 'selectEquipmentTarget') {
+    actionFlow.selectedUid = uid
+    const char = getCharDefFromDeployed(uid)
+    actionFlow.selectedName = char?.name ?? ''
+    actionFlow.selectedImage = char?.imageFile ?? ''
+  } else if (actionFlow.stepType === 'selectStrategyTarget') {
+    actionFlow.selectedUid = uid
+    actionFlow.selectedTargetPlayerId = playerId ?? null
+    const char = getCharDefFromEnemy(uid) ?? getCharDefFromDeployed(uid)
+    actionFlow.selectedName = char?.name ?? playerId ?? uid
+    actionFlow.selectedImage = char?.imageFile ?? ''
   }
 }
 
 function onModalConfirm() {
-  if (actionFlow.step < actionFlow.totalSteps) {
+  if (actionFlow.stepType === 'chooseReplenishMode' || actionFlow.stepType === 'chooseRecoveryMode') {
+    // Mode selected, advance to next step
+    advanceStep()
+  } else if (actionFlow.step < actionFlow.totalSteps) {
     advanceStep()
   } else {
     executeAction()
   }
+}
+
+function onModalSelectMode(mode: string) {
+  actionFlow.selectedMode = mode
 }
 
 function onModalCancel() {
@@ -477,10 +628,17 @@ function onModalBack() {
     actionFlow.step--
     if (actionFlow.actionType === 'attack' || actionFlow.actionType === 'armorPierce') {
       actionFlow.stepType = actionFlow.step === 1 ? 'selectAttacker' : 'selectTarget'
+      if (actionFlow.step === 1) {
+        actionFlow.selectedUid = actionFlow.selectedAttackerUid
+      }
     } else if (actionFlow.actionType === 'smallBlock' || actionFlow.actionType === 'recovery') {
       actionFlow.stepType = 'selectAlly'
     } else if (actionFlow.actionType === 'deploy') {
       actionFlow.stepType = 'selectSlot'
+    } else if (actionFlow.actionType === 'equipStrategy') {
+      actionFlow.stepType = 'selectEquipmentTarget'
+    } else if (actionFlow.actionType === 'instantStrategy') {
+      actionFlow.stepType = 'selectStrategyTarget'
     }
     actionFlow.stepLabel = getStepLabel(actionFlow.stepType)
   }
@@ -490,35 +648,163 @@ function onModalBack() {
 async function executeAction() {
   const { actionType, cardUid, selectedUid, selectedTargetPlayerId, selectedSlot, armorPierce } = actionFlow
 
+  let result: Record<string, any> | null = null
+  let animParams: Record<string, any> = {}
+
   switch (actionType) {
     case 'attack':
-    case 'armorPierce':
-      await store.submitAction('attack', {
-        cardUid,
-        attackerCharUid: selectedUid,
-        targetPlayerId: selectedTargetPlayerId,
-        targetCharUid: actionFlow.selectedUid,
-        armorPierce,
-      })
+    case 'armorPierce': {
+      // Check if target is a player (no deployed chars)
+      if (selectedTargetPlayerId && !selectedUid) {
+        result = await store.submitAction('directAttack', {
+          attackerCharUid: actionFlow.selectedAttackerUid,
+          targetPlayerId: selectedTargetPlayerId,
+        })
+      } else {
+        animParams = { attackerCharUid: actionFlow.selectedAttackerUid, targetCharUid: selectedUid }
+        result = await store.submitAction('attack', {
+          cardUid,
+          attackerCharUid: actionFlow.selectedAttackerUid,
+          targetPlayerId: selectedTargetPlayerId,
+          targetCharUid: selectedUid,
+          armorPierce,
+        })
+      }
       break
+    }
     case 'smallBlock':
-      await store.submitAction('playCard', { cardUid, params: { targetCharUid: selectedUid } })
+      animParams = { targetCharUid: selectedUid }
+      result = await store.submitAction('playCard', { cardUid, params: { targetCharUid: selectedUid } })
       break
     case 'recovery':
-      await store.submitAction('playCard', { cardUid, params: { targetCharUid: selectedUid } })
+      if (actionFlow.selectedMode === 'player') {
+        result = await store.submitAction('playCard', { cardUid, params: { targetType: 'player' } })
+      } else {
+        animParams = { targetCharUid: selectedUid }
+        result = await store.submitAction('playCard', { cardUid, params: { targetCharUid: selectedUid } })
+      }
+      break
+    case 'bigRecovery':
+      if (actionFlow.selectedMode === 'player') {
+        result = await store.submitAction('playCard', { cardUid, params: { targetType: 'player' } })
+      } else {
+        result = await store.submitAction('playCard', { cardUid })
+      }
       break
     case 'bigBlock':
-    case 'bigRecovery':
+      result = await store.submitAction('playCard', { cardUid })
+      break
     case 'replenish':
-      await store.submitAction('playCard', { cardUid })
+      result = await store.submitAction('playCard', { cardUid, params: { mode: actionFlow.selectedMode ?? 'draw' } })
       break
     case 'deploy':
-      await store.submitAction('deploy', { cardUid, position: selectedSlot ?? 0 })
+      animParams = { position: selectedSlot }
+      result = await store.submitAction('deploy', { cardUid, position: selectedSlot ?? 0 })
+      break
+    case 'replaceCharacter':
+      result = await store.submitAction('replaceCharacter', {
+        deployedUid: selectedUid,
+        handCardUid: cardUid,
+      })
+      break
+    case 'equipStrategy':
+      result = await store.submitAction('playCard', {
+        cardUid,
+        params: { targetCharUid: selectedUid },
+      })
+      break
+    case 'instantStrategy':
+      result = await store.submitAction('playCard', {
+        cardUid,
+        params: {
+          targetCharUid: selectedUid,
+          targetPlayerId: selectedTargetPlayerId,
+        },
+      })
       break
   }
 
+  triggerAnimations(actionType, result, animParams)
   resetFlow()
   store.selectCard(null)
+}
+
+// ---- Animation Trigger ----
+function triggerAnimations(actionType: string, result: Record<string, any> | null, params: Record<string, any>) {
+  if (!result || !result.success) return
+
+  const DUR = 800
+
+  switch (actionType) {
+    case 'attack':
+    case 'armorPierce': {
+      if (params.attackerCharUid) {
+        activeAnimations[params.attackerCharUid] = { type: 'attack', duration: DUR }
+        setTimeout(() => { delete activeAnimations[params.attackerCharUid] }, DUR + 100)
+      }
+      if (params.targetCharUid) {
+        const dmgMatch = result.message?.match(/造成了(\d+)点伤害/)
+        const damage = dmgMatch ? parseInt(dmgMatch[1]) : undefined
+        if (result.nearDeathTriggered) {
+          // Damaged flash, then switch to near-death loop
+          activeAnimations[params.targetCharUid] = { type: 'damaged', value: damage, duration: DUR }
+          setTimeout(() => {
+            activeAnimations[params.targetCharUid] = { type: 'near-death', duration: DUR }
+            // Near-death loop persists until next turn — clear after 3s
+            setTimeout(() => { delete activeAnimations[params.targetCharUid] }, 3000)
+          }, DUR)
+        } else {
+          activeAnimations[params.targetCharUid] = { type: 'damaged', value: damage, duration: DUR }
+          setTimeout(() => { delete activeAnimations[params.targetCharUid] }, DUR + 100)
+        }
+      }
+      break
+    }
+    case 'smallBlock':
+    case 'bigBlock': {
+      if (actionType === 'smallBlock' && params.targetCharUid) {
+        activeAnimations[params.targetCharUid] = { type: 'block', duration: DUR }
+        setTimeout(() => { delete activeAnimations[params.targetCharUid] }, DUR + 100)
+      } else if (actionType === 'bigBlock') {
+        for (const slot of deployedCharacters.value) {
+          if (slot.character) {
+            activeAnimations[slot.character.uid] = { type: 'block', duration: DUR }
+            const uid = slot.character.uid
+            setTimeout(() => { delete activeAnimations[uid] }, DUR + 100)
+          }
+        }
+      }
+      break
+    }
+    case 'recovery':
+    case 'bigRecovery': {
+      if (actionType === 'recovery' && params.targetCharUid) {
+        const healMatch = result.message?.match(/回复了(\d+)点/)
+        const healAmount = healMatch ? parseInt(healMatch[1]) : undefined
+        activeAnimations[params.targetCharUid] = { type: 'heal', value: healAmount, duration: DUR }
+        setTimeout(() => { delete activeAnimations[params.targetCharUid] }, DUR + 100)
+      } else if (actionType === 'bigRecovery') {
+        for (const slot of deployedCharacters.value) {
+          if (slot.character) {
+            activeAnimations[slot.character.uid] = { type: 'heal', duration: DUR }
+            const uid = slot.character.uid
+            setTimeout(() => { delete activeAnimations[uid] }, DUR + 100)
+          }
+        }
+      }
+      break
+    }
+    case 'deploy': {
+      const position = params.position
+      const slot = deployedCharacters.value[position]
+      if (slot?.character) {
+        activeAnimations[slot.character.uid] = { type: 'deploy', duration: DUR }
+        const uid = slot.character.uid
+        setTimeout(() => { delete activeAnimations[uid] }, DUR + 100)
+      }
+      break
+    }
+  }
 }
 
 // ---- UI handlers ----
@@ -530,6 +816,7 @@ async function startGame(playerCount: number, aiCount: number) {
 
 async function restart() {
   await store.createGame(1, 1)
+
   await new Promise(r => setTimeout(r, 50))
   if (store.gameState) await store.startTurn()
 }
@@ -562,9 +849,15 @@ async function handleAction(type: string, _params: Record<string, any> = {}) {
       await store.submitAction('endTurn')
       if (store.gameState && !store.gameState.gameOver) {
         await new Promise(r => setTimeout(r, 300))
-        await store.triggerAiTurn()
-        if (store.gameState && !store.gameState.gameOver) {
+        // Keep triggering AI turns until it's a human player's turn (max 10 safety)
+        let aiTurns = 0
+        while (store.gameState && !store.gameState.gameOver && store.currentPlayer?.isAi && aiTurns < 10) {
+          await store.triggerAiTurn()
           await new Promise(r => setTimeout(r, 300))
+          aiTurns++
+        }
+        // Start human player's turn
+        if (store.gameState && !store.gameState.gameOver) {
           await store.startTurn()
         }
       }
@@ -579,11 +872,20 @@ async function handleAction(type: string, _params: Record<string, any> = {}) {
   grid-template-columns: 200px 1fr 240px;
   height: 100vh;
   background: linear-gradient(180deg, #0f0c29, #1a1a2e, #16213e);
+  background-size: 100% 200%;
+  animation: bg-shift 20s ease-in-out infinite alternate;
   overflow: hidden;
+}
+
+@keyframes bg-shift {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 0% 100%; }
 }
 
 .panel-left {
   background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-right: 1px solid rgba(255, 255, 255, 0.08);
   padding: 12px;
   display: flex;
@@ -618,6 +920,8 @@ async function handleAction(type: string, _params: Record<string, any> = {}) {
 
 .panel-right {
   background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-left: 1px solid rgba(255, 255, 255, 0.08);
   padding: 12px;
   display: flex;

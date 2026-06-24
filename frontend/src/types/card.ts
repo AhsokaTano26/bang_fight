@@ -27,6 +27,33 @@ export type CharacterState = 'normal' | 'nearDeath' | 'retired'
 /** 花色 (用于判定) */
 export type Suit = 'hearts' | 'diamonds' | 'clubs' | 'spades'
 
+// ------------------------------------------------------------
+// Debuff types
+// ------------------------------------------------------------
+
+export type DebuffType =
+  | 'skipDraw'      // 跳过摸牌
+  | 'skipAction'    // 跳过行动
+  | 'loseAbility'   // 失去行动能力
+  | 'silence'       // 沉默（无法使用技能）
+  | 'weaken'        // 虚弱（攻击力-2）
+  | 'disarm'        // 缴械（无法攻击）
+
+// ------------------------------------------------------------
+// Keyword types
+// ------------------------------------------------------------
+
+export type KeywordType =
+  | 'guardian'      // 守护：替相邻角色承受攻击
+  | 'counter'       // 反击：被攻击后反击攻击者
+  | 'aoeAttack'     // 群攻：攻击所有敌方角色
+  | 'veteran'       // 历战：受伤后下次攻击+2
+  | 'immunity'      // 免伤：不受伤害
+  | 'untargetable'  // 不可选中：无法被选为目标
+  | 'earthStore'    // 地藏：濒死时保留1HP
+  | 'spread'        // 扩散：伤害扩散到相邻角色
+  | 'armorPierce'   // 穿甲：无视护甲
+
 // ============================================================
 // Base card interface
 // ============================================================
@@ -49,6 +76,7 @@ export interface CharacterCard extends BaseCard {
   faction: Faction        // 所属阵营
   maxHp: number           // 最大血量 (1-5)
   attack: number          // 基础攻击力 (1-5)
+  keywords: KeywordType[] // 角色自带关键词
   skills: CharacterSkill[] // 角色技能
 }
 

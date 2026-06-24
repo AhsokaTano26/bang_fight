@@ -3,7 +3,8 @@
 // ============================================================
 
 import { Injectable } from '@nestjs/common'
-import type { ActionCardDef, CardInstance, Suit } from './types'
+import type { ActionCardDef, CardInstance, Suit, StrategyCardDef } from './types'
+import { STRATEGY_CARDS } from './strategy-data'
 
 // ------------------------------------------------------------
 // Helpers
@@ -63,6 +64,12 @@ const ACTION_CARD_DEFS: ActionCardDef[] = [
 ]
 
 // ------------------------------------------------------------
+// Strategy card definitions (64 cards from strategy-data.ts)
+// ------------------------------------------------------------
+
+const STRATEGY_CARD_DEFS: readonly StrategyCardDef[] = STRATEGY_CARDS
+
+// ------------------------------------------------------------
 // Service
 // ------------------------------------------------------------
 
@@ -70,6 +77,9 @@ const ACTION_CARD_DEFS: ActionCardDef[] = [
 export class DeckService {
   /** All action card definitions available in the game. */
   readonly actionCardDefs: readonly ActionCardDef[] = ACTION_CARD_DEFS
+
+  /** All strategy card definitions available in the game. */
+  readonly strategyCardDefs: readonly StrategyCardDef[] = STRATEGY_CARD_DEFS
 
   /**
    * Fisher-Yates shuffle (in-place, returns the same array).
@@ -110,5 +120,21 @@ export class DeckService {
   createDeck(): CardInstance[] {
     const deck = ACTION_CARD_DEFS.map((def) => this.createCardInstance(def.id))
     return this.shuffle(deck)
+  }
+
+  /**
+   * Create a mixed deck: 28 action cards + 64 strategy cards = 92 cards.
+   */
+  createMixedDeck(): CardInstance[] {
+    const actionCards = ACTION_CARD_DEFS.map((def) => this.createCardInstance(def.id))
+    const strategyCards = STRATEGY_CARD_DEFS.map((def) => this.createCardInstance(def.id))
+    return this.shuffle([...actionCards, ...strategyCards])
+  }
+
+  /**
+   * Look up a strategy card definition by its card ID.
+   */
+  getStrategyCardDef(cardId: string): StrategyCardDef | undefined {
+    return STRATEGY_CARD_DEFS.find((def) => def.id === cardId)
   }
 }
