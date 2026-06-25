@@ -717,7 +717,7 @@ export const STRATEGY_CARDS: StrategyCardDef[] = [
     strategyType: 'instant',
     imageFile: 'cards/策略牌/D0009.png',
     description: '解除一个常规负面效果',
-    requiresTarget: false,
+    requiresTarget: true,
     instantType: 'removeDebuff',
   },
 

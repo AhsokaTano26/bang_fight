@@ -238,9 +238,10 @@ export class CombatService {
     }
 
     // ---- Step 2: guardian redirect ----
-    if (!armorPierce && target.keywords.includes('guardian')) {
+    const hasIgnoreGuardian = attacker.keywords.includes('ignoreGuardian')
+    if (!armorPierce && !hasIgnoreGuardian && target.keywords.includes('guardian')) {
       // Target IS the guardian — no redirect needed
-    } else if (!armorPierce) {
+    } else if (!armorPierce && !hasIgnoreGuardian) {
       // Check for adjacent guardian
       const redirected = this.findGuardian(targetPlayer, targetInfo.slotIndex)
       if (redirected) {
@@ -251,7 +252,8 @@ export class CombatService {
     }
 
     // ---- Step 3: attacker keyword — armorPierce ----
-    const effectiveArmorPierce = armorPierce || attacker.keywords.includes('armorPierce')
+    const hasArmorPierceBuff = attacker.buffs.some(b => b.type === 'armorPierceOnAttack')
+    const effectiveArmorPierce = armorPierce || attacker.keywords.includes('armorPierce') || hasArmorPierceBuff
 
     // Consume attacker's action point
     attacker.hasActionPoint = false
@@ -274,8 +276,19 @@ export class CombatService {
     }
 
     // ---- Step 5: calculate and apply damage ----
-    const baseDamage = this.calculateDamage(attacker, target, effectiveArmorPierce)
-    const actualDamage = this.applyDamage(target, baseDamage, effectiveArmorPierce)
+    let baseDamage = this.calculateDamage(attacker, target, effectiveArmorPierce)
+
+    // critOnAttack: 1/2 chance to double damage
+    const hasCrit = attacker.buffs.some(b => b.type === 'critOnAttack')
+    if (hasCrit) {
+      const critRoll = randomInt(1, 6)
+      if (critRoll >= 4) { // 1/2 chance
+        baseDamage *= 2
+        addBattleLog(state, attackerPlayerId, `${attackerName}暴击！伤害翻倍`)
+      }
+    }
+
+    let actualDamage = this.applyDamage(target, baseDamage, effectiveArmorPierce)
 
     addBattleLog(
       state,
@@ -283,6 +296,14 @@ export class CombatService {
       `${attackerName}攻击了${targetName}`,
       `伤害=${actualDamage}, 穿甲=${effectiveArmorPierce}`,
     )
+
+    // forceRetireOnHit: if attack hit and attacker has buff, force retire
+    const hasForceRetire = attacker.buffs.some(b => b.type === 'forceRetireOnHit')
+    if (hasForceRetire && actualDamage > 0 && target.state !== 'retired') {
+      target.currentHp = 0
+      target.state = 'retired'
+      addBattleLog(state, targetPlayerId, `${targetName}被强制退场！`)
+    }
 
     let nearDeathTriggered = false
     let retired = false
@@ -315,14 +336,23 @@ export class CombatService {
     } else if (target.state !== 'nearDeath' && actualDamage > 0) {
       const isNearDeath = this.checkNearDeath(target.maxHp, target.currentHp)
       if (isNearDeath) {
-        target.state = 'nearDeath'
-        nearDeathTriggered = true
-        addBattleLog(
-          state,
-          targetPlayerId,
-          `${targetName}进入了濒死状态！`,
-          `体力=${target.currentHp}/${target.maxHp}`,
-        )
+        const hasNearDeathRecover = target.buffs.some(b => b.type === 'nearDeathRecover')
+        if (hasNearDeathRecover) {
+          target.currentHp = target.maxHp
+          target.state = 'normal'
+          // Remove the buff after use
+          target.buffs = target.buffs.filter(b => b.type !== 'nearDeathRecover')
+          addBattleLog(state, targetPlayerId, `${targetName}濒死恢复！体力恢复至${target.maxHp}`)
+        } else {
+          target.state = 'nearDeath'
+          nearDeathTriggered = true
+          addBattleLog(
+            state,
+            targetPlayerId,
+            `${targetName}进入了濒死状态！`,
+            `体力=${target.currentHp}/${target.maxHp}`,
+          )
+        }
       }
     }
 

@@ -144,7 +144,7 @@ export const STRATEGY_CARDS: StrategyCard[] = [
   { id: 'D0006', name: '禁止947', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/D0006.png', description: '抽取一张手牌，若场上存在邪神角色则将其送入休息室', requiresTarget: false },
   { id: 'D0007', name: '野蛮米歇尔', category: 'strategy', strategyType: 'deployable', imageFile: 'cards/策略牌/D0007.png', description: '+2攻击力', requiresTarget: true },
   { id: 'D0008', name: '幸运四叶草', category: 'strategy', strategyType: 'deployable', imageFile: 'cards/策略牌/D0008.png', description: '概率判定涉及到己方时强制成功或变为1/2', requiresTarget: true },
-  { id: 'D0009', name: '巴巴恩波神之力', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/D0009.png', description: '解除一个常规负面效果', requiresTarget: false },
+  { id: 'D0009', name: '巴巴恩波神之力', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/D0009.png', description: '解除一个常规负面效果', requiresTarget: true },
   { id: 'D0010', name: '维修扳手', category: 'strategy', strategyType: 'deployable', imageFile: 'cards/策略牌/D0010.png', description: '每次攻击有1/3概率赋予被攻击角色一回合沉默', requiresTarget: true },
   { id: 'D0011', name: '啥是XXX', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/D0011.png', description: '指定一名玩家，该玩家的阵营技失效一回合', requiresTarget: true },
   { id: 'D0012', name: '绿接粉', category: 'strategy', strategyType: 'instant', imageFile: 'cards/策略牌/D0012.png', description: '在其他角色发动技能时，使本次发动的技能无效', requiresTarget: false },

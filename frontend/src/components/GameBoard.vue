@@ -95,6 +95,7 @@
       <h1 class="lobby-title">邦邦武斗传</h1>
       <p class="lobby-subtitle">BANG BANG FIGHT</p>
       <p class="lobby-ver">内测版 1.0</p>
+      <a class="test-entry" href="#test">卡牌测试 →</a>
       <div class="lobby-options">
         <button class="start-btn" @click="startGame(1, 1)">
           <span class="start-label">1 对 1</span>
@@ -935,7 +936,9 @@ async function handleAction(type: string, _params: Record<string, any> = {}) {
 .lobby-content { text-align: center; }
 .lobby-title { font-size: 64px; font-weight: 900; color: #e94560; text-shadow: 0 0 40px rgba(233,69,96,0.5); margin: 0; }
 .lobby-subtitle { font-size: 18px; color: #888; margin: 8px 0 4px; letter-spacing: 6px; }
-.lobby-ver { font-size: 12px; color: #555; margin: 0 0 48px; }
+.lobby-ver { font-size: 12px; color: #555; margin: 0 0 12px; }
+.test-entry { display: inline-block; font-size: 13px; color: #888; text-decoration: none; margin-bottom: 40px; transition: color 0.2s; }
+.test-entry:hover { color: #e94560; }
 .lobby-options { display: flex; gap: 24px; justify-content: center; }
 .start-btn { display: flex; flex-direction: column; align-items: center; padding: 24px 40px; background: rgba(255,255,255,0.05); border: 2px solid rgba(233,69,96,0.3); border-radius: 16px; cursor: pointer; transition: all 0.3s; color: #fff; }
 .start-btn:hover { border-color: #e94560; background: rgba(233,69,96,0.1); transform: translateY(-4px); box-shadow: 0 8px 30px rgba(233,69,96,0.3); }

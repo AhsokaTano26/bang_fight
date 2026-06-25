@@ -57,9 +57,15 @@ export class GameController {
   @Post('create')
   createGame(@Body() body: CreateGameDto) {
     const { playerCount, aiCount } = body
-    if (playerCount < 1 || aiCount < 1) {
+    if (aiCount < 1) {
       throw new HttpException(
-        '至少需要1名人类玩家和1名AI玩家',
+        '至少需要1名AI玩家',
+        HttpStatus.BAD_REQUEST,
+      )
+    }
+    if (playerCount < 0) {
+      throw new HttpException(
+        '玩家数量不能为负数',
         HttpStatus.BAD_REQUEST,
       )
     }
@@ -127,6 +133,12 @@ export class GameController {
       case 'useSkill': {
         const { charUid, params: skillParams } = params
         result = this.gameService.useSkill(state, playerId, charUid, skillParams ?? {})
+        break
+      }
+
+      case 'useEquipment': {
+        const { charUid: eqCharUid, params: eqParams } = params
+        result = this.gameService.useEquipment(state, playerId, eqCharUid, eqParams ?? {})
         break
       }
 

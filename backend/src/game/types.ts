@@ -41,15 +41,18 @@ export type DebuffType =
 // ------------------------------------------------------------
 
 export type KeywordType =
-  | 'guardian'      // 守护：替相邻角色承受攻击
-  | 'counter'       // 反击：被攻击后反击攻击者
-  | 'aoeAttack'     // 群攻：攻击所有敌方角色
-  | 'veteran'       // 历战：受伤后下次攻击+2
-  | 'immunity'      // 免伤：不受伤害
-  | 'untargetable'  // 不可选中：无法被选为目标
-  | 'earthStore'    // 地藏：濒死时保留1HP
-  | 'spread'        // 扩散：伤害扩散到相邻角色
-  | 'armorPierce'   // 穿甲：无视护甲
+  | 'guardian'        // 守护：替相邻角色承受攻击
+  | 'counter'         // 反击：被攻击后反击攻击者
+  | 'aoeAttack'       // 群攻：攻击所有敌方角色
+  | 'veteran'         // 历战：受伤后下次攻击+2
+  | 'immunity'        // 免伤：不受伤害
+  | 'untargetable'    // 不可选中：无法被选为目标
+  | 'earthStore'      // 地藏：濒死时保留1HP
+  | 'spread'          // 扩散：伤害扩散到相邻角色
+  | 'armorPierce'     // 穿甲：无视护甲
+  | 'silenceImmunity' // 沉默免疫
+  | 'ignoreGuardian'  // 无视守护
+  | 'counterSilence'  // 反击沉默
 
 // ------------------------------------------------------------
 // Card definitions (static data)
@@ -249,6 +252,9 @@ export interface PendingEffect {
   target: string
   params: Record<string, any>
   resolved: boolean
+  sourcePlayerId?: string
+  targetPlayerId?: string
+  remainingTurns?: number
 }
 
 export interface BattleLogEntry {

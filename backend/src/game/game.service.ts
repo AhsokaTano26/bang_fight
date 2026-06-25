@@ -190,14 +190,32 @@ export class GameService {
     // ---- Judgment phase: resolve judgment zone cards ----
     if (player.judgmentZone.length > 0) {
       addLog(state, player.id, `判定阶段: ${player.judgmentZone.length}张判定牌`)
+      const cardsToPass: CardInstance[] = []
+      const cardsToDiscard: CardInstance[] = []
+
       for (const judgmentCard of player.judgmentZone) {
         const def = this.deckService.getStrategyCardDef(judgmentCard.cardId)
         if (def?.judgmentEffect) {
-          this.resolveJudgment(state, player, judgmentCard, def)
+          const result = this.resolveJudgment(state, player, judgmentCard, def)
+          if (result === 'moveToNext') {
+            cardsToPass.push(judgmentCard)
+          } else {
+            cardsToDiscard.push(judgmentCard)
+          }
+        } else {
+          cardsToDiscard.push(judgmentCard)
         }
       }
-      // Move resolved judgment cards to discard pile
-      player.discardPile.push(...player.judgmentZone)
+
+      // Discard resolved cards
+      player.discardPile.push(...cardsToDiscard)
+      // Pass moveToNext cards to next player's judgment zone
+      if (cardsToPass.length > 0) {
+        const nextIdx = (state.currentPlayerIndex + 1) % state.players.length
+        const nextPlayer = state.players[nextIdx]
+        nextPlayer.judgmentZone.push(...cardsToPass)
+        addLog(state, player.id, `传递${cardsToPass.length}张判定牌给${nextPlayer.name}`)
+      }
       player.judgmentZone = []
     }
 
@@ -419,7 +437,7 @@ export class GameService {
     // Strategy card branch
     const strategyDef = this.deckService.getStrategyCardDef(card.cardId)
     if (strategyDef) {
-      let result: { success: boolean; message: string }
+      let result: { success: boolean; message: string; skipDiscard?: boolean }
       if (strategyDef.strategyType === 'deployable') {
         result = this.handleEquipStrategy(state, player, card, strategyDef, params)
       } else {
@@ -427,7 +445,10 @@ export class GameService {
       }
       if (result.success) {
         player.hand.splice(cardIndex, 1)
-        player.discardPile.push(card)
+        if (!result.skipDiscard) {
+          player.discardPile.push(card)
+          this.checkStealDiscard(state, player, [card])
+        }
       }
       return result
     }
@@ -476,6 +497,7 @@ export class GameService {
     if (result.success) {
       player.hand.splice(cardIndex, 1)
       player.discardPile.push(card)
+      this.checkStealDiscard(state, player, [card])
     }
 
     return result
@@ -624,6 +646,7 @@ export class GameService {
 
     // Hand limit: 5 non-character cards (character cards don't count)
     const LIMIT = 5
+    const discardedThisTurn: CardInstance[] = []
     while (true) {
       const nonCharCards = player.hand.filter(c => getCharacterDef(c.cardId) === undefined)
       if (nonCharCards.length <= LIMIT) break
@@ -632,7 +655,11 @@ export class GameService {
       if (idx === -1) break
       const discarded = player.hand.splice(idx, 1)[0]
       player.discardPile.push(discarded)
+      discardedThisTurn.push(discarded)
       addLog(state, player.id, `因手牌上限弃置了一张牌`)
+    }
+    if (discardedThisTurn.length > 0) {
+      this.checkStealDiscard(state, player, discardedThisTurn)
     }
 
     addLog(state, player.id, `${player.name}的第${state.turnNumber}回合结束`)
@@ -728,6 +755,32 @@ export class GameService {
 
   private getCharName(char: DeployedCharacter): string {
     return getCharacterDef(char.cardId)?.name ?? char.cardId
+  }
+
+  /**
+   * Check if any player has a character with stealDiscard buff.
+   * If so, that player can steal one of the discarded cards.
+   */
+  private checkStealDiscard(state: GameState, discardingPlayer: PlayerState, discardedCards: CardInstance[]): void {
+    for (const otherPlayer of state.players) {
+      if (otherPlayer.id === discardingPlayer.id || !otherPlayer.isAlive) continue
+      for (const slot of otherPlayer.deployed) {
+        if (!slot.character || slot.character.state === 'retired') continue
+        const buff = slot.character.buffs.find(b => b.type === 'stealDiscard')
+        if (buff && discardedCards.length > 0) {
+          // Steal a random card from the discard
+          const stealIdx = Math.floor(Math.random() * discardedCards.length)
+          const stolen = discardedCards.splice(stealIdx, 1)[0]
+          otherPlayer.hand.push(stolen)
+          // Also remove from discarding player's discard pile if present
+          const discardIdx = discardingPlayer.discardPile.findIndex(c => c.uid === stolen.uid)
+          if (discardIdx !== -1) discardingPlayer.discardPile.splice(discardIdx, 1)
+          addLog(state, otherPlayer.id, `${this.getCharName(slot.character)}窃取了${discardingPlayer.name}的弃牌`)
+          buff.remainingTurns = 0 // Consume the buff
+          return // Only steal once per discard event
+        }
+      }
+    }
   }
 
   private findDeployedChar(
@@ -983,13 +1036,14 @@ export class GameService {
 
   /**
    * Resolve a judgment zone card effect during the judgment phase.
+   * Returns 'moveToNext' if the card should be passed to the next player, null otherwise.
    */
   private resolveJudgment(
     state: GameState,
     player: PlayerState,
     card: CardInstance,
     def: StrategyCardDef,
-  ): void {
+  ): 'moveToNext' | null {
     const je = def.judgmentEffect!
     addLog(state, player.id, `判定: ${def.name}`)
 
@@ -1007,10 +1061,9 @@ export class GameService {
         } else if (!success && je.onFail) {
           this.applyJudgmentResult(state, player, je.onFail)
         }
-        break
+        return null
       }
       case 'probabilityCheck': {
-        // Use the card's description to determine rate, or default to 1/2
         const rate = '1/2'
         const success = this.diceService.probabilityCheck(rate)
         addLog(state, player.id, `概率判定: ${rate} (${success ? '成功' : '失败'})`)
@@ -1020,15 +1073,21 @@ export class GameService {
         } else if (!success && je.onFail) {
           this.applyJudgmentResult(state, player, je.onFail)
         }
-        break
+        // B0002: probabilityCheck with placeJudgmentPass - if success (no onSuccess), pass to next
+        if (success && !je.onSuccess) {
+          return 'moveToNext'
+        }
+        // If fail and no onFail, also pass to next (defensive)
+        if (!success && !je.onFail) {
+          return 'moveToNext'
+        }
+        return null
       }
       case 'moveToNext': {
-        // Transfer the judgment card to the next player
         const nextIdx = (state.currentPlayerIndex + 1) % state.players.length
         const nextPlayer = state.players[nextIdx]
-        // This card will be moved by the caller (already in judgment zone)
         addLog(state, player.id, `判定传递: 移至${nextPlayer.name}`)
-        break
+        return 'moveToNext'
       }
     }
   }
@@ -1124,6 +1183,132 @@ export class GameService {
   // ----------------------------------------------------------
 
   /**
+   * Use an equipment's conditionalBonus effect.
+   * Activated during action phase, consumes action point.
+   */
+  useEquipment(
+    state: GameState,
+    playerId: string,
+    charUid: string,
+    params: Record<string, any>,
+  ): { success: boolean; message: string } {
+    const player = state.players.find((p) => p.id === playerId)
+    if (!player) return { success: false, message: '未找到玩家' }
+
+    if (state.turnPhase !== 'action') {
+      return { success: false, message: '只能在行动阶段使用装备效果' }
+    }
+
+    const slotInfo = this.findDeployedChar(player, charUid)
+    if (!slotInfo) return { success: false, message: '场上未找到该角色' }
+
+    const slot = player.deployed[slotInfo.slotIndex]
+    if (!slot.equipment) return { success: false, message: '该角色没有装备' }
+
+    const char = slotInfo.char
+    if (!char.hasActionPoint) return { success: false, message: '该角色没有行动点' }
+
+    // Find conditionalBonus buff
+    const bonusBuff = char.buffs.find(b => b.type === 'conditionalBonus')
+    if (!bonusBuff) return { success: false, message: '该装备没有可激活的效果' }
+
+    // Extract condition from source (format: "cardUid:condition")
+    const condition = bonusBuff.source.split(':')[1]
+    if (!condition) return { success: false, message: '未知装备效果' }
+
+    // Consume action point
+    char.hasActionPoint = false
+    player.apUsedThisTurn++
+
+    const equipDef = this.deckService.getStrategyCardDef(slot.equipment.cardId)
+    const equipName = equipDef?.name ?? '装备'
+
+    switch (condition) {
+      case 'scry5pick2': {
+        // Draw 5 cards from deck, let player pick 2 (simplified: AI picks first 2, player gets them)
+        const drawCount = Math.min(5, state.actionDeck.length)
+        if (drawCount === 0) return { success: false, message: '牌堆为空' }
+        const { drawn, remaining } = this.deckService.drawCards(state.actionDeck, drawCount)
+        state.actionDeck = remaining
+        // For simplicity, take first 2 (or all if less than 2)
+        const picked = drawn.splice(0, Math.min(2, drawn.length))
+        player.hand.push(...picked)
+        // Put rest back and shuffle
+        state.actionDeck.push(...drawn)
+        state.actionDeck = this.deckService.shuffle(state.actionDeck)
+        addLog(state, player.id, `${equipName}: 翻5选2，获得${picked.length}张牌`)
+        return { success: true, message: `翻5选2，获得${picked.length}张牌` }
+      }
+
+      case 'discardToDraw': {
+        // Discard the equipment card to draw 1 card
+        const equip = slot.equipment
+        slot.equipment = null
+        player.discardPile.push(equip)
+        // Remove the conditionalBonus buff
+        char.buffs = char.buffs.filter(b => b.type !== 'conditionalBonus')
+        if (state.actionDeck.length > 0) {
+          const { drawn, remaining } = this.deckService.drawCards(state.actionDeck, 1)
+          player.hand.push(...drawn)
+          state.actionDeck = remaining
+          addLog(state, player.id, `${equipName}: 弃置装备，摸1张牌`)
+          return { success: true, message: '弃置装备，摸1张牌' }
+        }
+        addLog(state, player.id, `${equipName}: 弃置装备，但牌堆为空`)
+        return { success: true, message: '弃置装备，但牌堆为空' }
+      }
+
+      case 'forceDiceSuccess': {
+        // Next probability check is forced to succeed (stored as buff)
+        char.buffs.push({ type: 'forceDiceSuccess', value: 1, remainingTurns: 1, source: slot.equipment.uid })
+        addLog(state, player.id, `${equipName}: 下次概率判定强制成功`)
+        return { success: true, message: '下次概率判定强制成功' }
+      }
+
+      case 'guessSuit': {
+        // Guess the top card's suit (simplified: auto-guess hearts)
+        if (state.actionDeck.length === 0) return { success: false, message: '牌堆为空' }
+        const topCard = state.actionDeck[0]
+        const guessedSuit = params.suit ?? 'hearts' // Player can specify suit
+        if (topCard.suit === guessedSuit) {
+          addLog(state, player.id, `${equipName}: 猜对花色！`)
+          return { success: true, message: '猜对花色！' }
+        } else {
+          char.state = 'nearDeath'
+          addLog(state, player.id, `${equipName}: 猜错花色，进入濒死`)
+          return { success: true, message: '猜错花色，进入濒死' }
+        }
+      }
+
+      case 'nuke': {
+        // Discard all hand cards; at end of next turn, all characters retire
+        const handSize = player.hand.length
+        player.discardPile.push(...player.hand)
+        player.hand = []
+        // Store a pending effect for next turn
+        state.pendingEffects.push({
+          id: `nuke_${Date.now()}`,
+          type: 'nuke',
+          source: charUid,
+          target: '*',
+          params: {},
+          resolved: false,
+          sourcePlayerId: playerId,
+          targetPlayerId: '*',
+          remainingTurns: 2,
+        })
+        addLog(state, player.id, `${equipName}: 弃置全部手牌(${handSize}张)，下回合结束所有角色退场`)
+        return { success: true, message: `弃置${handSize}张手牌，下回合全场退场` }
+      }
+
+      default:
+        // Other conditions not yet implemented
+        addLog(state, player.id, `${equipName}: 条件加成(${condition})暂未实现`)
+        return { success: true, message: `条件加成(${condition})暂未实现` }
+    }
+  }
+
+  /**
    * Equip a deployable strategy card to a deployed character.
    */
   private handleEquipStrategy(
@@ -1182,12 +1367,17 @@ export class GameService {
           }
           break
         case 'silenceImmunity':
+          if (!char.keywords.includes('silenceImmunity')) {
+            char.keywords.push('silenceImmunity')
+          }
           appliedEffects.push('沉默免疫')
           break
         case 'armorPierceOnAttack':
+          char.buffs.push({ type: 'armorPierceOnAttack', value: 1, remainingTurns: -1, source: card.uid })
           appliedEffects.push('攻击时穿甲')
           break
         case 'nearDeathRecover':
+          char.buffs.push({ type: 'nearDeathRecover', value: 1, remainingTurns: -1, source: card.uid })
           appliedEffects.push('濒死恢复')
           break
         case 'unTargetable':
@@ -1197,18 +1387,33 @@ export class GameService {
           appliedEffects.push('不可选中')
           break
         case 'critOnAttack':
+          char.buffs.push({ type: 'critOnAttack', value: 1, remainingTurns: -1, source: card.uid })
           appliedEffects.push('攻击暴击')
           break
         case 'ignoreGuardian':
+          if (!char.keywords.includes('ignoreGuardian')) {
+            char.keywords.push('ignoreGuardian')
+          }
           appliedEffects.push('无视守护')
           break
         case 'counterSilence':
+          if (!char.keywords.includes('counterSilence')) {
+            char.keywords.push('counterSilence')
+          }
           appliedEffects.push('反击沉默')
           break
         case 'forceRetireOnHit':
+          char.buffs.push({ type: 'forceRetireOnHit', value: 1, remainingTurns: -1, source: card.uid })
           appliedEffects.push('命中时强制退场')
           break
         case 'conditionalBonus':
+          // Store the condition as a buff for later activation
+          char.buffs.push({
+            type: 'conditionalBonus',
+            value: 0,
+            remainingTurns: -1,
+            source: `${card.uid}:${effect.condition}`,
+          })
           appliedEffects.push(`条件加成: ${effect.condition}`)
           break
         default:
@@ -1231,7 +1436,7 @@ export class GameService {
     card: CardInstance,
     def: StrategyCardDef,
     params: Record<string, any>,
-  ): { success: boolean; message: string } {
+  ): { success: boolean; message: string; skipDiscard?: boolean } {
     const t = def.instantType ?? ''
     switch (t) {
       case 'disarmEquipment':       return this.instantDisarmEquipment(state, player, params)
@@ -1316,17 +1521,66 @@ export class GameService {
     return { success: true, message: `已弃置${targetPlayer.name}的手牌` }
   }
 
-  /** A0005 无限制live格斗: Duel mode - both players take turns attacking */
+  /** A0005 无限制live格斗: Duel mode - simplified: both discard attack cards, loser takes damage */
   private instantDuelMode(state: GameState, player: PlayerState, params: Record<string, any>): { success: boolean; message: string } {
-    // Simplified: just log the effect for now — full duel system is complex
-    addLog(state, player.id, '无限制live格斗已激活！')
-    return { success: true, message: '无限制live格斗已激活' }
+    const { targetPlayerId } = params
+    if (!targetPlayerId) return { success: false, message: '需要指定目标玩家' }
+
+    const targetPlayer = state.players.find(p => p.id === targetPlayerId)
+    if (!targetPlayer) return { success: false, message: '未找到目标玩家' }
+
+    // Both players count attack cards in hand
+    const isAttackCard = (c: CardInstance) => {
+      const def = this.deckService.actionCardDefs.find(d => d.id === c.cardId)
+      return def && (def.actionType === 'attack' || def.actionType === 'armorPierce')
+    }
+
+    const playerAttackCards = player.hand.filter(isAttackCard)
+    const targetAttackCards = targetPlayer.hand.filter(isAttackCard)
+
+    // Each discards up to 2 attack cards
+    const playerDiscardCount = Math.min(2, playerAttackCards.length)
+    const targetDiscardCount = Math.min(2, targetAttackCards.length)
+
+    for (let i = 0; i < playerDiscardCount; i++) {
+      const idx = player.hand.indexOf(playerAttackCards[i])
+      if (idx !== -1) player.discardPile.push(player.hand.splice(idx, 1)[0])
+    }
+    for (let i = 0; i < targetDiscardCount; i++) {
+      const idx = targetPlayer.hand.indexOf(targetAttackCards[i])
+      if (idx !== -1) targetPlayer.discardPile.push(targetPlayer.hand.splice(idx, 1)[0])
+    }
+
+    const diff = playerDiscardCount - targetDiscardCount
+    if (diff > 0) {
+      targetPlayer.hp -= 2
+      addLog(state, player.id, `格斗对决: ${player.name}弃${playerDiscardCount}张, ${targetPlayer.name}弃${targetDiscardCount}张, ${targetPlayer.name}受2点伤害`)
+      return { success: true, message: `格斗对决胜利！${targetPlayer.name}受2点伤害` }
+    } else if (diff < 0) {
+      player.hp -= 2
+      addLog(state, player.id, `格斗对决: ${player.name}弃${playerDiscardCount}张, ${targetPlayer.name}弃${targetDiscardCount}张, ${player.name}受2点伤害`)
+      return { success: true, message: `格斗对决失败！${player.name}受2点伤害` }
+    } else {
+      addLog(state, player.id, `格斗对决: 平局（各弃${playerDiscardCount}张）`)
+      return { success: true, message: '格斗对决平局' }
+    }
   }
 
-  /** A0008 我有异议: Counter an instant card (cancel it) */
+  /** A0008 我有异议: Counter an instant card - mark pending counter for next opponent instant */
   private instantCounterInstant(state: GameState, player: PlayerState, params: Record<string, any>): { success: boolean; message: string } {
-    addLog(state, player.id, '使用了我有异议（取消即时牌）')
-    return { success: true, message: '已使用我有异议' }
+    // Mark all deployed characters with a counterInstant buff (lasts until next opponent instant)
+    for (const slot of player.deployed) {
+      if (slot.character && slot.character.state !== 'retired') {
+        slot.character.buffs.push({
+          type: 'counterInstant',
+          value: 1,
+          remainingTurns: 1,
+          source: 'A0008',
+        })
+      }
+    }
+    addLog(state, player.id, '使用了我有异议（下次对手即时牌失效）')
+    return { success: true, message: '已使用我有异议：下次对手即时牌失效' }
   }
 
   /** A0012 拿来吧你: Steal equipment from enemy */
@@ -1363,7 +1617,7 @@ export class GameService {
   }
 
   /** A0013 乐 / C0010 金玉 / D0014 噜不动了: Place a judgment card on target enemy */
-  private instantPlaceJudgment(state: GameState, player: PlayerState, card: CardInstance, def: StrategyCardDef, params: Record<string, any>): { success: boolean; message: string } {
+  private instantPlaceJudgment(state: GameState, player: PlayerState, card: CardInstance, def: StrategyCardDef, params: Record<string, any>): { success: boolean; message: string; skipDiscard?: boolean } {
     const { targetPlayerId } = params
     if (!targetPlayerId) return { success: false, message: '需要指定目标玩家' }
 
@@ -1373,7 +1627,7 @@ export class GameService {
     // Place this card into target's judgment zone
     targetPlayer.judgmentZone.push(card)
     addLog(state, player.id, `对${targetPlayer.name}放置了判定牌: ${def.name}`)
-    return { success: true, message: `已对${targetPlayer.name}放置判定牌: ${def.name}` }
+    return { success: true, message: `已对${targetPlayer.name}放置判定牌: ${def.name}`, skipDiscard: true }
   }
 
   /** A0014 巧克力螺: Grant temporary armor pierce to an ally */
@@ -1442,7 +1696,7 @@ export class GameService {
   }
 
   /** B0002 五字不行: Place judgment + pass action */
-  private instantPlaceJudgmentPass(state: GameState, player: PlayerState, card: CardInstance, def: StrategyCardDef, params: Record<string, any>): { success: boolean; message: string } {
+  private instantPlaceJudgmentPass(state: GameState, player: PlayerState, card: CardInstance, def: StrategyCardDef, params: Record<string, any>): { success: boolean; message: string; skipDiscard?: boolean } {
     const { targetPlayerId } = params
     if (!targetPlayerId) return { success: false, message: '需要指定目标玩家' }
 
@@ -1451,7 +1705,7 @@ export class GameService {
 
     targetPlayer.judgmentZone.push(card)
     addLog(state, player.id, `对${targetPlayer.name}放置了判定牌: ${def.name}`)
-    return { success: true, message: `已对${targetPlayer.name}放置判定牌` }
+    return { success: true, message: `已对${targetPlayer.name}放置判定牌`, skipDiscard: true }
   }
 
   /** B0003 轨迹展: Retrieve an instant card from discard pile */
@@ -1476,7 +1730,7 @@ export class GameService {
     return { success: true, message: `取回了${def?.name ?? card.cardId}` }
   }
 
-  /** B0004 星光魔方: Draw a character card and deploy it */
+  /** B0004 星光魔方: Draw a character card and deploy it if same faction exists */
   private instantDrawCharAndDeploy(state: GameState, player: PlayerState): { success: boolean; message: string } {
     if (state.characterPool.length === 0) {
       return { success: false, message: '角色池为空' }
@@ -1487,9 +1741,26 @@ export class GameService {
     const charDef = getCharacterDef(card.cardId)
     if (!charDef) return { success: false, message: '未抽到角色牌' }
 
+    // Check if player has a deployed character from the same faction
+    const hasSameFaction = player.deployed.some(s => {
+      if (!s.character) return false
+      const def = getCharacterDef(s.character.cardId)
+      return def && def.faction === charDef.faction
+    })
+
+    if (!hasSameFaction) {
+      // Discard the drawn character
+      player.discardPile.push(card)
+      addLog(state, player.id, `星光魔方: 抽到${charDef.name}（${charDef.faction}），但无同阵营角色，已弃置`)
+      return { success: true, message: `抽到${charDef.name}，但无同阵营角色已弃置` }
+    }
+
     // Find first empty slot
     const emptySlot = player.deployed.find(s => s.character === null)
-    if (!emptySlot) return { success: false, message: '场上没有空位' }
+    if (!emptySlot) {
+      player.discardPile.push(card)
+      return { success: false, message: '场上没有空位' }
+    }
 
     const deployedChar: DeployedCharacter = {
       uid: card.uid,
@@ -1775,10 +2046,21 @@ export class GameService {
     return { success: true, message: `${this.getCharName(info.char)}从濒死中恢复` }
   }
 
-  /** C0008 灵光一闪: Chance to ignore a skill effect */
+  /** C0008 灵光一闪: 1/2 chance to ignore next skill targeting allies */
   private instantChanceIgnoreSkill(state: GameState, player: PlayerState): { success: boolean; message: string } {
     const success = this.diceService.probabilityCheck('1/2')
     if (success) {
+      // Grant ignoreNextSkill buff to all deployed allies
+      for (const slot of player.deployed) {
+        if (slot.character && slot.character.state !== 'retired') {
+          slot.character.buffs.push({
+            type: 'ignoreNextSkill',
+            value: 1,
+            remainingTurns: 1,
+            source: 'C0008',
+          })
+        }
+      }
       addLog(state, player.id, '灵光一闪: 成功！下次技能无效')
       return { success: true, message: '灵光一闪: 下次技能无效' }
     }
@@ -1841,7 +2123,7 @@ export class GameService {
     }
 
     addLog(state, player.id, 'Fever!!!!!: 未达成5名同阵营角色条件')
-    return { success: true, message: 'Fever!!!!! 未达成条件' }
+    return { success: false, message: 'Fever!!!!! 未达成条件（需要5名同阵营角色）' }
   }
 
   /** D0002 回收站: Retrieve a card from discard pile */
@@ -1937,10 +2219,21 @@ export class GameService {
     return { success: true, message: `${targetPlayer.name}的阵营技能被禁用` }
   }
 
-  /** D0012 绿接粉: Counter skill effect */
+  /** D0012 绿接粉: Counter next enemy skill */
   private instantCounterSkill(state: GameState, player: PlayerState, params: Record<string, any>): { success: boolean; message: string } {
-    addLog(state, player.id, '绿接粉: 已准备反击技能')
-    return { success: true, message: '已准备反击技能' }
+    // Mark all deployed characters with a counterSkill buff
+    for (const slot of player.deployed) {
+      if (slot.character && slot.character.state !== 'retired') {
+        slot.character.buffs.push({
+          type: 'counterSkill',
+          value: 1,
+          remainingTurns: 1,
+          source: 'D0012',
+        })
+      }
+    }
+    addLog(state, player.id, '绿接粉: 已准备反击下次技能')
+    return { success: true, message: '已准备反击下次技能' }
   }
 
   /** A0011 世界守护者: Maintain faction skill (self buff) */

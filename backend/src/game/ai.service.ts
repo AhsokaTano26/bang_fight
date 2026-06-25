@@ -308,15 +308,55 @@ export class AiService {
         return {} // Always try it
       }
 
-      // Complex cards — skip for now
-      case 'duelMode':
+      case 'drawCharAndDeploy': {
+        // Use if there are empty slots and characters in pool
+        const hasEmpty = aiPlayer.deployed.some(s => s.character === null)
+        return hasEmpty && state.characterPool.length > 0 ? {} : null
+      }
+
+      case 'removeJudgment': {
+        // Use if AI has judgment cards in its zone
+        return aiPlayer.judgmentZone.length > 0 ? { targetPlayerId: aiPlayer.id } : null
+      }
+
+      case 'protectNearDeath': {
+        // Use if any deployed character is in near-death state
+        const hasNearDeath = aiPlayer.deployed.some(
+          s => s.character && s.character.state === 'nearDeath',
+        )
+        return hasNearDeath ? {} : null
+      }
+
+      case 'russianRoulette': {
+        // Use if enemy has higher HP
+        const enemyPlayers = state.players.filter(p => p.id !== aiPlayer.id && p.isAlive)
+        const enemy = enemyPlayers[0]
+        if (!enemy) return null
+        return enemy.hp > aiPlayer.hp ? { targetPlayerId: enemy.id } : null
+      }
+
+      case 'swapHandWithPlayers': {
+        // Use if AI has fewer cards than enemy
+        const enemies = state.players.filter(p => p.id !== aiPlayer.id && p.isAlive)
+        const enemy = enemies[0]
+        if (!enemy) return null
+        return aiPlayer.hand.length < enemy.hand.length ? {} : null
+      }
+
+      case 'duelMode': {
+        // Use against enemies with more attack cards
+        const enemies = state.players.filter(p => p.id !== aiPlayer.id && p.isAlive)
+        const enemy = enemies[0]
+        if (!enemy) return null
+        return { targetPlayerId: enemy.id }
+      }
+
       case 'counterInstant':
       case 'counterSkill':
       case 'chanceIgnoreSkill':
       case 'maintainFactionSkill':
-      case 'russianRoulette':
-      case 'swapHandWithPlayers':
-        return null
+        // Defensive cards — use if enemies have cards
+        return {}
 
       default:
         return null
