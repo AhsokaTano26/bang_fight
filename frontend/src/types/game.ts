@@ -30,6 +30,7 @@ export interface PlayerState {
   deployed: DeployedSlot[] // 部署区 (最多5个位置)
   graveyard: CardInstance[] // 休息室 (退场的角色牌)
   discardPile: CardInstance[] // 弃牌堆
+  judgmentZone: CardInstance[] // 判定区
 
   hpRecoveryUsed: number  // 本回合已使用体力值补充角色次数 (每回合上限2)
   apUsedThisTurn: number  // 本回合已使用行动点的角色数 (每回合上限3)

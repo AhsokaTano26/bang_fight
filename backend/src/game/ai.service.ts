@@ -28,13 +28,19 @@ export class AiService {
     // 1. Deploy characters
     this.deployCharacters(state, aiPlayer)
 
-    // 2. Use strategy cards
+    // 2. Use character skills
+    this.useSkills(state, aiPlayer)
+
+    // 3. Use strategy cards
     this.useStrategyCards(state, aiPlayer)
 
-    // 3. Attack with available characters
+    // 4. Use action cards (attack, block, replenish)
+    this.useActionCards(state, aiPlayer)
+
+    // 5. Attack with available characters
     this.attackEnemies(state, aiPlayer)
 
-    // 4. Use recovery cards if needed
+    // 6. Use recovery cards if needed
     this.useRecoveryIfNeeded(state, aiPlayer)
   }
 
@@ -47,6 +53,188 @@ export class AiService {
       const emptySlot = aiPlayer.deployed.findIndex((s) => s.character === null)
       if (emptySlot === -1) break
       this.gameService.deployCharacter(state, aiPlayer.id, card.uid, emptySlot)
+    }
+  }
+
+  /**
+   * Use active character skills.
+   * Only uses non-AP skills to preserve AP for attacks.
+   */
+  private useSkills(state: GameState, aiPlayer: PlayerState): void {
+    const enemyPlayers = state.players.filter(
+      (p) => p.id !== aiPlayer.id && p.isAlive,
+    )
+
+    for (const slot of aiPlayer.deployed) {
+      if (!slot.character || slot.character.state !== 'normal') continue
+      if (slot.character.silenced) continue
+
+      const charDef = getCharacterDef(slot.character.cardId)
+      if (!charDef) continue
+
+      for (const skill of charDef.skills) {
+        if (!skill.effect) continue
+        const effectType = skill.effect.type
+
+        // Skip passive skills
+        if (['guardianCounter', 'aoeAttack', 'drawOnNearDeath', 'nearDeathRestriction',
+             'veteran', 'silenceOnDeath', 'armorPierceAttack', 'firstCardGuaranteed'].includes(effectType)) {
+          continue
+        }
+
+        // Only use non-AP skills to preserve AP for attacks
+        if (skill.consumeActionPoint) continue
+
+        // Try to use the skill
+        this.tryUseSkill(state, aiPlayer, slot.character, effectType, enemyPlayers)
+      }
+    }
+  }
+
+  /**
+   * Try to use a specific skill. Returns true if skill was used.
+   */
+  private tryUseSkill(
+    state: GameState,
+    aiPlayer: PlayerState,
+    character: DeployedCharacter,
+    effectType: string,
+    enemyPlayers: PlayerState[],
+  ): boolean {
+    switch (effectType) {
+      case 'stealCard': {
+        // Steal from enemy with most hand cards
+        const target = enemyPlayers.reduce((best, p) =>
+          p.hand.length > best.hand.length ? p : best, enemyPlayers[0])
+        if (target.hand.length === 0) return false
+        this.gameService.useSkill(state, aiPlayer.id, character.uid, {})
+        return true
+      }
+
+      case 'summon': {
+        // Summon if empty slot available
+        const emptySlot = aiPlayer.deployed.find(s => s.character === null)
+        if (!emptySlot) return false
+        this.gameService.useSkill(state, aiPlayer.id, character.uid, {})
+        return true
+      }
+
+      case 'buffAlly': {
+        // Only buff if we have spare AP (not consuming attack turns)
+        // Use on the ally with highest attack
+        let bestTarget: string | null = null
+        let bestAtk = -1
+        for (const slot of aiPlayer.deployed) {
+          if (slot.character && slot.character.state === 'normal' && slot.character.uid !== character.uid) {
+            if (slot.character.attack > bestAtk) {
+              bestAtk = slot.character.attack
+              bestTarget = slot.character.uid
+            }
+          }
+        }
+        if (!bestTarget) return false
+        this.gameService.useSkill(state, aiPlayer.id, character.uid, { targetCharUid: bestTarget })
+        return true
+      }
+
+      case 'sacrificeForPower': {
+        // Use if we have spare hand cards (more than 2)
+        if (aiPlayer.hand.length < 2) return false
+        this.gameService.useSkill(state, aiPlayer.id, character.uid, {})
+        return true
+      }
+
+      case 'sacrificeHealAlly': {
+        // Only use if an ally is near-death
+        const hasNearDeathAlly = aiPlayer.deployed.some(
+          s => s.character && s.character.state === 'nearDeath' && s.character.uid !== character.uid,
+        )
+        if (!hasNearDeathAlly) return false
+        // Find the near-death ally
+        const target = aiPlayer.deployed.find(
+          s => s.character && s.character.state === 'nearDeath' && s.character.uid !== character.uid,
+        )
+        if (!target?.character) return false
+        this.gameService.useSkill(state, aiPlayer.id, character.uid, { targetCharUid: target.character.uid })
+        return true
+      }
+
+      case 'transferDebuff': {
+        // Use if an ally has debuffs
+        const hasDebuffAlly = aiPlayer.deployed.some(
+          s => s.character && s.character.state === 'normal' && s.character.debuffs.length > 0 && s.character.uid !== character.uid,
+        )
+        if (!hasDebuffAlly) return false
+        this.gameService.useSkill(state, aiPlayer.id, character.uid, {})
+        return true
+      }
+
+      case 'restoreAllyAP': {
+        // Use if an ally has no AP and we have hand cards
+        if (aiPlayer.hand.length === 0) return false
+        const needsAP = aiPlayer.deployed.some(
+          s => s.character && s.character.state === 'normal' && !s.character.hasActionPoint && s.character.uid !== character.uid,
+        )
+        if (!needsAP) return false
+        // Find ally without AP
+        const target = aiPlayer.deployed.find(
+          s => s.character && s.character.state === 'normal' && !s.character.hasActionPoint && s.character.uid !== character.uid,
+        )
+        if (!target?.character) return false
+        this.gameService.useSkill(state, aiPlayer.id, character.uid, { targetCharUid: target.character.uid })
+        return true
+      }
+
+      case 'randomStatAdjust': {
+        // Use if we have 3+ deployed characters (more impact)
+        const deployedCount = aiPlayer.deployed.filter(s => s.character && s.character.state === 'normal').length
+        if (deployedCount < 3) return false
+        this.gameService.useSkill(state, aiPlayer.id, character.uid, {})
+        return true
+      }
+
+      case 'grantSkillTrigger': {
+        // Buff ally with highest attack before attacking
+        let bestTarget: string | null = null
+        let bestAtk = -1
+        for (const slot of aiPlayer.deployed) {
+          if (slot.character && slot.character.state === 'normal' && slot.character.uid !== character.uid) {
+            if (slot.character.attack > bestAtk) {
+              bestAtk = slot.character.attack
+              bestTarget = slot.character.uid
+            }
+          }
+        }
+        if (!bestTarget) return false
+        this.gameService.useSkill(state, aiPlayer.id, character.uid, { targetCharUid: bestTarget })
+        return true
+      }
+
+      case 'scryDraw': {
+        // Always use if deck has cards
+        if (state.actionDeck.length === 0) return false
+        this.gameService.useSkill(state, aiPlayer.id, character.uid, {})
+        return true
+      }
+
+      case 'counterAttack': {
+        // Use if enemies have cards (likely to attack)
+        const enemiesWithCards = enemyPlayers.some(p => p.hand.length > 0)
+        if (!enemiesWithCards) return false
+        this.gameService.useSkill(state, aiPlayer.id, character.uid, {})
+        return true
+      }
+
+      case 'stealDiscard': {
+        // Use if enemies have cards (likely to discard)
+        const enemiesWithCards = enemyPlayers.some(p => p.hand.length > 0)
+        if (!enemiesWithCards) return false
+        this.gameService.useSkill(state, aiPlayer.id, character.uid, {})
+        return true
+      }
+
+      default:
+        return false
     }
   }
 
@@ -363,6 +551,122 @@ export class AiService {
     }
   }
 
+  /**
+   * Use action cards from hand: attack cards, block cards, replenish.
+   */
+  private useActionCards(state: GameState, aiPlayer: PlayerState): void {
+    const enemyPlayers = state.players.filter(
+      (p) => p.id !== aiPlayer.id && p.isAlive,
+    )
+    if (enemyPlayers.length === 0) return
+
+    // Find action cards in hand
+    const actionCards = aiPlayer.hand.filter((c) => {
+      const def = this.deckService.actionCardDefs.find((d) => d.id === c.cardId)
+      return def !== undefined
+    })
+
+    // Use replenish cards first (draw more cards)
+    for (const card of [...actionCards]) {
+      const def = this.deckService.actionCardDefs.find((d) => d.id === card.cardId)
+      if (!def || def.actionType !== 'replenish') continue
+
+      // If character pool has characters and we have empty slots, recruit
+      const hasEmpty = aiPlayer.deployed.some((s) => s.character === null)
+      if (hasEmpty && state.characterPool.length > 0) {
+        this.gameService.playCard(state, aiPlayer.id, card.uid, { mode: 'recruit' })
+      } else {
+        // Otherwise draw cards
+        this.gameService.playCard(state, aiPlayer.id, card.uid, {})
+      }
+    }
+
+    // Use block cards preventively when we have deployed characters
+    const hasDeployedChars = aiPlayer.deployed.some(
+      (s) => s.character && s.character.state === 'normal',
+    )
+
+    if (hasDeployedChars) {
+      for (const card of [...actionCards]) {
+        const def = this.deckService.actionCardDefs.find((d) => d.id === card.cardId)
+        if (!def) continue
+
+        if (def.actionType === 'bigBlock') {
+          this.gameService.playCard(state, aiPlayer.id, card.uid, {})
+        } else if (def.actionType === 'smallBlock') {
+          // Apply to the character with lowest HP
+          let lowestHp = Infinity
+          let targetUid = ''
+          for (const slot of aiPlayer.deployed) {
+            if (slot.character && slot.character.state === 'normal') {
+              if (slot.character.currentHp < lowestHp) {
+                lowestHp = slot.character.currentHp
+                targetUid = slot.character.uid
+              }
+            }
+          }
+          if (targetUid) {
+            this.gameService.playCard(state, aiPlayer.id, card.uid, { targetCharUid: targetUid })
+          }
+        }
+      }
+    }
+
+    // Use attack cards from hand (in addition to built-in attacks)
+    for (const card of [...actionCards]) {
+      const def = this.deckService.actionCardDefs.find((d) => d.id === card.cardId)
+      if (!def) continue
+
+      if (def.actionType === 'attack' || def.actionType === 'armorPierce') {
+        // Find best target
+        const target = this.findBestAttackTarget(state, aiPlayer, enemyPlayers)
+        if (target) {
+          this.gameService.playCard(state, aiPlayer.id, card.uid, {
+            targetPlayerId: target.playerId,
+            targetCharUid: target.charUid,
+          })
+        }
+      }
+    }
+  }
+
+  private getCharMaxHp(char: DeployedCharacter): number {
+    const charDef = getCharacterDef(char.cardId)
+    return charDef?.maxHp ?? char.maxHp
+  }
+
+  /**
+   * Find the best attack target for action cards.
+   */
+  private findBestAttackTarget(
+    state: GameState,
+    aiPlayer: PlayerState,
+    enemyPlayers: PlayerState[],
+  ): { playerId: string; charUid: string } | null {
+    let bestTarget: { playerId: string; charUid: string } | null = null
+    let lowestHp = Infinity
+
+    for (const enemy of enemyPlayers) {
+      for (const slot of enemy.deployed) {
+        if (!slot.character) continue
+        if (slot.character.state === 'retired') continue
+        if (slot.character.keywords.includes('untargetable')) continue
+
+        // Near-death targets are top priority
+        if (slot.character.state === 'nearDeath') {
+          return { playerId: enemy.id, charUid: slot.character.uid }
+        }
+
+        if (slot.character.state === 'normal' && slot.character.currentHp < lowestHp) {
+          lowestHp = slot.character.currentHp
+          bestTarget = { playerId: enemy.id, charUid: slot.character.uid }
+        }
+      }
+    }
+
+    return bestTarget
+  }
+
   private attackEnemies(state: GameState, aiPlayer: PlayerState): void {
     const enemyPlayers = state.players.filter(
       (p) => p.id !== aiPlayer.id && p.isAlive,
@@ -477,27 +781,42 @@ export class AiService {
   }
 
   private useRecoveryIfNeeded(state: GameState, aiPlayer: PlayerState): void {
-    // Check if any character is near-death
-    const hasNearDeath = aiPlayer.deployed.some(
-      (s) => s.character?.state === 'nearDeath',
-    )
+    // Count damaged and near-death characters
+    let damagedCount = 0
+    let nearDeathSlot: typeof aiPlayer.deployed[0] | null = null
 
-    if (hasNearDeath) {
-      // Try to find a recovery card
+    for (const slot of aiPlayer.deployed) {
+      if (!slot.character || slot.character.state === 'retired') continue
+      if (slot.character.state === 'nearDeath') {
+        nearDeathSlot = slot
+        damagedCount++
+      } else {
+        const maxHp = this.getCharMaxHp(slot.character)
+        if (slot.character.currentHp < maxHp) damagedCount++
+      }
+    }
+
+    // Use bigRecovery if any character is damaged
+    if (damagedCount >= 1) {
+      const bigRecoveryCard = aiPlayer.hand.find((c) => {
+        const def = this.deckService.actionCardDefs.find((d) => d.id === c.cardId)
+        return def && def.actionType === 'bigRecovery'
+      })
+      if (bigRecoveryCard) {
+        this.gameService.playCard(state, aiPlayer.id, bigRecoveryCard.uid, {})
+      }
+    }
+
+    // Use recovery on near-death character
+    if (nearDeathSlot?.character) {
       const recoveryCard = aiPlayer.hand.find((c) => {
         const def = this.deckService.actionCardDefs.find((d) => d.id === c.cardId)
-        return def && (def.actionType === 'recovery' || def.actionType === 'bigRecovery')
+        return def && def.actionType === 'recovery'
       })
-
       if (recoveryCard) {
-        const targetSlot = aiPlayer.deployed.find(
-          (s) => s.character?.state === 'nearDeath',
-        )
-        if (targetSlot?.character) {
-          this.gameService.playCard(state, aiPlayer.id, recoveryCard.uid, {
-            targetCharUid: targetSlot.character.uid,
-          })
-        }
+        this.gameService.playCard(state, aiPlayer.id, recoveryCard.uid, {
+          targetCharUid: nearDeathSlot.character.uid,
+        })
       }
     }
 

@@ -34,10 +34,11 @@
         </template>
         <div class="rules-ref">
           <p class="rules-title">规则速查</p>
-          <p class="rules-item">攻击/格挡消耗行动点，每回合最多用 3 个角色的行动点</p>
-          <p class="rules-item">格挡即时触发一次后消失，回复回满体力+恢复行动点</p>
+          <p class="rules-item">攻击/格挡消耗行动点</p>
+          <p class="rules-item">格挡即时触发一次后消失，回复恢复角色正常状态/玩家体力值</p>
           <p class="rules-item">伤害 > 血量 → 退场；伤害 ≤ 血量 → 概率濒死</p>
           <p class="rules-item">手牌上限 5 张（角色牌不占上限）</p>
+          <a class="rules-item gallery-inline-link" href="#gallery">查看完整卡牌图鉴 →</a>
         </div>
       </div>
     </aside>
@@ -95,7 +96,10 @@
       <h1 class="lobby-title">邦邦武斗传</h1>
       <p class="lobby-subtitle">BANG BANG FIGHT</p>
       <p class="lobby-ver">内测版 1.0</p>
-      <a class="test-entry" href="#test">卡牌测试 →</a>
+      <div class="lobby-links">
+        <a class="test-entry" href="#test">卡牌测试 →</a>
+        <a class="test-entry gallery-link" href="#gallery">卡牌图鉴 →</a>
+      </div>
       <div class="lobby-options">
         <button class="start-btn" @click="startGame(1, 1)">
           <span class="start-label">1 对 1</span>
@@ -937,8 +941,13 @@ async function handleAction(type: string, _params: Record<string, any> = {}) {
 .lobby-title { font-size: 64px; font-weight: 900; color: #e94560; text-shadow: 0 0 40px rgba(233,69,96,0.5); margin: 0; }
 .lobby-subtitle { font-size: 18px; color: #888; margin: 8px 0 4px; letter-spacing: 6px; }
 .lobby-ver { font-size: 12px; color: #555; margin: 0 0 12px; }
-.test-entry { display: inline-block; font-size: 13px; color: #888; text-decoration: none; margin-bottom: 40px; transition: color 0.2s; }
+.test-entry { display: inline-block; font-size: 13px; color: #888; text-decoration: none; transition: color 0.2s; }
 .test-entry:hover { color: #e94560; }
+.lobby-links { display: flex; gap: 16px; justify-content: center; margin-bottom: 40px; }
+.gallery-link { color: #4a9eff; }
+.gallery-link:hover { color: #6db8ff; }
+.gallery-inline-link { color: #4a9eff !important; cursor: pointer; display: block; margin-top: 6px; }
+.gallery-inline-link:hover { color: #6db8ff !important; }
 .lobby-options { display: flex; gap: 24px; justify-content: center; }
 .start-btn { display: flex; flex-direction: column; align-items: center; padding: 24px 40px; background: rgba(255,255,255,0.05); border: 2px solid rgba(233,69,96,0.3); border-radius: 16px; cursor: pointer; transition: all 0.3s; color: #fff; }
 .start-btn:hover { border-color: #e94560; background: rgba(233,69,96,0.1); transform: translateY(-4px); box-shadow: 0 8px 30px rgba(233,69,96,0.3); }

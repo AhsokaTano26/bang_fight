@@ -2,11 +2,12 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import GameBoard from './components/GameBoard.vue'
 import CardTestPage from './components/CardTestPage.vue'
+import CardGalleryPage from './components/CardGalleryPage.vue'
 
-const isTest = ref(window.location.hash === '#test')
+const currentHash = ref(window.location.hash)
 
 function onHashChange() {
-  isTest.value = window.location.hash === '#test'
+  currentHash.value = window.location.hash
 }
 
 onMounted(() => window.addEventListener('hashchange', onHashChange))
@@ -14,6 +15,7 @@ onUnmounted(() => window.removeEventListener('hashchange', onHashChange))
 </script>
 
 <template>
-  <CardTestPage v-if="isTest" />
+  <CardTestPage v-if="currentHash === '#test'" />
+  <CardGalleryPage v-else-if="currentHash === '#gallery'" />
   <GameBoard v-else />
 </template>

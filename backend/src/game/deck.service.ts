@@ -27,10 +27,10 @@ function randomId(): string {
 
 const ACTION_CARD_DEFS: ActionCardDef[] = [
   // Attack x4
-  { id: 'ATK_1', name: '攻击', category: 'action', actionType: 'attack', requiresTarget: true, affectsAll: false },
-  { id: 'ATK_2', name: '攻击', category: 'action', actionType: 'attack', requiresTarget: true, affectsAll: false },
-  { id: 'ATK_3', name: '攻击', category: 'action', actionType: 'attack', requiresTarget: true, affectsAll: false },
-  { id: 'ATK_4', name: '攻击', category: 'action', actionType: 'attack', requiresTarget: true, affectsAll: false },
+  { id: 'ATK_1', name: '肘击', category: 'action', actionType: 'attack', requiresTarget: true, affectsAll: false },
+  { id: 'ATK_2', name: '肘击', category: 'action', actionType: 'attack', requiresTarget: true, affectsAll: false },
+  { id: 'ATK_3', name: '肘击', category: 'action', actionType: 'attack', requiresTarget: true, affectsAll: false },
+  { id: 'ATK_4', name: '肘击', category: 'action', actionType: 'attack', requiresTarget: true, affectsAll: false },
   // Armor Pierce x4
   { id: 'ARMOR_1', name: '破甲攻击', category: 'action', actionType: 'armorPierce', requiresTarget: true, affectsAll: false, armorPierce: true },
   { id: 'ARMOR_2', name: '破甲攻击', category: 'action', actionType: 'armorPierce', requiresTarget: true, affectsAll: false, armorPierce: true },
@@ -61,6 +61,26 @@ const ACTION_CARD_DEFS: ActionCardDef[] = [
   { id: 'REPLENISH_2', name: '补充', category: 'action', actionType: 'replenish', requiresTarget: false, affectsAll: false },
   { id: 'REPLENISH_3', name: '补充', category: 'action', actionType: 'replenish', requiresTarget: false, affectsAll: false },
   { id: 'REPLENISH_4', name: '补充', category: 'action', actionType: 'replenish', requiresTarget: false, affectsAll: false },
+
+  // V1.1: 肘+20 x20 (5 per suit) — 普通攻击牌，+20表示增加了20张
+  ...Array.from({ length: 20 }, (_, i) => ({
+    id: `ATK20_${i + 1}`,
+    name: '肘击',
+    category: 'action' as const,
+    actionType: 'attack' as const,
+    requiresTarget: true,
+    affectsAll: false,
+  })),
+  // V1.1: 破+4 x4 (1 per suit) — 普通破甲牌，+4表示增加了4张
+  ...Array.from({ length: 4 }, (_, i) => ({
+    id: `ARMOR4_${i + 1}`,
+    name: '破甲攻击',
+    category: 'action' as const,
+    actionType: 'armorPierce' as const,
+    requiresTarget: true,
+    affectsAll: false,
+    armorPierce: true,
+  })),
 ]
 
 // ------------------------------------------------------------
@@ -115,7 +135,7 @@ export class DeckService {
   }
 
   /**
-   * Create a shuffled action deck (28 cards, one of each ActionCardDef).
+   * Create a shuffled action deck (52 cards: 28 original + 20 肘+20 + 4 破+4).
    */
   createDeck(): CardInstance[] {
     const deck = ACTION_CARD_DEFS.map((def) => this.createCardInstance(def.id))
@@ -123,7 +143,7 @@ export class DeckService {
   }
 
   /**
-   * Create a mixed deck: 28 action cards + 64 strategy cards = 92 cards.
+   * Create a mixed deck: 52 action cards + 76 strategy cards = 128 cards.
    */
   createMixedDeck(): CardInstance[] {
     const actionCards = ACTION_CARD_DEFS.map((def) => this.createCardInstance(def.id))

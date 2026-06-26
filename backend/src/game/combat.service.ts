@@ -119,16 +119,12 @@ export class CombatService {
     }
 
     // Block buffs — consumed after one hit (per rules: "即时触发，不会保留")
-    for (const buff of target.buffs) {
-      if (buff.type === 'block' && buff.value > 0) {
-        buff.remainingTurns = 0 // consume immediately after use
-        if (buff.value >= effectiveDamage) {
-          buff.value -= effectiveDamage
-          return 0
-        }
-        effectiveDamage -= buff.value
-        buff.value = 0
-      }
+    // Block absorbs ALL damage from ONE hit
+    const blockBuff = target.buffs.find(b => b.type === 'block' && b.value > 0)
+    if (blockBuff) {
+      blockBuff.remainingTurns = 0 // consume immediately after use
+      blockBuff.value = 0
+      return 0 // All damage blocked
     }
 
     target.currentHp -= effectiveDamage
@@ -153,9 +149,9 @@ export class CombatService {
   /**
    * Check whether a character enters near-death state.
    * Based on the difference between maxHp and remaining effective HP:
-   *   difference > 5  : 1/6 chance  (need 6 on d6)
-   *   difference 3-5  : 1/3 chance  (need 5-6 on d6)
-   *   difference < 3  : 1/2 chance  (need 4-6 on d6)
+   *   difference > 6  : 1/6 chance  (need 6 on d6)
+   *   difference 4-6  : 1/3 chance  (need 5-6 on d6)
+   *   difference 1-3  : 1/2 chance  (need 4-6 on d6)
    *
    * The "difference" here is calculated as (maxHp - currentHpAfterDamage).
    * A higher difference means the character is more wounded and more likely
@@ -165,9 +161,9 @@ export class CombatService {
     const difference = maxHp - currentHp
     let targetNumber: number
 
-    if (difference > 5) {
+    if (difference > 6) {
       targetNumber = 6 // 1/6 chance
-    } else if (difference >= 3) {
+    } else if (difference >= 4) {
       targetNumber = 5 // 1/3 chance (5 or 6)
     } else {
       targetNumber = 4 // 1/2 chance (4, 5, or 6)
@@ -225,11 +221,6 @@ export class CombatService {
     const hasDisarm = attacker.debuffs.some((d) => d.type === 'disarm')
     if (hasDisarm) {
       return { success: false, message: '攻击者被缴械，无法攻击' }
-    }
-
-    // AP limit: max 3 characters per turn
-    if (attackerPlayer.apUsedThisTurn >= 3) {
-      return { success: false, message: '本回合已使用3名角色的行动点' }
     }
 
     // ---- Step 1: untargetable check ----
@@ -523,9 +514,6 @@ export class CombatService {
     const hasDisarmDirect = attacker.debuffs.some((d) => d.type === 'disarm')
     if (hasDisarmDirect) {
       return { success: false, message: '攻击者被缴械，无法攻击' }
-    }
-    if (attackerPlayer.apUsedThisTurn >= 3) {
-      return { success: false, message: '本回合已使用3名角色的行动点' }
     }
 
     // Check target has no deployed characters

@@ -184,6 +184,7 @@ export class GameService {
     const player = state.players[state.currentPlayerIndex]
     state.turnPhase = 'judgment'
     player.apUsedThisTurn = 0
+    player.replacementCountThisTurn = 0 // V1.1: Reset replacement count
 
     addLog(state, player.id, `${player.name}的第${state.turnNumber}回合开始`)
 
@@ -221,27 +222,16 @@ export class GameService {
 
     state.turnPhase = 'draw'
 
-    // Near-death recovery check for this player's characters
+    // Near-death recovery: automatically restore near-death characters to normal state
+    // Rules: "每次进入己方回合时会将濒死状态的角色刷新为正常状态"
     for (const slot of player.deployed) {
       if (slot.character && slot.character.state === 'nearDeath') {
-        // Roll d6: need 5-6 to recover (1/3 chance)
-        const roll = randomInt(1, 6)
-        if (roll >= 5) {
-          slot.character.state = 'normal'
-          addLog(
-            state,
-            player.id,
-            `${this.getCharName(slot.character)}从濒死中恢复了！`,
-            `掷骰=${roll}`,
-          )
-        } else {
-          addLog(
-            state,
-            player.id,
-            `${this.getCharName(slot.character)}仍处于濒死状态`,
-            `掷骰=${roll}`,
-          )
-        }
+        slot.character.state = 'normal'
+        addLog(
+          state,
+          player.id,
+          `${this.getCharName(slot.character)}从濒死中恢复为正常状态`,
+        )
       }
     }
 
@@ -441,6 +431,7 @@ export class GameService {
       if (strategyDef.strategyType === 'deployable') {
         result = this.handleEquipStrategy(state, player, card, strategyDef, params)
       } else {
+        addLog(state, player.id, `使用了策略牌: ${strategyDef.name}`)
         result = this.handleInstantStrategy(state, player, card, strategyDef, params)
       }
       if (result.success) {
@@ -459,6 +450,8 @@ export class GameService {
     }
 
     let result: { success: boolean; message: string; nearDeathTriggered?: boolean; retired?: boolean }
+
+    addLog(state, player.id, `使用了行动牌: ${cardDef.name}`)
 
     switch (cardDef.actionType) {
       case 'attack':
@@ -535,11 +528,6 @@ export class GameService {
       return { success: false, message: '没有行动点了' }
     }
 
-    // AP limit: max 3 characters per turn
-    if (skill.consumeActionPoint && player.apUsedThisTurn >= 3) {
-      return { success: false, message: '本回合已使用3名角色的行动点' }
-    }
-
     // Consume action point if needed
     if (skill.consumeActionPoint) {
       char.hasActionPoint = false
@@ -570,6 +558,7 @@ export class GameService {
   /**
    * Replace a deployed character with a character card from hand.
    * The old character goes to graveyard; the new one deploys at the same position.
+   * V1.1: Max 1 replacement per turn when field is full.
    */
   replaceCharacter(
     state: GameState,
@@ -582,6 +571,15 @@ export class GameService {
 
     if (state.turnPhase !== 'action') {
       return { success: false, message: '只能在行动阶段替换角色' }
+    }
+
+    // V1.1: Check replacement limit when field is full (max 5 deployed)
+    const deployedCount = player.deployed.filter(s => s.character && s.character.state !== 'retired').length
+    if (deployedCount >= 5) {
+      if (!player.replacementCountThisTurn) player.replacementCountThisTurn = 0
+      if (player.replacementCountThisTurn >= 1) {
+        return { success: false, message: '场地满时每回合最多替换1名角色' }
+      }
     }
 
     // Find deployed character
@@ -627,6 +625,9 @@ export class GameService {
     // Remove from hand
     player.hand.splice(handIndex, 1)
 
+    // Increment replacement count for this turn
+    player.replacementCountThisTurn = (player.replacementCountThisTurn || 0) + 1
+
     addLog(state, playerId, `${oldCharDef?.name ?? oldChar.cardId}被替换为${newCharDef.name}`)
     return { success: true, message: `${oldCharDef?.name ?? oldChar.cardId}已替换为${newCharDef.name}` }
   }
@@ -646,7 +647,10 @@ export class GameService {
 
     // Hand limit: 5 non-character cards (character cards don't count)
     const LIMIT = 5
+    const CHAR_LIMIT = 3
     const discardedThisTurn: CardInstance[] = []
+
+    // Discard excess non-character cards
     while (true) {
       const nonCharCards = player.hand.filter(c => getCharacterDef(c.cardId) === undefined)
       if (nonCharCards.length <= LIMIT) break
@@ -658,6 +662,20 @@ export class GameService {
       discardedThisTurn.push(discarded)
       addLog(state, player.id, `因手牌上限弃置了一张牌`)
     }
+
+    // V1.1: Discard excess character cards (max 3)
+    while (true) {
+      const charCards = player.hand.filter(c => getCharacterDef(c.cardId) !== undefined)
+      if (charCards.length <= CHAR_LIMIT) break
+      // Discard a random character card to graveyard (not discard pile)
+      const idx = player.hand.findIndex(c => getCharacterDef(c.cardId) !== undefined && c === charCards[randomInt(0, charCards.length - 1)])
+      if (idx === -1) break
+      const discarded = player.hand.splice(idx, 1)[0]
+      player.graveyard.push(discarded)
+      discardedThisTurn.push(discarded)
+      addLog(state, player.id, `因角色牌上限弃置了一张角色牌`)
+    }
+
     if (discardedThisTurn.length > 0) {
       this.checkStealDiscard(state, player, discardedThisTurn)
     }
@@ -742,6 +760,7 @@ export class GameService {
       judgmentZone: [],
       hpRecoveryUsed: 0,
       apUsedThisTurn: 0,
+      replacementCountThisTurn: 0,
     }
   }
 
@@ -801,7 +820,6 @@ export class GameService {
    * Returns true if successful, false if no AP available or limit reached.
    */
   private consumeApFromAny(player: PlayerState): boolean {
-    if (player.apUsedThisTurn >= 3) return false
     for (const slot of player.deployed) {
       if (slot.character && slot.character.state === 'normal' && slot.character.hasActionPoint) {
         slot.character.hasActionPoint = false
@@ -850,7 +868,7 @@ export class GameService {
       if (slot.character && slot.character.state !== 'retired') {
         slot.character.buffs.push({
           type: 'block',
-          value: 2,
+          value: 1,
           remainingTurns: 2,
           source: 'bigBlock',
         })
@@ -858,7 +876,7 @@ export class GameService {
       }
     }
     addLog(state, player.id, `大格挡已施加给${count}个角色`)
-    return { success: true, message: `大格挡已施加给${count}个角色（各+2护甲）` }
+    return { success: true, message: `大格挡已施加给${count}个角色（各抵挡一次伤害）` }
   }
 
   private handleSmallBlock(
@@ -882,13 +900,13 @@ export class GameService {
 
     info.char.buffs.push({
       type: 'block',
-      value: 2,
+      value: 1,
       remainingTurns: 2,
       source: 'smallBlock',
     })
 
     addLog(state, player.id, `小格挡已施加给${this.getCharName(info.char)}`)
-    return { success: true, message: `小格挡已施加给${this.getCharName(info.char)}（+2护甲）` }
+    return { success: true, message: `小格挡已施加给${this.getCharName(info.char)}（抵挡一次伤害）` }
   }
 
   private handleRecovery(
@@ -899,14 +917,15 @@ export class GameService {
   ): { success: boolean; message: string } {
     const { targetCharUid, targetType } = params
 
-    // Player HP recovery mode
+    // Player HP recovery mode (小回复: +2体力)
     if (targetType === 'player') {
       if (player.hp >= player.maxHp) {
         return { success: false, message: '玩家体力已满' }
       }
-      player.hp = player.maxHp
-      addLog(state, player.id, `玩家体力回满至${player.hp}/${player.maxHp}`)
-      return { success: true, message: `玩家体力回满至${player.hp}/${player.maxHp}` }
+      const healAmount = Math.min(2, player.maxHp - player.hp)
+      player.hp = Math.min(player.maxHp, player.hp + 2)
+      addLog(state, player.id, `玩家恢复了${healAmount}点体力，当前${player.hp}/${player.maxHp}`)
+      return { success: true, message: `玩家恢复了${healAmount}点体力` }
     }
 
     // Character recovery mode (default)
@@ -954,14 +973,15 @@ export class GameService {
   ): { success: boolean; message: string } {
     const targetType = params?.targetType
 
-    // Player HP recovery mode
+    // Player HP recovery mode (大回复: +5体力)
     if (targetType === 'player') {
       if (player.hp >= player.maxHp) {
         return { success: false, message: '玩家体力已满' }
       }
-      player.hp = player.maxHp
-      addLog(state, player.id, `玩家体力回满至${player.hp}/${player.maxHp}`)
-      return { success: true, message: `玩家体力回满至${player.hp}/${player.maxHp}` }
+      const healAmount = Math.min(5, player.maxHp - player.hp)
+      player.hp = Math.min(player.maxHp, player.hp + 5)
+      addLog(state, player.id, `玩家恢复了${healAmount}点体力，当前${player.hp}/${player.maxHp}`)
+      return { success: true, message: `玩家恢复了${healAmount}点体力` }
     }
 
     let healed = 0
@@ -994,16 +1014,20 @@ export class GameService {
     const mode = params?.mode ?? 'draw'
 
     if (mode === 'recruit') {
-      // Recruit: add a random character from pool to hand
+      // Recruit: add a random character from pool to hand (costs 3 HP)
       if (state.characterPool.length === 0) {
         return { success: false, message: '角色池为空' }
+      }
+      if (player.hp < 3) {
+        return { success: false, message: '体力值不足（需要3点）' }
       }
       const idx = randomInt(0, state.characterPool.length - 1)
       const recruited = state.characterPool.splice(idx, 1)[0]
       player.hand.push(recruited)
+      player.hp -= 3
       const charDef = getCharacterDef(recruited.cardId)
-      addLog(state, player.id, `从角色池招揽了${charDef?.name ?? recruited.cardId}`)
-      return { success: true, message: `招揽了${charDef?.name ?? recruited.cardId}` }
+      addLog(state, player.id, `消耗3点体力从角色池招揽了${charDef?.name ?? recruited.cardId}`)
+      return { success: true, message: `消耗3点体力招揽了${charDef?.name ?? recruited.cardId}` }
     }
 
     // Default: draw mode
@@ -1472,6 +1496,7 @@ export class GameService {
       case 'disableFactionSkill':   return this.instantDisableFactionSkill(state, player, params)
       case 'counterSkill':          return this.instantCounterSkill(state, player, params)
       case 'maintainFactionSkill':  return this.instantMaintainFactionSkill(state, player)
+      case 'drawWithBonus':         return this.instantDrawWithBonus(state, player)
       default:
         return { success: false, message: `未实现的即时效果: ${t}` }
     }
@@ -2251,5 +2276,32 @@ export class GameService {
     }
     addLog(state, player.id, '世界守护者: 全队沉默免疫3回合')
     return { success: true, message: '全队沉默免疫3回合' }
+  }
+
+  /** E0001-E0012 麻里奈的礼物箱: Draw 2 cards, if same suit draw 1 more */
+  private instantDrawWithBonus(state: GameState, player: PlayerState): { success: boolean; message: string } {
+    if (state.actionDeck.length < 2) {
+      this.reshuffleDeck(state)
+    }
+
+    const { drawn, remaining } = this.deckService.drawCards(state.actionDeck, 2)
+    player.hand.push(...drawn)
+    state.actionDeck = remaining
+
+    let message = `摸了2张牌`
+
+    // Check if both cards have the same suit
+    if (drawn.length === 2 && drawn[0].suit === drawn[1].suit) {
+      if (state.actionDeck.length === 0) {
+        this.reshuffleDeck(state)
+      }
+      const bonus = this.deckService.drawCards(state.actionDeck, 1)
+      player.hand.push(...bonus.drawn)
+      state.actionDeck = bonus.remaining
+      message = `摸了2张牌（花色相同），额外摸了1张`
+    }
+
+    addLog(state, player.id, `麻里奈的礼物箱: ${message}`)
+    return { success: true, message }
   }
 }

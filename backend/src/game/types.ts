@@ -138,6 +138,10 @@ export interface StrategyCardDef {
   equipEffects?: EquipEffect[]
   instantType?: string
   judgmentEffect?: JudgmentEffect
+  specialCondition?: {
+    type: string
+    bonusEffect: EquipEffect
+  }
 }
 
 export type CardDef = CharacterCardDef | ActionCardDef | StrategyCardDef
@@ -178,6 +182,7 @@ export interface PlayerState {
 
   hpRecoveryUsed: number // how many times player recovered HP this turn (max 2)
   apUsedThisTurn: number // how many characters have used AP this turn (max 3)
+  replacementCountThisTurn: number // V1.1: max 1 replacement per turn when field is full
 }
 
 export interface DeployedSlot {

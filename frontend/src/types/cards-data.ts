@@ -75,6 +75,19 @@ export const STRATEGY_CARD_DESCRIPTIONS: Record<string, string> = {
   D0015: '赋予"无视守护"',
   D0016: '+1攻击力',
   D0017: '-1血量，+2护甲',
+  // V1.1 新增
+  E0001: '摸两张牌，若花色相同则再摸一张',
+  E0002: '摸两张牌，若花色相同则再摸一张',
+  E0003: '摸两张牌，若花色相同则再摸一张',
+  E0004: '摸两张牌，若花色相同则再摸一张',
+  E0005: '摸两张牌，若花色相同则再摸一张',
+  E0006: '摸两张牌，若花色相同则再摸一张',
+  E0007: '摸两张牌，若花色相同则再摸一张',
+  E0008: '摸两张牌，若花色相同则再摸一张',
+  E0009: '摸两张牌，若花色相同则再摸一张',
+  E0010: '摸两张牌，若花色相同则再摸一张',
+  E0011: '摸两张牌，若花色相同则再摸一张',
+  E0012: '摸两张牌，若花色相同则再摸一张',
 }
 
 // ============================================================
@@ -153,17 +166,28 @@ export const STRATEGY_CARDS: StrategyCard[] = [
   { id: 'D0015', name: '抹茶巴菲', category: 'strategy', strategyType: 'deployable', imageFile: 'cards/策略牌/D0015.png', description: '赋予"无视守护"', requiresTarget: true },
   { id: 'D0016', name: '黄瓜', category: 'strategy', strategyType: 'deployable', imageFile: 'cards/策略牌/D0016.png', description: '+1攻击力', requiresTarget: true },
   { id: 'D0017', name: '朝日啤酒', category: 'strategy', strategyType: 'deployable', imageFile: 'cards/策略牌/D0017.png', description: '-1血量，+2护甲', requiresTarget: true },
+
+  // V1.1: 麻里奈的礼物箱 x12 (每花色3张)
+  ...Array.from({ length: 12 }, (_, i) => ({
+    id: `E${String(i + 1).padStart(4, '0')}`,
+    name: '麻里奈的礼物箱',
+    category: 'strategy' as const,
+    strategyType: 'instant' as const,
+    imageFile: `cards/策略牌/E${String(i + 1).padStart(4, '0')}.png`,
+    description: '摸两张牌，若两张牌花色相同则再摸一张',
+    requiresTarget: false,
+  })),
 ]
 
 // 行动牌效果描述
 export const ACTION_CARD_DESCRIPTIONS: Record<string, string> = {
-  attack: '对目标造成等于使用者攻击力的伤害。',
-  armorPierce: '对目标造成伤害，无视守护和格挡效果。',
-  bigBlock: '保护己方所有角色，抵挡下一次攻击。',
-  smallBlock: '保护己方一名角色，抵挡下一次攻击。',
-  recovery: '恢复己方一名角色2点体力。',
-  bigRecovery: '恢复己方所有角色2点体力。',
-  replenish: '从牌堆摸2张牌。',
+  attack: '对目标造成等于使用者基础攻击力的伤害。消耗攻击角色的行动点。',
+  armorPierce: '无视格挡和护甲抵消，造成伤害。消耗攻击角色的行动点。',
+  bigBlock: '保护己方所有部署角色，各抵挡一次伤害。即时触发，不保留。消耗行动点。',
+  smallBlock: '保护己方一名角色，抵挡一次伤害。即时触发，不保留。消耗行动点。',
+  recovery: '恢复一名角色行动点和血量为正常状态；或恢复玩家2点体力值(可在非己方回合使用)。',
+  bigRecovery: '恢复所有部署角色行动点和血量为正常状态；或恢复玩家5点体力值(可在非己方回合使用)。',
+  replenish: '从牌堆摸2张牌；或消耗3点体力值补充1名角色进入手牌(每回合限2次)。',
 }
 
 // ============================================================
@@ -202,7 +226,7 @@ export const CHARACTER_CARDS: CharacterCard[] = [
     skills: [
       {
         name: '积分卡收集',
-        description: '消耗行动点，除你以外的玩家弃牌时将其中一张纳入己方手牌。',
+        description: '消耗行动点，其他角色弃牌时从弃牌堆中获取一张即将进入弃牌堆的牌。',
         consumeActionPoint: true,
         effect: { type: 'stealDiscard', params: {} },
       },
@@ -270,7 +294,7 @@ export const CHARACTER_CARDS: CharacterCard[] = [
     category: 'character',
     imageFile: 'cards/角色牌/PPP1001.png',
     faction: 'PPP',
-    maxHp: 5,
+    maxHp: 3,
     attack: 1,
     keywords: ['aoeAttack'],
     skills: [
@@ -312,9 +336,9 @@ export const CHARACTER_CARDS: CharacterCard[] = [
     skills: [
       {
         name: '迷兔花园',
-        description: '消耗行动点，可在己方回合时召唤"欧酱"(1/1,自带守护效果)。',
+        description: '消耗行动点，召唤"欧酱"。优先部署在角色槽（1/1守护），角色槽满时部署在道具槽（弃置恢复+1血量）。',
         consumeActionPoint: true,
-        effect: { type: 'summon', params: { summonId: 'oujiang', stats: { hp: 1, attack: 1 }, keywords: ['guardian'] } },
+        effect: { type: 'summon', params: { summonId: 'oujiang', stats: { hp: 1, attack: 1 }, keywords: ['guardian'], maxCount: 1, preferCharacterSlot: true, equipmentSlotEffect: 'discardRestoreHp' } },
       },
     ],
   },
@@ -412,7 +436,7 @@ export const CHARACTER_CARDS: CharacterCard[] = [
   },
   {
     id: 'ROS1004',
-    name: '初始烧子',
+    name: '初始燐子',
     category: 'character',
     imageFile: 'cards/角色牌/ROS1004.png',
     faction: 'ROS',
@@ -440,9 +464,9 @@ export const CHARACTER_CARDS: CharacterCard[] = [
     skills: [
       {
         name: '大魔姬封印',
-        description: '己方角色因受到攻击退场后发动，指定一名非己方角色使其永久失去角色技能。',
+        description: '己方角色因受到攻击退场后发动，攻击者永久失去角色技能。',
         consumeActionPoint: false,
-        effect: { type: 'silenceOnDeath', params: { targetEnemy: true, permanent: true } },
+        effect: { type: 'silenceOnDeath', params: { targetAttacker: true, permanent: true } },
       },
     ],
   },
@@ -460,9 +484,9 @@ export const CHARACTER_CARDS: CharacterCard[] = [
     skills: [
       {
         name: '弦卷家的大手',
-        description: '弃置一张手牌，指定一名角色恢复一点行动点，每回合限一次。',
+        description: '弃置两张手牌，指定一名角色恢复一点行动点。',
         consumeActionPoint: false,
-        effect: { type: 'restoreAllyAP', params: { apRestore: 1, oncePerTurn: true } },
+        effect: { type: 'restoreAllyAP', params: { apRestore: 1, discardCount: 2, oncePerTurn: false } },
       },
     ],
   },
@@ -478,9 +502,9 @@ export const CHARACTER_CARDS: CharacterCard[] = [
     skills: [
       {
         name: '欧数尔万事',
-        description: '每次部署角色时，场上所有角色执行一次攻击力/血量随机调整（±1），需消耗行动点。',
-        consumeActionPoint: true,
-        effect: { type: 'randomStatAdjust', params: { min: -1, max: 1 } },
+        description: '从牌堆或弃牌堆中获取一张"米歇尔"系道具牌；免疫缴械效果；可弃置该技能牌免于退场一次。',
+        consumeActionPoint: false,
+        effect: { type: 'michelSearch', params: { immuneToDisarm: true, discardToSurvive: true } },
       },
     ],
   },
@@ -516,7 +540,7 @@ export const CHARACTER_CARDS: CharacterCard[] = [
     skills: [
       {
         name: '猫狗饲主',
-        description: '消耗行动点，赋予一名除自己以外的己方角色本回合触发技能后对一名敌方角色造成1点伤害。',
+        description: '消耗行动点，赋予己方其他角色本回合触发技能后对一名敌方角色造成1点伤害。',
         consumeActionPoint: true,
         effect: { type: 'grantSkillTrigger', params: { bonusDamage: 1 } },
       },
@@ -534,9 +558,9 @@ export const CHARACTER_CARDS: CharacterCard[] = [
     skills: [
       {
         name: '求雨',
-        description: '消耗行动点，从摸牌堆最上方四张牌中选择一张加入手牌。',
+        description: '消耗行动点，从牌堆顶展示四张牌选择一张加入手牌，其余按原顺序放回牌堆底。',
         consumeActionPoint: true,
-        effect: { type: 'scryDraw', params: { revealCount: 4, pickCount: 1 } },
+        effect: { type: 'scryDraw', params: { revealCount: 4, pickCount: 1, restToBottom: true } },
       },
     ],
   },
@@ -549,9 +573,9 @@ export const CHARACTER_CARDS: CharacterCard[] = [
 export const ACTION_CARDS: ActionCard[] = [
   {
     id: 'ATK_1',
-    name: '攻击',
+    name: '肘击',
     category: 'action',
-    imageFile: 'cards/行动牌/攻击1.png',
+    imageFile: 'cards/行动牌/肘击1.png',
     actionType: 'attack',
     requiresTarget: true,
     affectsAll: false,
@@ -559,9 +583,9 @@ export const ACTION_CARDS: ActionCard[] = [
   },
   {
     id: 'ATK_2',
-    name: '攻击',
+    name: '肘击',
     category: 'action',
-    imageFile: 'cards/行动牌/攻击2.png',
+    imageFile: 'cards/行动牌/肘击2.png',
     actionType: 'attack',
     requiresTarget: true,
     affectsAll: false,
@@ -569,9 +593,9 @@ export const ACTION_CARDS: ActionCard[] = [
   },
   {
     id: 'ATK_3',
-    name: '攻击',
+    name: '肘击',
     category: 'action',
-    imageFile: 'cards/行动牌/攻击3.png',
+    imageFile: 'cards/行动牌/肘击3.png',
     actionType: 'attack',
     requiresTarget: true,
     affectsAll: false,
@@ -579,9 +603,9 @@ export const ACTION_CARDS: ActionCard[] = [
   },
   {
     id: 'ATK_4',
-    name: '攻击',
+    name: '肘击',
     category: 'action',
-    imageFile: 'cards/行动牌/攻击4.png',
+    imageFile: 'cards/行动牌/肘击4.png',
     actionType: 'attack',
     requiresTarget: true,
     affectsAll: false,
@@ -807,6 +831,29 @@ export const ACTION_CARDS: ActionCard[] = [
     requiresTarget: false,
     affectsAll: false,
   },
+
+  // V1.1: 肘+20 x20 (5 per suit) — 就是普通攻击牌，+20表示增加了20张
+  ...Array.from({ length: 20 }, (_, i) => ({
+    id: `ATK20_${i + 1}`,
+    name: '肘击',
+    category: 'action' as const,
+    imageFile: `cards/行动牌/肘击${(i % 4) + 1}.png`,
+    actionType: 'attack' as const,
+    requiresTarget: true,
+    affectsAll: false,
+    armorPierce: false,
+  })),
+  // V1.1: 破+4 x4 (1 per suit) — 就是普通破甲牌，+4表示增加了4张
+  ...Array.from({ length: 4 }, (_, i) => ({
+    id: `ARMOR4_${i + 1}`,
+    name: '破甲攻击',
+    category: 'action' as const,
+    imageFile: `cards/行动牌/破甲攻击${(i % 4) + 1}.png`,
+    actionType: 'armorPierce' as const,
+    requiresTarget: true,
+    affectsAll: false,
+    armorPierce: true,
+  })),
 ]
 
 // ============================================================

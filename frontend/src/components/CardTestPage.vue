@@ -40,6 +40,28 @@
           <button class="btn btn-tiny" @click="changeSpeed(-100)">加速</button>
           <button class="btn btn-tiny" @click="changeSpeed(100)">减速</button>
         </span>
+        <span class="action-divider"></span>
+        <div class="batch-params">
+          <button class="btn btn-pink" @click="runBatchTest" :disabled="batchTesting">
+            {{ batchTesting ? `测试中 ${batchProgress}/${batchParams.gameCount}` : '批量AI测试' }}
+          </button>
+          <label class="param-label">
+            局数:
+            <input type="number" v-model.number="batchParams.gameCount" min="1" max="500" class="param-input" :disabled="batchTesting" />
+          </label>
+          <label class="param-label">
+            最大回合:
+            <input type="number" v-model.number="batchParams.maxTurns" min="10" max="500" class="param-input" :disabled="batchTesting" />
+          </label>
+          <label class="param-label">
+            AI人数:
+            <select v-model.number="batchParams.aiCount" class="param-input" :disabled="batchTesting">
+              <option :value="2">2人</option>
+              <option :value="3">3人</option>
+              <option :value="4">4人</option>
+            </select>
+          </label>
+        </div>
       </div>
       <div v-if="game" class="game-info">
         <span>游戏ID: {{ game.gameId }}</span>
@@ -284,6 +306,123 @@
             {{ pe.type }} | {{ pe.source }} → {{ pe.target }} | {{ JSON.stringify(pe.params) }}
           </div>
         </div>
+
+        <!-- Batch test statistics -->
+        <div v-if="batchStats" class="stats-panel">
+          <h2 class="panel-title">批量测试统计</h2>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-value">{{ batchStats.totalBattles }}</div>
+              <div class="stat-label">总对战数</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">{{ batchStats.avgTurns.toFixed(1) }}</div>
+              <div class="stat-label">平均回合数</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value text-yellow">{{ batchStats.timeouts }}</div>
+              <div class="stat-label">超时</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value text-red">{{ batchStats.errors.length }}</div>
+              <div class="stat-label">错误</div>
+            </div>
+          </div>
+
+          <div class="stats-section">
+            <h3>胜率统计</h3>
+            <div v-for="(wins, player) in batchStats.wins" :key="player" class="win-bar">
+              <span class="win-player">{{ player }}</span>
+              <div class="win-bar-track">
+                <div class="win-bar-fill" :style="{ width: (wins / batchStats.totalBattles * 100) + '%' }"></div>
+              </div>
+              <span class="win-count">{{ wins }}胜 ({{ (wins / batchStats.totalBattles * 100).toFixed(1) }}%)</span>
+            </div>
+          </div>
+
+          <div v-if="topWinnerCharacters.length > 0" class="stats-section">
+            <h3 @click="showAllWinnerChars = !showAllWinnerChars" class="clickable-title">
+              获胜阵容高频角色 ({{ Object.keys(batchStats.winnerCharacters).length }}个)
+              <span class="toggle-icon">{{ showAllWinnerChars ? '▼' : '▶' }}</span>
+            </h3>
+            <div class="card-usage-list">
+              <div v-for="item in topWinnerCharacters" :key="item.id" class="card-usage-item winner-char">
+                <span class="card-usage-name">{{ item.name }}</span>
+                <span class="card-usage-count">{{ item.count }}次</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="stats-section">
+            <h3 @click="showAllUsage = !showAllUsage" class="clickable-title">
+              卡牌使用统计 ({{ Object.keys(batchStats.cardUsage).length }}/{{ allCards.length }})
+              <span class="toggle-icon">{{ showAllUsage ? '▼' : '▶' }}</span>
+            </h3>
+            <div v-if="showAllUsage">
+              <div v-for="group in cardUsageGroups" :key="group.label" class="usage-group">
+                <h4 class="usage-group-title">{{ group.label }} ({{ group.usedCount }}/{{ group.total }})</h4>
+                <div class="card-usage-list">
+                  <div v-for="item in group.items" :key="item.id" class="card-usage-item">
+                    <span class="card-usage-name">{{ item.name }}</span>
+                    <span class="card-usage-count" :class="{ 'count-zero': item.count === 0 }">{{ item.count }}次</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div v-else class="card-usage-list">
+              <div v-for="[cardId, count] in topUsedCards" :key="cardId" class="card-usage-item">
+                <span class="card-usage-name">{{ getCardNameById(cardId) }}</span>
+                <span class="card-usage-count">{{ count }}次</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="stats-section">
+            <h3>未使用的卡牌 ({{ batchStats.unusedCards.length }}张)</h3>
+            <div class="unused-cards-list">
+              <span v-for="cardId in batchStats.unusedCards" :key="cardId" class="unused-card-tag">
+                {{ getCardNameById(cardId) }}
+              </span>
+            </div>
+          </div>
+
+          <div class="stats-section">
+            <h3 @click="showBattleDetails = !showBattleDetails" class="clickable-title">
+              每局详情 ({{ batchStats.battles.length }}局)
+              <span class="toggle-icon">{{ showBattleDetails ? '▼' : '▶' }}</span>
+            </h3>
+            <div v-if="showBattleDetails" class="battle-details-list">
+              <div class="battle-details-header">
+                <span class="bd-col bd-idx">#</span>
+                <span class="bd-col bd-turns">回合</span>
+                <span class="bd-col bd-result">结果</span>
+              </div>
+              <div v-for="b in batchStats.battles" :key="b.index" class="battle-detail-row"
+                :class="{ 'bd-timeout': b.timeout, 'bd-error': b.error }">
+                <span class="bd-col bd-idx">{{ b.index }}</span>
+                <span class="bd-col bd-turns">{{ b.turns }}</span>
+                <span class="bd-col bd-result">
+                  <template v-if="b.error">错误</template>
+                  <template v-else-if="b.timeout">超时</template>
+                  <template v-else>{{ b.winner ?? '-' }}胜</template>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="batchStats.errors.length" class="stats-section">
+            <h3>错误记录</h3>
+            <div class="error-list">
+              <div v-for="(err, i) in batchStats.errors.slice(0, 10)" :key="i" class="error-item">
+                {{ err }}
+              </div>
+              <div v-if="batchStats.errors.length > 10" class="error-more">
+                ...还有 {{ batchStats.errors.length - 10 }} 条错误
+              </div>
+            </div>
+          </div>
+        </div>
       </main>
 
       <!-- Right: Log & result -->
@@ -322,6 +461,28 @@ import {
 import type { CardInstance, ActionCard, StrategyCard } from '../types/card'
 import type { PlayerState, DeployedSlot } from '../types/game'
 
+// Batch test types
+interface BattleDetail {
+  index: number
+  turns: number
+  winner: string | null
+  timeout: boolean
+  error: string | null
+}
+
+interface BattleStats {
+  totalBattles: number
+  wins: Record<string, number>
+  avgTurns: number
+  totalTurns: number
+  timeouts: number
+  cardUsage: Record<string, number>
+  unusedCards: string[]
+  errors: string[]
+  battles: BattleDetail[]
+  winnerCharacters: Record<string, number> // character id → win count
+}
+
 const store = useGameStore()
 const game = computed(() => store.gameState)
 const loading = computed(() => store.loading)
@@ -352,6 +513,47 @@ const filteredCards = computed(() => {
   if (activeFilter.value === 'all') return allCards.value
   return allCards.value.filter(c => c._cat === activeFilter.value)
 })
+
+const showAllUsage = ref(false)
+const showBattleDetails = ref(false)
+
+const topUsedCards = computed(() => {
+  if (!batchStats.value) return []
+  return Object.entries(batchStats.value.cardUsage)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+})
+
+const cardUsageGroups = computed(() => {
+  if (!batchStats.value) return []
+  const usage = batchStats.value.cardUsage
+  const groups = [
+    { label: '行动牌', cards: ACTION_CARDS, _cat: 'action' },
+    { label: '策略牌', cards: STRATEGY_CARDS, _cat: 'strategy' },
+    { label: '角色牌', cards: CHARACTER_CARDS, _cat: 'character' },
+  ]
+  return groups.map(g => {
+    const items = g.cards
+      .map(c => ({ id: c.id, name: c.name, count: usage[c.id] ?? 0 }))
+      .sort((a, b) => b.count - a.count)
+    const usedCount = items.filter(i => i.count > 0).length
+    return { label: g.label, total: g.cards.length, usedCount, items }
+  })
+})
+
+const topWinnerCharacters = computed(() => {
+  if (!batchStats.value) return []
+  const entries = Object.entries(batchStats.value.winnerCharacters)
+  const all = entries
+    .map(([charId, count]) => {
+      const charDef = CHARACTER_CARDS.find(c => c.id === charId)
+      return { id: charId, name: charDef?.name ?? charId, count }
+    })
+    .sort((a, b) => b.count - a.count)
+  return showAllWinnerChars.value ? all : all.slice(0, 10)
+})
+
+const showAllWinnerChars = ref(false)
 
 // Selection state
 const selectedCard = ref<any>(null)
@@ -577,6 +779,16 @@ const autoBattling = ref(false)
 const autoBattleSpeed = ref(500)
 let autoBattleTimer: ReturnType<typeof setTimeout> | null = null
 
+// Batch test state
+const batchTesting = ref(false)
+const batchProgress = ref(0)
+const batchStats = ref<BattleStats | null>(null)
+const batchParams = ref({
+  gameCount: 10,
+  maxTurns: 100,
+  aiCount: 2,
+})
+
 // Actions
 async function createGame() {
   stopAutoBattle()
@@ -650,6 +862,135 @@ async function runAutoBattleStep() {
     return
   }
   autoBattleTimer = setTimeout(runAutoBattleStep, autoBattleSpeed.value)
+}
+
+// Batch test
+async function runBatchTest() {
+  batchTesting.value = true
+  batchProgress.value = 0
+  batchStats.value = {
+    totalBattles: 0,
+    wins: {},
+    avgTurns: 0,
+    totalTurns: 0,
+    timeouts: 0,
+    cardUsage: {},
+    unusedCards: [],
+    errors: [],
+    battles: [],
+    winnerCharacters: {},
+  }
+
+  const stats = batchStats.value
+  const { gameCount, maxTurns, aiCount } = batchParams.value
+
+  for (let i = 0; i < gameCount; i++) {
+    batchProgress.value = i + 1
+
+    try {
+      // Create game
+      const createRes = await fetch('/game/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ playerCount: 0, aiCount }),
+      })
+      const createData = await createRes.json()
+
+      if (!createData.success) {
+        stats.errors.push(`Battle ${i + 1}: Failed to create game`)
+        stats.battles.push({ index: i + 1, turns: 0, winner: null, timeout: false, error: '创建失败' })
+        continue
+      }
+
+      const gameId = createData.gameId
+      let gameOver = false
+      let turns = 0
+      let winner: string | null = null
+      let battleError: string | null = null
+
+      // Run turns
+      while (!gameOver && turns < maxTurns) {
+        const turnRes = await fetch(`/game/${gameId}/ai-turn`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}),
+        })
+        const turnData = await turnRes.json()
+
+        if (!turnData.success) {
+          battleError = turnData.message || 'Unknown error'
+          stats.errors.push(`Battle ${i + 1} Turn ${turns + 1}: ${battleError}`)
+          break
+        }
+
+        turns++
+        const state = turnData.state
+
+        if (state.gameOver) {
+          gameOver = true
+          winner = state.winner || 'unknown'
+          stats.wins[winner] = (stats.wins[winner] || 0) + 1
+
+          // Record winner's deployed characters
+          const winnerPlayer = state.players?.find((p: any) => p.id === winner)
+          if (winnerPlayer?.deployed) {
+            for (const slot of winnerPlayer.deployed) {
+              if (slot.character && slot.character.state !== 'retired') {
+                const charId = slot.character.cardId
+                stats.winnerCharacters[charId] = (stats.winnerCharacters[charId] || 0) + 1
+              }
+            }
+          }
+
+          // Collect card usage from battle log (check both action and details)
+          for (const entry of state.battleLog || []) {
+            const text = (entry.action || '') + ' ' + (entry.details || '')
+            for (const card of [...CHARACTER_CARDS, ...ACTION_CARDS, ...STRATEGY_CARDS]) {
+              if (text.includes(card.name)) {
+                stats.cardUsage[card.id] = (stats.cardUsage[card.id] || 0) + 1
+              }
+            }
+            if (text.includes('穿甲=true')) {
+              const apCard = ACTION_CARDS.find(c => c.actionType === 'armorPierce')
+              if (apCard) stats.cardUsage[apCard.id] = (stats.cardUsage[apCard.id] || 0) + 1
+            }
+          }
+        }
+      }
+
+      const isTimeout = turns >= maxTurns && !gameOver
+      if (isTimeout) stats.timeouts++
+
+      stats.totalBattles++
+      stats.totalTurns += turns
+      stats.battles.push({
+        index: i + 1,
+        turns,
+        winner,
+        timeout: isTimeout,
+        error: battleError,
+      })
+
+    } catch (e) {
+      stats.errors.push(`Battle ${i + 1}: ${String(e)}`)
+    }
+  }
+
+  // Calculate averages
+  if (stats.totalBattles > 0) {
+    stats.avgTurns = stats.totalTurns / stats.totalBattles
+  }
+
+  // Find unused cards
+  const allCardIds = [
+    ...CHARACTER_CARDS.map(c => c.id),
+    ...ACTION_CARDS.map(c => c.id),
+    ...STRATEGY_CARDS.map(c => c.id),
+  ]
+  stats.unusedCards = allCardIds.filter(id => !stats.cardUsage[id])
+
+  batchTesting.value = false
+  lastResult.value = { success: true, message: `批量测试完成: ${stats.totalBattles}局` }
 }
 
 async function executeAction() {
@@ -1355,5 +1696,283 @@ async function executeAction() {
 .error-box.empty {
   color: #444;
   background: transparent;
+}
+
+/* Batch test */
+.btn-pink { background: #ec4899; color: #fff; }
+
+.batch-select {
+  padding: 4px 8px;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background: #222;
+  color: #ccc;
+  font-size: 12px;
+}
+
+.batch-params {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.param-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #aaa;
+}
+
+.param-input {
+  width: 60px;
+  padding: 3px 6px;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background: #222;
+  color: #ccc;
+  font-size: 12px;
+  text-align: center;
+}
+
+.param-input:focus {
+  outline: none;
+  border-color: #ec4899;
+}
+
+/* Number input spin buttons */
+.param-input[type="number"]::-webkit-inner-spin-button,
+.param-input[type="number"]::-webkit-outer-spin-button {
+  opacity: 1;
+  height: 24px;
+  filter: invert(1);
+}
+
+.param-input[type="number"]::-webkit-inner-spin-button {
+  background: #333;
+  border-radius: 3px;
+  border: 1px solid #555;
+}
+
+/* Stats panel */
+.stats-panel {
+  background: #1a1a2e;
+  border: 2px solid #ec4899;
+  border-radius: 10px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.stat-card {
+  background: #14142a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 800;
+  color: #ec4899;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: #888;
+}
+
+.text-yellow { color: #f59e0b; }
+.text-red { color: #ef4444; }
+
+.stats-section {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #333;
+}
+
+.stats-section h3 {
+  font-size: 14px;
+  font-weight: 700;
+  color: #f5a623;
+  margin: 0 0 10px;
+}
+
+.win-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.win-player {
+  width: 80px;
+  font-size: 12px;
+  color: #ccc;
+  flex-shrink: 0;
+}
+
+.win-bar-track {
+  flex: 1;
+  height: 20px;
+  background: #222;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.win-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ec4899, #f59e0b);
+  border-radius: 4px;
+  transition: width 0.3s;
+}
+
+.win-count {
+  width: 120px;
+  font-size: 12px;
+  color: #aaa;
+  text-align: right;
+}
+
+.card-usage-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.card-usage-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 8px;
+  background: #14142a;
+  border-radius: 4px;
+}
+
+.card-usage-name {
+  font-size: 12px;
+  color: #ccc;
+}
+
+.card-usage-count {
+  font-size: 12px;
+  color: #ec4899;
+  font-weight: 600;
+}
+
+.count-zero {
+  color: #666;
+}
+
+.winner-char {
+  background: #1a1a3a;
+  border-left: 3px solid #10b981;
+}
+
+.clickable-title {
+  cursor: pointer;
+  user-select: none;
+}
+
+.clickable-title:hover {
+  color: #fbbf24;
+}
+
+.toggle-icon {
+  font-size: 10px;
+  margin-left: 4px;
+}
+
+.usage-group {
+  margin-bottom: 12px;
+}
+
+.usage-group-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #888;
+  margin: 0 0 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px dashed #333;
+}
+
+.unused-cards-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.unused-card-tag {
+  font-size: 11px;
+  padding: 2px 8px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid #ef4444;
+  border-radius: 4px;
+  color: #ef4444;
+}
+
+.battle-details-list {
+  max-height: 300px;
+  overflow-y: auto;
+  font-size: 12px;
+}
+
+.battle-details-header {
+  display: flex;
+  padding: 4px 8px;
+  background: #222;
+  border-radius: 4px 4px 0 0;
+  font-weight: 700;
+  color: #888;
+  position: sticky;
+  top: 0;
+}
+
+.battle-detail-row {
+  display: flex;
+  padding: 3px 8px;
+  border-bottom: 1px solid #1a1a2e;
+}
+
+.battle-detail-row:nth-child(odd) {
+  background: #14142a;
+}
+
+.bd-timeout { color: #f59e0b; }
+.bd-error { color: #ef4444; }
+
+.bd-col { flex-shrink: 0; }
+.bd-idx { width: 40px; text-align: center; }
+.bd-turns { width: 60px; text-align: center; }
+.bd-result { flex: 1; }
+
+.error-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.error-item {
+  font-size: 11px;
+  padding: 4px 8px;
+  margin-bottom: 4px;
+  background: rgba(239, 68, 68, 0.08);
+  border-radius: 4px;
+  color: #ef4444;
+}
+
+.error-more {
+  font-size: 11px;
+  color: #888;
+  text-align: center;
+  padding: 4px;
 }
 </style>

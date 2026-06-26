@@ -218,19 +218,20 @@ export const STRATEGY_CARDS: StrategyCardDef[] = [
   // B Series (16 cards)
   // ===========================================================
 
-  // B0001 钢巴歇尔 — 道具: +2血量，赋予守护，每回合免疫一次伤害
+  // B0001 钢巴歇尔 — 道具: +2血量，赋予守护，每回合免疫一次伤害，奥泽美咲系角色额外+1血量
   {
     id: 'B0001',
     name: '钢巴歇尔',
     category: 'strategy',
     strategyType: 'deployable',
     imageFile: 'cards/策略牌/B0001.png',
-    description: '+2血量，赋予"守护"，且每回合免疫一次伤害',
+    description: '+2血量，赋予"守护"，且每回合免疫一次伤害。奥泽美咲系角色装备时额外+1血量',
     requiresTarget: true,
     equipEffects: [
       { type: 'hpBoost', value: 2 },
       { type: 'grantKeyword', keyword: 'guardian' },
     ],
+    specialCondition: { type: 'michelle系', bonusEffect: { type: 'hpBoost', value: 1 } },
   },
 
   // B0002 五字不行 — 即时: 判定区传递，投出5则失去行动能力
@@ -825,4 +826,20 @@ export const STRATEGY_CARDS: StrategyCardDef[] = [
       { type: 'conditionalBonus', condition: 'luckySixDice' },
     ],
   },
+
+  // ===========================================================
+  // V1.1 New Strategy Cards
+  // ===========================================================
+
+  // E0001-E0012 麻里奈的礼物箱 — 即时: 摸两张牌，若花色相同则再摸一张（每花色3张，共12张）
+  ...Array.from({ length: 12 }, (_, i) => ({
+    id: `E${String(i + 1).padStart(4, '0')}`,
+    name: '麻里奈的礼物箱',
+    category: 'strategy' as const,
+    strategyType: 'instant' as const,
+    imageFile: `cards/策略牌/E${String(i + 1).padStart(4, '0')}.png`,
+    description: '摸两张牌，若两张牌花色相同则再摸一张',
+    requiresTarget: false,
+    instantType: 'drawWithBonus',
+  })),
 ]

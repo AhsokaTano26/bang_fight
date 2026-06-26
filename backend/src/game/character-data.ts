@@ -35,7 +35,7 @@ export const CHARACTER_CARDS: CharacterCardDef[] = [
     skills: [
       {
         name: '积分卡收集',
-        description: '消耗行动点，除你以外的玩家弃牌时将其中一张纳入己方手牌。',
+        description: '消耗行动点，其他角色弃牌时从弃牌堆中获取一张即将进入弃牌堆的牌。',
         consumeActionPoint: true,
         effect: { type: 'stealDiscard', params: {} },
       },
@@ -99,7 +99,7 @@ export const CHARACTER_CARDS: CharacterCardDef[] = [
     name: '初始香澄',
     category: 'character',
     faction: 'PPP',
-    maxHp: 5,
+    maxHp: 3,
     attack: 1,
     keywords: ['aoeAttack'],
     skills: [
@@ -139,9 +139,9 @@ export const CHARACTER_CARDS: CharacterCardDef[] = [
     skills: [
       {
         name: '迷兔花园',
-        description: '消耗行动点，可在己方回合时召唤"欧酱"(1/1,自带守护效果)。',
+        description: '消耗行动点，召唤"欧酱"。优先部署在角色槽（1/1守护），角色槽满时部署在道具槽（弃置恢复+1血量）。',
         consumeActionPoint: true,
-        effect: { type: 'summon', params: { summonId: 'oujiang', stats: { hp: 1, attack: 1 }, keywords: ['guardian'] } },
+        effect: { type: 'summon', params: { summonId: 'oujiang', stats: { hp: 1, attack: 1 }, keywords: ['guardian'], maxCount: 1, preferCharacterSlot: true, equipmentSlotEffect: 'discardRestoreHp' } },
       },
     ],
   },
@@ -234,7 +234,7 @@ export const CHARACTER_CARDS: CharacterCardDef[] = [
   },
   {
     id: 'ROS1004',
-    name: '初始烧子',
+    name: '初始燐子',
     category: 'character',
     faction: 'ROS',
     maxHp: 5,
@@ -260,9 +260,9 @@ export const CHARACTER_CARDS: CharacterCardDef[] = [
     skills: [
       {
         name: '大魔姬封印',
-        description: '己方角色因受到攻击退场后发动，指定一名非己方角色使其永久失去角色技能。',
+        description: '己方角色因受到攻击退场后发动，攻击者永久失去角色技能。',
         consumeActionPoint: false,
-        effect: { type: 'silenceOnDeath', params: { targetEnemy: true, permanent: true } },
+        effect: { type: 'silenceOnDeath', params: { targetAttacker: true, permanent: true } },
       },
     ],
   },
@@ -279,9 +279,9 @@ export const CHARACTER_CARDS: CharacterCardDef[] = [
     skills: [
       {
         name: '弦卷家的大手',
-        description: '弃置一张手牌，指定一名角色恢复一点行动点，每回合限一次。',
+        description: '弃置两张手牌，指定一名角色恢复一点行动点。',
         consumeActionPoint: false,
-        effect: { type: 'restoreAllyAP', params: { apRestore: 1, oncePerTurn: true } },
+        effect: { type: 'restoreAllyAP', params: { apRestore: 1, discardCount: 2, oncePerTurn: false } },
       },
     ],
   },
@@ -296,9 +296,9 @@ export const CHARACTER_CARDS: CharacterCardDef[] = [
     skills: [
       {
         name: '欧数尔万事',
-        description: '每次部署角色时，场上所有角色执行一次攻击力/血量随机调整（±1），需消耗行动点。',
-        consumeActionPoint: true,
-        effect: { type: 'randomStatAdjust', params: { min: -1, max: 1 } },
+        description: '从牌堆或弃牌堆中获取一张"米歇尔"系道具牌；免疫缴械效果；可弃置该技能牌免于退场一次。',
+        consumeActionPoint: false,
+        effect: { type: 'michelSearch', params: { immuneToDisarm: true, discardToSurvive: true } },
       },
     ],
   },
@@ -332,7 +332,7 @@ export const CHARACTER_CARDS: CharacterCardDef[] = [
     skills: [
       {
         name: '猫狗饲主',
-        description: '消耗行动点，赋予一名除自己以外的己方角色本回合触发技能后对一名敌方角色造成1点伤害。',
+        description: '消耗行动点，赋予己方其他角色本回合触发技能后对一名敌方角色造成1点伤害。',
         consumeActionPoint: true,
         effect: { type: 'grantSkillTrigger', params: { bonusDamage: 1 } },
       },
@@ -349,9 +349,9 @@ export const CHARACTER_CARDS: CharacterCardDef[] = [
     skills: [
       {
         name: '求雨',
-        description: '消耗行动点，从摸牌堆最上方四张牌中选择一张加入手牌。',
+        description: '消耗行动点，从牌堆顶展示四张牌选择一张加入手牌，其余按原顺序放回牌堆底。',
         consumeActionPoint: true,
-        effect: { type: 'scryDraw', params: { revealCount: 4, pickCount: 1 } },
+        effect: { type: 'scryDraw', params: { revealCount: 4, pickCount: 1, restToBottom: true } },
       },
     ],
   },
