@@ -929,7 +929,8 @@ async function runBatchTest() {
         if (state.gameOver) {
           gameOver = true
           winner = state.winner || 'unknown'
-          stats.wins[winner] = (stats.wins[winner] || 0) + 1
+          const winnerKey = winner as string
+          stats.wins[winnerKey] = (stats.wins[winnerKey] || 0) + 1
 
           // Record winner's deployed characters
           const winnerPlayer = state.players?.find((p: any) => p.id === winner)

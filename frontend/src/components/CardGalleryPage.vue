@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { CHARACTER_CARDS, ACTION_CARDS, STRATEGY_CARDS } from '../types/cards-data'
-import type { CharacterCard, ActionCard, StrategyCard } from '../types/card'
+import type { ActionCard } from '../types/card'
 
 // ---- State ----
 const activeTab = ref<'character' | 'action' | 'strategy' | 'rules'>('character')
@@ -322,7 +322,7 @@ function getTierColor(rate: number): string {
           :class="{ active: activeTab === tab.key }"
           @click="activeTab = tab.key as any"
         >
-          {{ tab.label }} <span v-if="tab.count" class="tab-count">{{ tab.count }}</span>
+          {{ tab.label }} <span v-if="'count' in tab && tab.count" class="tab-count">{{ tab.count }}</span>
         </button>
       </nav>
 
