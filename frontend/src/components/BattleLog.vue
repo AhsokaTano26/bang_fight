@@ -1,86 +1,85 @@
 <template>
-  <div class="battle-log">
-    <div class="log-entries" ref="logRef">
-      <div
-        v-for="(entry, i) in logs"
-        :key="i"
-        class="log-entry"
-      >
-        <span class="log-turn">T{{ entry.turn }}</span>
-        <span class="log-action">{{ entry.action }}</span>
-        <span v-if="entry.details" class="log-details">{{ entry.details }}</span>
-      </div>
-      <div v-if="!logs.length" class="log-empty">等待游戏开始...</div>
-    </div>
+  <div
+    class="battle-log"
+    role="log"
+    aria-label="对局记录"
+    aria-live="polite"
+    aria-relevant="additions"
+  >
+    <ol class="log-entries" ref="logRef" aria-label="对局记录列表" tabindex="0">
+      <li v-for="(entry, i) in logs" :key="i" class="log-entry">
+        <span class="log-turn">第 {{ entry.turn }} 回合</span
+        ><span class="log-action">{{ entry.action }}</span
+        ><span v-if="entry.details" class="log-details">{{
+          entry.details
+        }}</span>
+      </li>
+      <li v-if="!logs.length" class="log-empty">
+        对局开始后，记录会显示在这里。
+      </li>
+    </ol>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue'
 import type { BattleLogEntry } from '../types/game'
-
-const props = defineProps<{
-  logs: BattleLogEntry[]
-}>()
-
+const props = defineProps<{ logs: BattleLogEntry[] }>()
 const logRef = ref<HTMLElement>()
-
-watch(() => props.logs.length, async () => {
-  await nextTick()
-  if (logRef.value) {
-    logRef.value.scrollTop = logRef.value.scrollHeight
-  }
-})
+watch(
+  () => props.logs.length,
+  async () => {
+    const el = logRef.value
+    const nearEnd = !el || el.scrollHeight - el.scrollTop - el.clientHeight < 60
+    await nextTick()
+    if (logRef.value && nearEnd)
+      logRef.value.scrollTop = logRef.value.scrollHeight
+  },
+)
 </script>
 
 <style scoped>
 .battle-log {
-  flex: 1;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.log-entries {
-  flex: 1;
-  overflow-y: auto;
-  padding: 4px 0;
-}
-
-.log-entry {
-  padding: 4px 0;
-  font-size: 13px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  align-items: baseline;
-  line-height: 1.5;
-}
-
-.log-turn {
-  font-weight: bold;
-  color: #f5a623;
-  min-width: 26px;
-  flex-shrink: 0;
-}
-
-.log-action {
-  color: #ccc;
-  flex: 1;
   min-width: 0;
-  word-break: break-all;
 }
-
-.log-details {
-  color: #777;
-  font-style: italic;
-  width: 100%;
+.log-entries {
+  max-height: 660px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin: 0;
+  padding: 0 4px 0 0;
+  list-style: none;
+  scrollbar-width: thin;
 }
-
-.log-empty {
-  color: #555;
-  text-align: center;
-  padding: 20px;
+.log-entry {
+  display: grid;
+  gap: 3px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
   font-size: 13px;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+.log-turn {
+  color: var(--text-dim);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.log-action {
+  color: var(--text);
+}
+.log-details {
+  color: var(--text-dim);
+  font-size: 12px;
+}
+.log-empty {
+  padding: 16px 0;
+  color: var(--text-dim);
+  font-size: 13px;
+}
+@media (max-width: 1100px) {
+  .log-entries {
+    max-height: 260px;
+  }
 }
 </style>

@@ -1,136 +1,217 @@
 <template>
-  <div class="action-panel">
-    <div class="phase-indicator">
-      <span class="phase-label">阶段</span>
-      <span class="phase-name">{{ phaseName }}</span>
-    </div>
-
+  <div class="action-panel" :aria-busy="loading">
+    <ol class="phase-indicator" aria-label="回合阶段">
+      <li
+        v-for="stage in stages"
+        :key="stage.id"
+        :class="{ 'phase-current': phase === stage.id }"
+        :aria-current="phase === stage.id ? 'step' : undefined"
+      >
+        <span class="phase-dot" aria-hidden="true"></span>{{ stage.label }}
+      </li>
+    </ol>
+    <span v-if="phase === 'ended'" class="ended-label">回合结束</span>
     <div class="action-buttons">
       <button
         v-if="canDraw"
-        class="action-btn btn-draw"
+        type="button"
+        class="action-btn btn-primary"
+        :disabled="loading"
         @click="$emit('action', 'draw')"
       >
-        摸牌
+        {{ loading ? '摸牌中…' : '摸牌' }}
       </button>
-
       <button
         v-if="canPlayCard && selectedCard"
-        class="action-btn btn-play"
+        type="button"
+        class="action-btn btn-primary"
+        :disabled="loading"
         @click="$emit('action', 'playCard', { cardUid: selectedCard })"
       >
         使用卡牌
       </button>
-
       <button
         v-if="canDeploy && selectedCard"
-        class="action-btn btn-deploy"
+        type="button"
+        class="action-btn btn-primary"
+        :disabled="loading"
         @click="$emit('action', 'deploy')"
       >
         部署角色
       </button>
-
+      <template v-if="canUseSkill && selectedDeployedChar">
+        <button
+          v-for="(skill, i) in selectedDeployedChar.skills"
+          :key="i"
+          type="button"
+          class="action-btn btn-skill"
+          :disabled="
+            loading ||
+            (skill.consumeActionPoint && !selectedDeployedChar.hasActionPoint)
+          "
+          :title="skill.description"
+          @click="
+            $emit('action', 'useSkill', {
+              charUid: selectedDeployedChar.uid,
+              skillIndex: i,
+            })
+          "
+        >
+          {{ skill.name }}
+        </button>
+      </template>
       <button
         v-if="canEndTurn"
-        class="action-btn btn-end"
+        type="button"
+        class="action-btn btn-primary"
+        :disabled="loading"
         @click="$emit('action', 'endTurn')"
       >
-        结束回合
+        {{ loading ? '处理中…' : '结束回合' }}
       </button>
     </div>
+    <p v-if="!isMyTurn" class="waiting-label" role="status">等待对手行动…</p>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { TurnPhase } from '../types/game'
-
+interface DeployedCharInfo {
+  uid: string
+  cardId: string
+  hasActionPoint: boolean
+  state: string
+  skills: { name: string; description: string; consumeActionPoint: boolean }[]
+}
 const props = defineProps<{
   phase: TurnPhase
   isMyTurn: boolean
   selectedCard?: string | null
   hasActionPoints?: boolean
   isCharacterCard?: boolean
+  selectedDeployedChar?: DeployedCharInfo | null
+  loading?: boolean
 }>()
-
-defineEmits<{
-  action: [type: string, params?: Record<string, any>]
-}>()
-
-const phaseName = computed(() => {
-  const names: Record<string, string> = {
-    judgment: '判定阶段',
-    draw: '摸牌阶段',
-    action: '行动阶段',
-    discard: '弃牌阶段',
-    ended: '回合结束',
-  }
-  return names[props.phase] ?? props.phase
-})
-
+defineEmits<{ action: [type: string, params?: Record<string, any>] }>()
+const stages = [
+  { id: 'judgment', label: '判定' },
+  { id: 'draw', label: '摸牌' },
+  { id: 'action', label: '行动' },
+  { id: 'discard', label: '弃牌' },
+]
 const canDraw = computed(() => props.isMyTurn && props.phase === 'draw')
-const canPlayCard = computed(() => props.isMyTurn && props.phase === 'action' && props.selectedCard && !props.isCharacterCard)
-const canDeploy = computed(() => props.isMyTurn && props.phase === 'action' && props.selectedCard && props.isCharacterCard)
-const canEndTurn = computed(() => props.isMyTurn && (props.phase === 'action' || props.phase === 'discard'))
+const canPlayCard = computed(
+  () =>
+    props.isMyTurn &&
+    props.phase === 'action' &&
+    props.selectedCard &&
+    !props.isCharacterCard,
+)
+const canDeploy = computed(
+  () =>
+    props.isMyTurn &&
+    props.phase === 'action' &&
+    props.selectedCard &&
+    props.isCharacterCard,
+)
+const canUseSkill = computed(
+  () => props.isMyTurn && props.phase === 'action' && !props.selectedCard,
+)
+const canEndTurn = computed(
+  () =>
+    props.isMyTurn && (props.phase === 'action' || props.phase === 'discard'),
+)
 </script>
 
 <style scoped>
 .action-panel {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  padding: 20px 0;
 }
-
 .phase-indicator {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.05);
-  padding: 6px 16px;
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.phase-label {
-  font-size: 13px;
-  color: #999;
-}
-
-.phase-name {
-  font-size: 16px;
-  font-weight: 700;
-  color: #f5a623;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 10px;
   flex-wrap: wrap;
   justify-content: center;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--text-dim);
+  font-size: 13px;
 }
-
+.phase-indicator li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.phase-dot {
+  display: block;
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+}
+.phase-current {
+  color: var(--accent);
+  font-weight: 650;
+}
+.phase-current .phase-dot {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
 .action-btn {
-  padding: 8px 22px;
-  border: none;
+  min-height: 44px;
+  padding: 10px 20px;
+  border: 1px solid var(--border);
   border-radius: 8px;
-  font-size: 15px;
-  font-weight: 600;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 650;
   cursor: pointer;
-  transition: all 0.2s;
-  color: #fff;
 }
-
-.btn-draw { background: #4ade80; }
-.btn-draw:hover { background: #22c55e; }
-
-.btn-play { background: #60a5fa; }
-.btn-play:hover { background: #3b82f6; }
-
-.btn-deploy { background: #a78bfa; }
-.btn-deploy:hover { background: #8b5cf6; }
-
-.btn-end { background: #6b7280; }
-.btn-end:hover { background: #4b5563; }
+.btn-primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent, #fff);
+}
+.action-btn:hover:not(:disabled) {
+  filter: brightness(0.96);
+}
+.action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.ended-label,
+.waiting-label {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 13px;
+}
+@media (max-width: 600px) {
+  .action-panel {
+    gap: 12px;
+    padding: 16px 0;
+  }
+  .phase-indicator {
+    gap: 12px;
+    width: 100%;
+  }
+  .action-btn {
+    padding: 10px 16px;
+  }
+}
 </style>

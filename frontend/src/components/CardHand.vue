@@ -1,96 +1,93 @@
 <template>
-  <div class="card-hand">
-    <div class="hand-cards" ref="handRef">
-      <div
-        v-for="(card, i) in handCards"
+  <section class="card-hand" aria-label="你的手牌">
+    <div class="hand-header">
+      <h2>
+        你的手牌 <span>{{ handCards.length }}</span>
+      </h2>
+      <span class="hand-hint">选牌使用 · 查看详情</span>
+    </div>
+    <div class="hand-cards" tabindex="0" aria-label="手牌列表，可横向滚动">
+      <CardView
+        v-for="card in handCards"
         :key="card.uid"
-        class="hand-card-wrapper"
-        :style="cardStyle(i)"
-      >
-        <CardView
-          :cardId="card.cardId"
-          :imageFile="getCardImage(card.cardId)"
-          :name="getCardName(card.cardId)"
-          :selected="selectedUid === card.uid"
-          @click="$emit('selectCard', card.uid)"
-        />
-      </div>
+        :cardId="card.cardId"
+        :imageFile="getCardById(card.cardId)?.imageFile"
+        :name="getCardById(card.cardId)?.name ?? card.cardId"
+        :selected="selectedUid === card.uid"
+        :disabled="disabled"
+        @click="$emit('selectCard', card.uid)"
+      />
+      <p v-if="!handCards.length" class="hand-empty">目前没有手牌。</p>
     </div>
-    <div class="hand-info">
-      <span class="hand-count">{{ handCards.length }} 张手牌</span>
-    </div>
-  </div>
+  </section>
 </template>
 
 <script setup lang="ts">
 import CardView from './CardView.vue'
 import { getCardById } from '../types/cards-data'
 import type { CardInstance } from '../types/card'
-
 defineProps<{
   handCards: CardInstance[]
   selectedUid?: string | null
+  disabled?: boolean
 }>()
-
-defineEmits<{
-  selectCard: [uid: string]
-}>()
-
-function getCardImage(cardId: string): string {
-  return getCardById(cardId)?.imageFile ?? ''
-}
-
-function getCardName(cardId: string): string {
-  return getCardById(cardId)?.name ?? cardId
-}
-
-function cardStyle(index: number) {
-  // Fan spread effect
-  const total = 10 // approximate max
-  const offset = index - Math.min(total, 10) / 2
-  const rotation = offset * 3
-  const translateY = Math.abs(offset) * 4
-  return {
-    transform: `rotate(${rotation}deg) translateY(${translateY}px)`,
-    zIndex: index,
-  }
-}
+defineEmits<{ selectCard: [uid: string] }>()
 </script>
 
 <style scoped>
 .card-hand {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 8px 0;
+  min-width: 0;
+  max-width: 100%;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
 }
-
+.hand-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-bottom: 12px;
+}
+.hand-header h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--text);
+}
+.hand-header h2 span {
+  margin-left: 4px;
+  font-size: 13px;
+  color: var(--text-dim);
+  font-weight: 400;
+}
+.hand-hint {
+  font-size: 12px;
+  color: var(--text-dim);
+}
 .hand-cards {
   display: flex;
-  justify-content: center;
-  padding: 24px 60px;
-  min-height: 240px;
-  perspective: 800px;
+  align-items: flex-start;
+  gap: 12px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  padding: 3px 3px 10px;
+  min-width: 0;
+  scrollbar-width: thin;
 }
-
-.hand-card-wrapper {
-  margin: 0 -18px;
-  transition: transform 0.3s;
+.hand-empty {
+  margin: 16px 0;
+  color: var(--text-dim);
+  font-size: 14px;
 }
-
-.hand-card-wrapper:hover {
-  z-index: 100 !important;
-}
-
-.hand-info {
-  font-size: 13px;
-  color: #999;
-  margin-top: 4px;
-}
-
-.hand-count {
-  background: rgba(255, 255, 255, 0.05);
-  padding: 3px 12px;
-  border-radius: 10px;
+@media (max-width: 600px) {
+  .card-hand {
+    padding: 12px;
+  }
+  .hand-cards {
+    gap: 8px;
+  }
 }
 </style>

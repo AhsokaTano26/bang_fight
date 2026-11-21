@@ -11,6 +11,7 @@ import type {
   TurnPhase,
 } from './types'
 import { getCharacterDef } from './character-data'
+import { attackPower, nearDeathProbability, redirectedTarget } from './ai/combat-model'
 
 // ------------------------------------------------------------
 // Helpers
@@ -63,6 +64,20 @@ function addBattleLog(
 
 @Injectable()
 export class CombatService {
+  /** Common action boundary for card, skill, deployment and raw combat routes. */
+  validateActor(state: GameState, playerId: string): string | null {
+    const player = findPlayer(state, playerId)
+    if (!player) return '未找到玩家'
+    if (state.gameOver) return '游戏已经结束'
+    if (!player.isAlive) return '玩家已被淘汰'
+    if (state.players[state.currentPlayerIndex]?.id !== playerId) return '当前不是该玩家的回合'
+    if (state.turnPhase !== 'action') return '只能在行动阶段操作'
+    if (player.deployed.some(s => s.character?.debuffs.some(d => d.type === 'skipAction'))) {
+      return '因跳过行动效果，无法行动'
+    }
+    return null
+  }
+
   // ----------------------------------------------------------
   // Damage calculation
   // ----------------------------------------------------------
@@ -76,23 +91,7 @@ export class CombatService {
     _defender: DeployedCharacter,
     armorPierce: boolean,
   ): number {
-    let damage = attacker.attack
-
-    // Apply attack buffs
-    for (const buff of attacker.buffs) {
-      if (buff.type === 'attackBoost') {
-        damage += buff.value
-      }
-    }
-
-    // Apply weaken debuff (reduce attack)
-    for (const debuff of attacker.debuffs) {
-      if (debuff.type === 'weaken') {
-        damage -= debuff.value
-      }
-    }
-
-    return Math.max(0, damage)
+    return attackPower(attacker)
   }
 
   /**
@@ -133,10 +132,6 @@ export class CombatService {
     if (target.currentHp <= 0) {
       target.state = 'retired'
       target.currentHp = 0
-    } else if (target.state !== 'nearDeath') {
-      // If HP is low but not dead, check near-death via the dedicated function
-      const nearDeathChance = this.checkNearDeath(target.maxHp, effectiveDamage)
-      // Note: the actual near-death roll is done externally in resolveAttack
     }
 
     return effectiveDamage
@@ -158,19 +153,7 @@ export class CombatService {
    * to enter near-death.
    */
   checkNearDeath(maxHp: number, currentHp: number): boolean {
-    const difference = maxHp - currentHp
-    let targetNumber: number
-
-    if (difference > 6) {
-      targetNumber = 6 // 1/6 chance
-    } else if (difference >= 4) {
-      targetNumber = 5 // 1/3 chance (5 or 6)
-    } else {
-      targetNumber = 4 // 1/2 chance (4, 5, or 6)
-    }
-
-    const roll = randomInt(1, 6)
-    return roll >= targetNumber
+    return randomInt(1, 6) >= 7 - nearDeathProbability(maxHp, currentHp) * 6
   }
 
   // ----------------------------------------------------------
@@ -190,11 +173,16 @@ export class CombatService {
     targetCharUid: string,
     armorPierce: boolean,
   ): { success: boolean; message: string; nearDeathTriggered?: boolean; retired?: boolean } {
+    const invalid = this.validateActor(state, attackerPlayerId)
+    if (invalid) return { success: false, message: invalid }
     const attackerPlayer = findPlayer(state, attackerPlayerId)
     const targetPlayer = findPlayer(state, targetPlayerId)
 
     if (!attackerPlayer || !targetPlayer) {
       return { success: false, message: '未找到玩家' }
+    }
+    if (targetPlayerId === attackerPlayerId || !targetPlayer.isAlive) {
+      return { success: false, message: '攻击目标必须是存活的对手' }
     }
 
     const attackerInfo = findDeployedChar(attackerPlayer, attackerCharUid)
@@ -207,8 +195,8 @@ export class CombatService {
     const attacker = attackerInfo.char
     let target = targetInfo.char
 
-    if (attacker.state === 'retired') {
-      return { success: false, message: '攻击者已被击退' }
+    if (attacker.state !== 'normal' || attacker.debuffs.some(d => d.type === 'loseAbility')) {
+      return { success: false, message: '攻击者无法行动' }
     }
     if (target.state === 'retired') {
       return { success: false, message: '目标已被击退' }
@@ -230,16 +218,11 @@ export class CombatService {
 
     // ---- Step 2: guardian redirect ----
     const hasIgnoreGuardian = attacker.keywords.includes('ignoreGuardian')
-    if (!armorPierce && !hasIgnoreGuardian && target.keywords.includes('guardian')) {
-      // Target IS the guardian — no redirect needed
-    } else if (!armorPierce && !hasIgnoreGuardian) {
-      // Check for adjacent guardian
-      const redirected = this.findGuardian(targetPlayer, targetInfo.slotIndex)
-      if (redirected) {
-        target = redirected.char
-        targetInfo = redirected
-        addBattleLog(state, attackerPlayerId, `攻击被守护者拦截`)
-      }
+    const redirected = redirectedTarget(targetPlayer.deployed, target.uid, armorPierce, hasIgnoreGuardian)!
+    if (redirected.char.uid !== target.uid) {
+      target = redirected.char
+      targetInfo = redirected
+      addBattleLog(state, attackerPlayerId, `攻击被守护者拦截`)
     }
 
     // ---- Step 3: attacker keyword — armorPierce ----
@@ -387,25 +370,6 @@ export class CombatService {
   // ----------------------------------------------------------
 
   /**
-   * Find an adjacent guardian character (positions i-1 or i+1).
-   */
-  private findGuardian(
-    player: PlayerState,
-    position: number,
-  ): { slotIndex: number; char: DeployedCharacter } | undefined {
-    for (const offset of [-1, 1]) {
-      const adj = position + offset
-      if (adj >= 0 && adj < player.deployed.length) {
-        const char = player.deployed[adj].character
-        if (char && char.state === 'normal' && char.keywords.includes('guardian')) {
-          return { slotIndex: adj, char }
-        }
-      }
-    }
-    return undefined
-  }
-
-  /**
    * Apply spread damage to adjacent characters (ignores guardian).
    */
   private applySpreadDamage(
@@ -491,11 +455,16 @@ export class CombatService {
     attackerCharUid: string,
     targetPlayerId: string,
   ): { success: boolean; message: string; retired?: boolean } {
+    const invalid = this.validateActor(state, attackerPlayerId)
+    if (invalid) return { success: false, message: invalid }
     const attackerPlayer = findPlayer(state, attackerPlayerId)
     const targetPlayer = findPlayer(state, targetPlayerId)
 
     if (!attackerPlayer || !targetPlayer) {
       return { success: false, message: '未找到玩家' }
+    }
+    if (targetPlayerId === attackerPlayerId || !targetPlayer.isAlive) {
+      return { success: false, message: '攻击目标必须是存活的对手' }
     }
 
     const attackerInfo = findDeployedChar(attackerPlayer, attackerCharUid)
@@ -504,8 +473,8 @@ export class CombatService {
     }
 
     const attacker = attackerInfo.char
-    if (attacker.state === 'retired') {
-      return { success: false, message: '攻击者已被击退' }
+    if (attacker.state !== 'normal' || attacker.debuffs.some(d => d.type === 'loseAbility')) {
+      return { success: false, message: '攻击者无法行动' }
     }
     if (!attacker.hasActionPoint) {
       return { success: false, message: '攻击者本回合没有行动点了' }

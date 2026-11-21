@@ -1,19 +1,36 @@
 <template>
-  <div class="player-info" :class="{ 'is-current': isCurrentTurn, 'is-dead': !player.isAlive }">
+  <div
+    class="player-info"
+    :class="{ 'is-current': isCurrentTurn, 'is-dead': !player.isAlive }"
+  >
     <div class="player-header">
-      <span class="player-name">{{ player.name }}</span>
-      <span v-if="player.isAi" class="ai-badge">AI</span>
+      <span class="player-name">{{ displayName }}</span
+      ><span v-if="!player.isAlive" class="player-state">已淘汰</span>
     </div>
     <div class="player-hp">
-      <span class="hp-label">体力值</span>
-      <div class="hp-bar">
-        <div class="hp-fill" :style="{ width: `${(player.hp / player.maxHp) * 100}%` }"></div>
-      </div>
-      <span class="hp-value">{{ player.hp }}/{{ player.maxHp }}</span>
+      <span>HP</span
+      ><strong
+        >{{ player.hp }}<span>/{{ player.maxHp }}</span></strong
+      >
+    </div>
+    <div
+      class="hp-bar"
+      role="progressbar"
+      :aria-label="`${displayName}的体力`"
+      :aria-valuenow="player.hp"
+      :aria-valuemin="0"
+      :aria-valuemax="player.maxHp"
+    >
+      <div
+        class="hp-fill"
+        :style="{
+          width: `${Math.max(0, Math.min(100, (player.hp / player.maxHp) * 100))}%`,
+        }"
+      ></div>
     </div>
     <div class="player-stats">
-      <span class="stat">手牌 {{ player.hand.length }}</span>
-      <span class="stat">部署 {{ deployedCount }}/5</span>
+      <span>手牌 {{ player.hand.length }}</span
+      ><span>部署 {{ deployedCount }}/5</span>
     </div>
   </div>
 </template>
@@ -21,93 +38,86 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { PlayerState } from '../types/game'
-
-const props = defineProps<{
-  player: PlayerState
-  isCurrentTurn?: boolean
-}>()
-
-const deployedCount = computed(() =>
-  props.player.deployed.filter(s => s.character !== null).length
+const props = defineProps<{ player: PlayerState; isCurrentTurn?: boolean }>()
+const displayName = computed(() =>
+  props.player.isAi ? props.player.name : '你',
+)
+const deployedCount = computed(
+  () => props.player.deployed.filter((s) => s.character !== null).length,
 )
 </script>
 
 <style scoped>
 .player-info {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  padding: 10px 14px;
-  min-width: 160px;
-  transition: border-color 0.3s, box-shadow 0.3s;
+  width: 104px;
+  min-width: 0;
+  flex: 0 0 auto;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
 }
-
 .is-current {
-  border-color: #f5a623;
-  box-shadow: 0 0 10px rgba(245, 166, 35, 0.3);
+  border-color: var(--accent);
 }
-
 .is-dead {
-  opacity: 0.4;
+  opacity: 0.6;
 }
-
 .player-header {
   display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 6px;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 8px;
 }
-
 .player-name {
   font-weight: 700;
   font-size: 16px;
+  color: var(--text);
+  overflow-wrap: anywhere;
 }
-
-.ai-badge {
-  background: #e94560;
-  color: #fff;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: bold;
+.player-state {
+  font-size: 11px;
+  color: var(--text-dim);
 }
-
 .player-hp {
-  margin-bottom: 8px;
-}
-
-.hp-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px;
+  margin-bottom: 6px;
   font-size: 12px;
-  color: #888;
-  display: block;
-  margin-bottom: 3px;
+  color: var(--text-dim);
 }
-
+.player-hp strong {
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
+.player-hp strong span {
+  font-size: 12px;
+}
 .hp-bar {
-  height: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
+  height: 4px;
+  background: var(--bg-primary);
+  border-radius: 2px;
   overflow: hidden;
-  margin-bottom: 3px;
 }
-
 .hp-fill {
   height: 100%;
-  background: linear-gradient(90deg, #ff6b81, #e94560);
-  transition: width 0.3s;
-  border-radius: 4px;
+  background: var(--accent);
+  transition: width 180ms;
 }
-
-.hp-value {
-  font-size: 13px;
-  color: #ff6b81;
-  font-weight: bold;
-}
-
 .player-stats {
   display: flex;
-  gap: 10px;
-  font-size: 12px;
-  color: #888;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+@media (prefers-reduced-motion: reduce) {
+  .hp-fill {
+    transition: none;
+  }
 }
 </style>

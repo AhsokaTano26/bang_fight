@@ -1,35 +1,68 @@
 <template>
   <div class="test-page">
     <!-- Top bar -->
+    <PageHeader title="卡牌测试" :show-back="true" @back="emit('back')">
+      <template #right> </template>
+    </PageHeader>
+
     <header class="test-header">
-      <h1 class="test-title">邦邦武斗传 - 卡牌测试</h1>
+      <h1 class="test-title">开发测试</h1>
       <div class="test-actions">
         <button class="btn btn-primary" @click="createGame" :disabled="loading">
           创建游戏 (1人+1AI)
         </button>
-        <button class="btn btn-green" @click="startTurn" :disabled="!game || loading">
+        <button
+          class="btn btn-green"
+          @click="startTurn"
+          :disabled="!game || loading"
+        >
           开始回合
         </button>
-        <button class="btn btn-yellow" @click="drawCards" :disabled="!game || loading">
+        <button
+          class="btn btn-yellow"
+          @click="drawCards"
+          :disabled="!game || loading"
+        >
           摸牌
         </button>
-        <button class="btn btn-red" @click="endTurn" :disabled="!game || loading">
+        <button
+          class="btn btn-red"
+          @click="endTurn"
+          :disabled="!game || loading"
+        >
           结束回合
         </button>
-        <button class="btn btn-purple" @click="aiTurn" :disabled="!game || loading">
+        <button
+          class="btn btn-purple"
+          @click="aiTurn"
+          :disabled="!game || loading"
+        >
           AI回合
         </button>
         <button class="btn btn-gray" @click="refreshState" :disabled="!game">
           刷新状态
         </button>
         <span class="action-divider"></span>
-        <button class="btn btn-orange" @click="createAiGame(2)" :disabled="loading">
+        <button
+          class="btn btn-orange"
+          @click="createAiGame(2)"
+          :disabled="loading"
+        >
           AI对战 (2AI)
         </button>
-        <button class="btn btn-orange" @click="createAiGame(3)" :disabled="loading">
+        <button
+          class="btn btn-orange"
+          @click="createAiGame(3)"
+          :disabled="loading"
+        >
           AI对战 (3AI)
         </button>
-        <button v-if="!autoBattling" class="btn btn-cyan" @click="startAutoBattle" :disabled="!game || !!game.gameOver || loading">
+        <button
+          v-if="!autoBattling"
+          class="btn btn-cyan"
+          @click="startAutoBattle"
+          :disabled="!game || !!game.gameOver || loading"
+        >
           自动对战
         </button>
         <button v-else class="btn btn-red" @click="stopAutoBattle">
@@ -42,20 +75,46 @@
         </span>
         <span class="action-divider"></span>
         <div class="batch-params">
-          <button class="btn btn-pink" @click="runBatchTest" :disabled="batchTesting">
-            {{ batchTesting ? `测试中 ${batchProgress}/${batchParams.gameCount}` : '批量AI测试' }}
+          <button
+            class="btn btn-pink"
+            @click="runBatchTest"
+            :disabled="batchTesting"
+          >
+            {{
+              batchTesting
+                ? `测试中 ${batchProgress}/${batchParams.gameCount}`
+                : '批量AI测试'
+            }}
           </button>
           <label class="param-label">
             局数:
-            <input type="number" v-model.number="batchParams.gameCount" min="1" max="500" class="param-input" :disabled="batchTesting" />
+            <input
+              type="number"
+              v-model.number="batchParams.gameCount"
+              min="1"
+              max="500"
+              class="param-input"
+              :disabled="batchTesting"
+            />
           </label>
           <label class="param-label">
             最大回合:
-            <input type="number" v-model.number="batchParams.maxTurns" min="10" max="500" class="param-input" :disabled="batchTesting" />
+            <input
+              type="number"
+              v-model.number="batchParams.maxTurns"
+              min="10"
+              max="500"
+              class="param-input"
+              :disabled="batchTesting"
+            />
           </label>
           <label class="param-label">
             AI人数:
-            <select v-model.number="batchParams.aiCount" class="param-input" :disabled="batchTesting">
+            <select
+              v-model.number="batchParams.aiCount"
+              class="param-input"
+              :disabled="batchTesting"
+            >
               <option :value="2">2人</option>
               <option :value="3">3人</option>
               <option :value="4">4人</option>
@@ -68,7 +127,9 @@
         <span>回合: {{ game.turnNumber }}</span>
         <span>阶段: {{ phaseName(game.turnPhase) }}</span>
         <span>当前玩家: {{ game.players[game.currentPlayerIndex]?.name }}</span>
-        <span v-if="game.gameOver" class="game-over">游戏结束! 胜者: {{ game.winner }}</span>
+        <span v-if="game.gameOver" class="game-over"
+          >游戏结束! 胜者: {{ game.winner }}</span
+        >
       </div>
     </header>
 
@@ -77,14 +138,24 @@
       <aside class="card-panel">
         <h2 class="panel-title">卡牌列表</h2>
         <div class="card-filter">
-          <button v-for="f in filters" :key="f.key" class="filter-btn" :class="{ active: activeFilter === f.key }"
-            @click="activeFilter = f.key">
+          <button
+            v-for="f in filters"
+            :key="f.key"
+            class="filter-btn"
+            :class="{ active: activeFilter === f.key }"
+            @click="activeFilter = f.key"
+          >
             {{ f.label }}
           </button>
         </div>
         <div class="card-list">
-          <div v-for="card in filteredCards" :key="card.id" class="card-item"
-            :class="{ 'card-item-selected': selectedCardId === card.id }" @click="selectCardFromList(card)">
+          <div
+            v-for="card in filteredCards"
+            :key="card.id"
+            class="card-item"
+            :class="{ 'card-item-selected': selectedCardId === card.id }"
+            @click="selectCardFromList(card)"
+          >
             <div class="card-item-info">
               <span class="card-item-name">{{ card.name }}</span>
               <span class="card-item-id">{{ card.id }}</span>
@@ -103,17 +174,21 @@
           </h3>
           <p class="action-desc">{{ getCardDescription(selectedCard) }}</p>
           <p class="action-type-hint">
-            API: <code>{{ resolvedAction.apiType }}</code>
-            &nbsp;|&nbsp; 类型: <code>{{ resolvedAction.actionType }}</code>
+            API: <code>{{ resolvedAction.apiType }}</code> &nbsp;|&nbsp; 类型:
+            <code>{{ resolvedAction.actionType }}</code>
           </p>
 
           <!-- Attack: select attacker from own deployed -->
           <div v-if="needsAttacker" class="target-select">
             <label class="target-label">① 选择攻击者 (己方):</label>
             <div class="target-options">
-              <button v-for="slot in myDeployedWithChar" :key="slot.character!.uid" class="target-btn"
+              <button
+                v-for="slot in myDeployedWithChar"
+                :key="slot.character!.uid"
+                class="target-btn"
                 :class="{ active: selectedAttacker === slot.character!.uid }"
-                @click="selectedAttacker = slot.character!.uid">
+                @click="selectedAttacker = slot.character!.uid"
+              >
                 {{ getCharacterName(slot.character!.cardId) }}
                 ATK:{{ slot.character!.attack }}
                 {{ slot.character!.hasActionPoint ? '' : '(已行动)' }}
@@ -123,14 +198,31 @@
 
           <!-- Attack: select enemy target character -->
           <div v-if="needsEnemyCharTarget" class="target-select">
-            <label class="target-label">{{ needsAttacker ? '②' : '' }} 选择目标 (敌方角色):</label>
+            <label class="target-label"
+              >{{ needsAttacker ? '②' : '' }} 选择目标 (敌方角色):</label
+            >
             <div class="target-options">
               <template v-for="p in enemyPlayers" :key="p.id">
-                <button v-for="slot in p.deployed.filter(s => s.character && s.character.state !== 'retired')" :key="slot.character!.uid"
-                  class="target-btn" :class="{ active: selectedTarget === slot.character!.uid && selectedTargetPlayer === p.id }"
-                  @click="selectedTarget = slot.character!.uid; selectedTargetPlayer = p.id">
-                  {{ p.name }} - {{ getCharacterName(slot.character!.cardId) }}
-                  (HP:{{ slot.character!.currentHp }})
+                <button
+                  v-for="slot in p.deployed.filter(
+                    (s) => s.character && s.character.state !== 'retired',
+                  )"
+                  :key="slot.character!.uid"
+                  class="target-btn"
+                  :class="{
+                    active:
+                      selectedTarget === slot.character!.uid &&
+                      selectedTargetPlayer === p.id,
+                  }"
+                  @click="
+                    selectedTarget = slot.character!.uid
+                    selectedTargetPlayer = p.id
+                  "
+                >
+                  {{ p.name }} -
+                  {{ getCharacterName(slot.character!.cardId) }} (HP:{{
+                    slot.character!.currentHp
+                  }})
                 </button>
               </template>
             </div>
@@ -140,9 +232,13 @@
           <div v-if="needsPlayerTarget" class="target-select">
             <label class="target-label">选择目标玩家:</label>
             <div class="target-options">
-              <button v-for="p in enemyPlayers" :key="p.id" class="target-btn"
+              <button
+                v-for="p in enemyPlayers"
+                :key="p.id"
+                class="target-btn"
                 :class="{ active: selectedTargetPlayer === p.id }"
-                @click="selectedTargetPlayer = p.id">
+                @click="selectedTargetPlayer = p.id"
+              >
                 {{ p.name }} (HP:{{ p.hp }})
               </button>
             </div>
@@ -152,9 +248,13 @@
           <div v-if="needsAllyTarget" class="target-select">
             <label class="target-label">选择己方目标角色:</label>
             <div class="target-options">
-              <button v-for="slot in myDeployedWithChar" :key="slot.character!.uid" class="target-btn"
+              <button
+                v-for="slot in myDeployedWithChar"
+                :key="slot.character!.uid"
+                class="target-btn"
                 :class="{ active: selectedTarget === slot.character!.uid }"
-                @click="selectedTarget = slot.character!.uid">
+                @click="selectedTarget = slot.character!.uid"
+              >
                 {{ getCharacterName(slot.character!.cardId) }}
                 (HP:{{ slot.character!.currentHp }}/{{ slot.character!.maxHp }})
               </button>
@@ -165,10 +265,20 @@
           <div v-if="needsRecoveryMode" class="target-select">
             <label class="target-label">回复目标类型:</label>
             <div class="target-options">
-              <button class="target-btn" :class="{ active: recoveryMode === 'character' }"
-                @click="recoveryMode = 'character'">回复角色</button>
-              <button class="target-btn" :class="{ active: recoveryMode === 'player' }"
-                @click="recoveryMode = 'player'">回复玩家HP</button>
+              <button
+                class="target-btn"
+                :class="{ active: recoveryMode === 'character' }"
+                @click="recoveryMode = 'character'"
+              >
+                回复角色
+              </button>
+              <button
+                class="target-btn"
+                :class="{ active: recoveryMode === 'player' }"
+                @click="recoveryMode = 'player'"
+              >
+                回复玩家HP
+              </button>
             </div>
           </div>
 
@@ -176,10 +286,20 @@
           <div v-if="needsReplenishMode" class="target-select">
             <label class="target-label">补充方式:</label>
             <div class="target-options">
-              <button class="target-btn" :class="{ active: replenishMode === 'draw' }"
-                @click="replenishMode = 'draw'">摸2张牌</button>
-              <button class="target-btn" :class="{ active: replenishMode === 'recruit' }"
-                @click="replenishMode = 'recruit'">招揽角色</button>
+              <button
+                class="target-btn"
+                :class="{ active: replenishMode === 'draw' }"
+                @click="replenishMode = 'draw'"
+              >
+                摸2张牌
+              </button>
+              <button
+                class="target-btn"
+                :class="{ active: replenishMode === 'recruit' }"
+                @click="replenishMode = 'recruit'"
+              >
+                招揽角色
+              </button>
             </div>
           </div>
 
@@ -187,11 +307,16 @@
           <div v-if="needsPosition" class="target-select">
             <label class="target-label">选择部署位置:</label>
             <div class="target-options">
-              <button v-for="i in 5" :key="i" class="target-btn"
-                :class="{ active: selectedPosition === i - 1 }" @click="selectedPosition = i - 1">
+              <button
+                v-for="i in 5"
+                :key="i"
+                class="target-btn"
+                :class="{ active: selectedPosition === i - 1 }"
+                @click="selectedPosition = i - 1"
+              >
                 位置{{ i }}
-                <template v-if="myDeployed[i-1]?.character">
-                  ({{ getCharacterName(myDeployed[i-1].character!.cardId) }})
+                <template v-if="myDeployed[i - 1]?.character">
+                  ({{ getCharacterName(myDeployed[i - 1].character!.cardId) }})
                 </template>
                 <template v-else>(空)</template>
               </button>
@@ -202,10 +327,15 @@
           <div v-if="needsReplacement" class="target-select">
             <label class="target-label">选择要替换的场上角色:</label>
             <div class="target-options">
-              <button v-for="slot in myDeployedWithChar" :key="slot.character!.uid" class="target-btn"
+              <button
+                v-for="slot in myDeployedWithChar"
+                :key="slot.character!.uid"
+                class="target-btn"
                 :class="{ active: selectedReplacement === slot.character!.uid }"
-                @click="selectedReplacement = slot.character!.uid">
-                位置{{ slot.position + 1 }}: {{ getCharacterName(slot.character!.cardId) }}
+                @click="selectedReplacement = slot.character!.uid"
+              >
+                位置{{ slot.position + 1 }}:
+                {{ getCharacterName(slot.character!.cardId) }}
               </button>
             </div>
           </div>
@@ -214,15 +344,29 @@
           <div v-if="isAttackAction" class="target-select">
             <label class="target-label">攻击类型:</label>
             <div class="target-options">
-              <button class="target-btn" :class="{ active: !armorPierce }"
-                @click="armorPierce = false">普通攻击</button>
-              <button class="target-btn" :class="{ active: armorPierce }"
-                @click="armorPierce = true">破甲攻击</button>
+              <button
+                class="target-btn"
+                :class="{ active: !armorPierce }"
+                @click="armorPierce = false"
+              >
+                普通攻击
+              </button>
+              <button
+                class="target-btn"
+                :class="{ active: armorPierce }"
+                @click="armorPierce = true"
+              >
+                破甲攻击
+              </button>
             </div>
           </div>
 
           <div class="action-buttons">
-            <button class="btn btn-primary" @click="executeAction" :disabled="loading">
+            <button
+              class="btn btn-primary"
+              @click="executeAction"
+              :disabled="loading"
+            >
               执行
             </button>
             <button class="btn btn-gray" @click="clearSelection">取消</button>
@@ -231,36 +375,83 @@
 
         <!-- Players -->
         <div class="players-grid">
-          <div v-for="p in game?.players ?? []" :key="p.id" class="player-card"
-            :class="{ 'player-current': game?.currentPlayerIndex === game?.players.indexOf(p), 'player-dead': !p.isAlive }">
+          <div
+            v-for="p in game?.players ?? []"
+            :key="p.id"
+            class="player-card"
+            :class="{
+              'player-current':
+                game?.currentPlayerIndex === game?.players.indexOf(p),
+              'player-dead': !p.isAlive,
+            }"
+          >
             <div class="player-header">
-              <span class="player-name">{{ p.name }} {{ p.isAi ? '(AI)' : '(玩家)' }}</span>
+              <span class="player-name"
+                >{{ p.name }} {{ p.isAi ? '(AI)' : '(玩家)' }}</span
+              >
               <span class="player-hp">HP: {{ p.hp }}/{{ p.maxHp }}</span>
               <span v-if="!p.isAlive" class="player-retired">已退场</span>
             </div>
 
             <!-- Deployed characters -->
             <div class="deployed-area">
-              <div v-for="slot in p.deployed" :key="slot.position" class="deploy-slot">
-                <div v-if="slot.character" class="deployed-char"
-                  :class="{ 'char-near-death': slot.character.state === 'nearDeath', 'char-retired': slot.character.state === 'retired' }">
-                  <div class="char-name">{{ getCharacterName(slot.character.cardId) }}</div>
-                  <div class="char-stats">
-                    <span class="stat-hp">{{ slot.character.currentHp }}/{{ slot.character.maxHp }}</span>
-                    <span class="stat-atk">ATK:{{ slot.character.attack }}</span>
-                    <span class="stat-armor" v-if="slot.character.armor">甲:{{ slot.character.armor }}</span>
+              <div
+                v-for="slot in p.deployed"
+                :key="slot.position"
+                class="deploy-slot"
+              >
+                <div
+                  v-if="slot.character"
+                  class="deployed-char"
+                  :class="{
+                    'char-near-death': slot.character.state === 'nearDeath',
+                    'char-retired': slot.character.state === 'retired',
+                  }"
+                >
+                  <div class="char-name">
+                    {{ getCharacterName(slot.character.cardId) }}
                   </div>
-                  <div class="char-state">{{ stateName(slot.character.state) }} {{ slot.character.hasActionPoint ? '✓AP' : '✗AP' }}</div>
-                  <div v-if="slot.character.keywords.length" class="char-keywords">
+                  <div class="char-stats">
+                    <span class="stat-hp"
+                      >{{ slot.character.currentHp }}/{{
+                        slot.character.maxHp
+                      }}</span
+                    >
+                    <span class="stat-atk"
+                      >ATK:{{ slot.character.attack }}</span
+                    >
+                    <span class="stat-armor" v-if="slot.character.armor"
+                      >甲:{{ slot.character.armor }}</span
+                    >
+                  </div>
+                  <div class="char-state">
+                    {{ stateName(slot.character.state) }}
+                    {{ slot.character.hasActionPoint ? '✓AP' : '✗AP' }}
+                  </div>
+                  <div
+                    v-if="slot.character.keywords.length"
+                    class="char-keywords"
+                  >
                     {{ slot.character.keywords.join(', ') }}
                   </div>
                   <div v-if="slot.character.buffs.length" class="char-buffs">
-                    <span v-for="b in slot.character.buffs" :key="b.type" class="buff-tag">
+                    <span
+                      v-for="b in slot.character.buffs"
+                      :key="b.type"
+                      class="buff-tag"
+                    >
                       {{ b.type }}({{ b.remainingTurns }})
                     </span>
                   </div>
-                  <div v-if="slot.character.debuffs.length" class="char-debuffs">
-                    <span v-for="d in slot.character.debuffs" :key="d.type" class="debuff-tag">
+                  <div
+                    v-if="slot.character.debuffs.length"
+                    class="char-debuffs"
+                  >
+                    <span
+                      v-for="d in slot.character.debuffs"
+                      :key="d.type"
+                      class="debuff-tag"
+                    >
                       {{ d.type }}({{ d.remainingTurns }})
                     </span>
                   </div>
@@ -276,8 +467,13 @@
             <div class="hand-area">
               <div class="hand-label">手牌 ({{ p.hand.length }}):</div>
               <div class="hand-cards">
-                <span v-for="c in p.hand" :key="c.uid" class="hand-card-tag" :class="handCardClass(c)"
-                  @click="quickSelectCard(c, p)">
+                <span
+                  v-for="c in p.hand"
+                  :key="c.uid"
+                  class="hand-card-tag"
+                  :class="handCardClass(c)"
+                  @click="quickSelectCard(c, p)"
+                >
                   {{ getCardNameById(c.cardId) || c.cardId }}
                 </span>
               </div>
@@ -302,8 +498,13 @@
         <!-- Pending effects -->
         <div v-if="game?.pendingEffects?.length" class="pending-effects">
           <h3>待处理效果:</h3>
-          <div v-for="pe in game.pendingEffects" :key="pe.id" class="pending-item">
-            {{ pe.type }} | {{ pe.source }} → {{ pe.target }} | {{ JSON.stringify(pe.params) }}
+          <div
+            v-for="pe in game.pendingEffects"
+            :key="pe.id"
+            class="pending-item"
+          >
+            {{ pe.type }} | {{ pe.source }} → {{ pe.target }} |
+            {{ JSON.stringify(pe.params) }}
           </div>
         </div>
 
@@ -321,33 +522,61 @@
               <div class="stat-label">平均回合数</div>
             </div>
             <div class="stat-card">
-              <div class="stat-value text-yellow">{{ batchStats.timeouts }}</div>
+              <div class="stat-value text-yellow">
+                {{ batchStats.timeouts }}
+              </div>
               <div class="stat-label">超时</div>
             </div>
             <div class="stat-card">
-              <div class="stat-value text-red">{{ batchStats.errors.length }}</div>
+              <div class="stat-value text-red">
+                {{ batchStats.errors.length }}
+              </div>
               <div class="stat-label">错误</div>
             </div>
           </div>
 
           <div class="stats-section">
             <h3>胜率统计</h3>
-            <div v-for="(wins, player) in batchStats.wins" :key="player" class="win-bar">
+            <div
+              v-for="(wins, player) in batchStats.wins"
+              :key="player"
+              class="win-bar"
+            >
               <span class="win-player">{{ player }}</span>
               <div class="win-bar-track">
-                <div class="win-bar-fill" :style="{ width: (wins / batchStats.totalBattles * 100) + '%' }"></div>
+                <div
+                  class="win-bar-fill"
+                  :style="{
+                    width: (wins / batchStats.totalBattles) * 100 + '%',
+                  }"
+                ></div>
               </div>
-              <span class="win-count">{{ wins }}胜 ({{ (wins / batchStats.totalBattles * 100).toFixed(1) }}%)</span>
+              <span class="win-count"
+                >{{ wins }}胜 ({{
+                  ((wins / batchStats.totalBattles) * 100).toFixed(1)
+                }}%)</span
+              >
             </div>
           </div>
 
           <div v-if="topWinnerCharacters.length > 0" class="stats-section">
-            <h3 @click="showAllWinnerChars = !showAllWinnerChars" class="clickable-title">
-              获胜阵容高频角色 ({{ Object.keys(batchStats.winnerCharacters).length }}个)
-              <span class="toggle-icon">{{ showAllWinnerChars ? '▼' : '▶' }}</span>
+            <h3
+              @click="showAllWinnerChars = !showAllWinnerChars"
+              class="clickable-title"
+            >
+              获胜阵容高频角色 ({{
+                Object.keys(batchStats.winnerCharacters).length
+              }}个)
+              <span class="toggle-icon">{{
+                showAllWinnerChars ? '▼' : '▶'
+              }}</span>
             </h3>
             <div class="card-usage-list">
-              <div v-for="item in topWinnerCharacters" :key="item.id" class="card-usage-item winner-char">
+              <div
+                v-for="item in topWinnerCharacters"
+                :key="item.id"
+                class="card-usage-item winner-char"
+              >
                 <span class="card-usage-name">{{ item.name }}</span>
                 <span class="card-usage-count">{{ item.count }}次</span>
               </div>
@@ -356,23 +585,45 @@
 
           <div class="stats-section">
             <h3 @click="showAllUsage = !showAllUsage" class="clickable-title">
-              卡牌使用统计 ({{ Object.keys(batchStats.cardUsage).length }}/{{ allCards.length }})
+              卡牌使用统计 ({{ Object.keys(batchStats.cardUsage).length }}/{{
+                allCards.length
+              }})
               <span class="toggle-icon">{{ showAllUsage ? '▼' : '▶' }}</span>
             </h3>
             <div v-if="showAllUsage">
-              <div v-for="group in cardUsageGroups" :key="group.label" class="usage-group">
-                <h4 class="usage-group-title">{{ group.label }} ({{ group.usedCount }}/{{ group.total }})</h4>
+              <div
+                v-for="group in cardUsageGroups"
+                :key="group.label"
+                class="usage-group"
+              >
+                <h4 class="usage-group-title">
+                  {{ group.label }} ({{ group.usedCount }}/{{ group.total }})
+                </h4>
                 <div class="card-usage-list">
-                  <div v-for="item in group.items" :key="item.id" class="card-usage-item">
+                  <div
+                    v-for="item in group.items"
+                    :key="item.id"
+                    class="card-usage-item"
+                  >
                     <span class="card-usage-name">{{ item.name }}</span>
-                    <span class="card-usage-count" :class="{ 'count-zero': item.count === 0 }">{{ item.count }}次</span>
+                    <span
+                      class="card-usage-count"
+                      :class="{ 'count-zero': item.count === 0 }"
+                      >{{ item.count }}次</span
+                    >
                   </div>
                 </div>
               </div>
             </div>
             <div v-else class="card-usage-list">
-              <div v-for="[cardId, count] in topUsedCards" :key="cardId" class="card-usage-item">
-                <span class="card-usage-name">{{ getCardNameById(cardId) }}</span>
+              <div
+                v-for="[cardId, count] in topUsedCards"
+                :key="cardId"
+                class="card-usage-item"
+              >
+                <span class="card-usage-name">{{
+                  getCardNameById(cardId)
+                }}</span>
                 <span class="card-usage-count">{{ count }}次</span>
               </div>
             </div>
@@ -381,16 +632,25 @@
           <div class="stats-section">
             <h3>未使用的卡牌 ({{ batchStats.unusedCards.length }}张)</h3>
             <div class="unused-cards-list">
-              <span v-for="cardId in batchStats.unusedCards" :key="cardId" class="unused-card-tag">
+              <span
+                v-for="cardId in batchStats.unusedCards"
+                :key="cardId"
+                class="unused-card-tag"
+              >
                 {{ getCardNameById(cardId) }}
               </span>
             </div>
           </div>
 
           <div class="stats-section">
-            <h3 @click="showBattleDetails = !showBattleDetails" class="clickable-title">
+            <h3
+              @click="showBattleDetails = !showBattleDetails"
+              class="clickable-title"
+            >
               每局详情 ({{ batchStats.battles.length }}局)
-              <span class="toggle-icon">{{ showBattleDetails ? '▼' : '▶' }}</span>
+              <span class="toggle-icon">{{
+                showBattleDetails ? '▼' : '▶'
+              }}</span>
             </h3>
             <div v-if="showBattleDetails" class="battle-details-list">
               <div class="battle-details-header">
@@ -398,8 +658,12 @@
                 <span class="bd-col bd-turns">回合</span>
                 <span class="bd-col bd-result">结果</span>
               </div>
-              <div v-for="b in batchStats.battles" :key="b.index" class="battle-detail-row"
-                :class="{ 'bd-timeout': b.timeout, 'bd-error': b.error }">
+              <div
+                v-for="b in batchStats.battles"
+                :key="b.index"
+                class="battle-detail-row"
+                :class="{ 'bd-timeout': b.timeout, 'bd-error': b.error }"
+              >
                 <span class="bd-col bd-idx">{{ b.index }}</span>
                 <span class="bd-col bd-turns">{{ b.turns }}</span>
                 <span class="bd-col bd-result">
@@ -414,7 +678,11 @@
           <div v-if="batchStats.errors.length" class="stats-section">
             <h3>错误记录</h3>
             <div class="error-list">
-              <div v-for="(err, i) in batchStats.errors.slice(0, 10)" :key="i" class="error-item">
+              <div
+                v-for="(err, i) in batchStats.errors.slice(0, 10)"
+                :key="i"
+                class="error-item"
+              >
                 {{ err }}
               </div>
               <div v-if="batchStats.errors.length > 10" class="error-more">
@@ -428,18 +696,28 @@
       <!-- Right: Log & result -->
       <aside class="log-panel">
         <h2 class="panel-title">操作结果</h2>
-        <div v-if="lastResult" class="result-box" :class="lastResult.success ? 'result-ok' : 'result-fail'">
+        <div
+          v-if="lastResult"
+          class="result-box"
+          :class="lastResult.success ? 'result-ok' : 'result-fail'"
+        >
           <pre>{{ formatResult(lastResult) }}</pre>
         </div>
 
         <h2 class="panel-title">战斗日志</h2>
         <div class="log-list">
-          <div v-for="(entry, i) in (game?.battleLog ?? []).slice().reverse()" :key="i" class="log-entry">
+          <div
+            v-for="(entry, i) in (game?.battleLog ?? []).slice().reverse()"
+            :key="i"
+            class="log-entry"
+          >
             <span class="log-turn">[T{{ entry.turn }}]</span>
             <span class="log-phase">{{ entry.phase }}</span>
             <span class="log-player">{{ entry.playerId }}</span>
             <span class="log-action">{{ entry.action }}</span>
-            <span v-if="entry.details" class="log-details">{{ entry.details }}</span>
+            <span v-if="entry.details" class="log-details">{{
+              entry.details
+            }}</span>
           </div>
         </div>
 
@@ -455,11 +733,20 @@
 import { ref, computed } from 'vue'
 import { useGameStore } from '../stores/game'
 import {
-  CHARACTER_CARDS, ACTION_CARDS, STRATEGY_CARDS,
-  getCardById, ACTION_CARD_DESCRIPTIONS, STRATEGY_CARD_DESCRIPTIONS,
+  CHARACTER_CARDS,
+  ACTION_CARDS,
+  STRATEGY_CARDS,
+  getCardById,
+  ACTION_CARD_DESCRIPTIONS,
+  STRATEGY_CARD_DESCRIPTIONS,
 } from '../types/cards-data'
 import type { CardInstance, ActionCard, StrategyCard } from '../types/card'
 import type { PlayerState, DeployedSlot } from '../types/game'
+import PageHeader from './PageHeader.vue'
+
+const emit = defineEmits<{
+  back: []
+}>()
 
 // Batch test types
 interface BattleDetail {
@@ -489,10 +776,17 @@ const loading = computed(() => store.loading)
 
 const PLAYER_ID = 'player_0'
 
-const myPlayer = computed(() => game.value?.players.find(p => p.id === PLAYER_ID))
-const enemyPlayers = computed(() => game.value?.players.filter(p => p.id !== PLAYER_ID && p.isAlive) ?? [])
+const myPlayer = computed(() =>
+  game.value?.players.find((p) => p.id === PLAYER_ID),
+)
+const enemyPlayers = computed(
+  () =>
+    game.value?.players.filter((p) => p.id !== PLAYER_ID && p.isAlive) ?? [],
+)
 const myDeployed = computed(() => myPlayer.value?.deployed ?? [])
-const myDeployedWithChar = computed(() => myDeployed.value.filter(s => s.character !== null) as DeployedSlot[])
+const myDeployedWithChar = computed(
+  () => myDeployed.value.filter((s) => s.character !== null) as DeployedSlot[],
+)
 
 // Card filter
 const filters = [
@@ -504,14 +798,14 @@ const filters = [
 const activeFilter = ref('all')
 
 const allCards = computed(() => [
-  ...CHARACTER_CARDS.map(c => ({ ...c, _cat: 'character' as const })),
-  ...ACTION_CARDS.map(c => ({ ...c, _cat: 'action' as const })),
-  ...STRATEGY_CARDS.map(c => ({ ...c, _cat: 'strategy' as const })),
+  ...CHARACTER_CARDS.map((c) => ({ ...c, _cat: 'character' as const })),
+  ...ACTION_CARDS.map((c) => ({ ...c, _cat: 'action' as const })),
+  ...STRATEGY_CARDS.map((c) => ({ ...c, _cat: 'strategy' as const })),
 ])
 
 const filteredCards = computed(() => {
   if (activeFilter.value === 'all') return allCards.value
-  return allCards.value.filter(c => c._cat === activeFilter.value)
+  return allCards.value.filter((c) => c._cat === activeFilter.value)
 })
 
 const showAllUsage = ref(false)
@@ -532,11 +826,11 @@ const cardUsageGroups = computed(() => {
     { label: '策略牌', cards: STRATEGY_CARDS, _cat: 'strategy' },
     { label: '角色牌', cards: CHARACTER_CARDS, _cat: 'character' },
   ]
-  return groups.map(g => {
+  return groups.map((g) => {
     const items = g.cards
-      .map(c => ({ id: c.id, name: c.name, count: usage[c.id] ?? 0 }))
+      .map((c) => ({ id: c.id, name: c.name, count: usage[c.id] ?? 0 }))
       .sort((a, b) => b.count - a.count)
-    const usedCount = items.filter(i => i.count > 0).length
+    const usedCount = items.filter((i) => i.count > 0).length
     return { label: g.label, total: g.cards.length, usedCount, items }
   })
 })
@@ -546,7 +840,7 @@ const topWinnerCharacters = computed(() => {
   const entries = Object.entries(batchStats.value.winnerCharacters)
   const all = entries
     .map(([charId, count]) => {
-      const charDef = CHARACTER_CARDS.find(c => c.id === charId)
+      const charDef = CHARACTER_CARDS.find((c) => c.id === charId)
       return { id: charId, name: charDef?.name ?? charId, count }
     })
     .sort((a, b) => b.count - a.count)
@@ -596,7 +890,10 @@ const resolvedAction = computed(() => {
 
   if (isStrategy) {
     const st = (card as StrategyCard).strategyType
-    return { apiType: 'playCard', actionType: st === 'deployable' ? 'equipStrategy' : 'instantStrategy' }
+    return {
+      apiType: 'playCard',
+      actionType: st === 'deployable' ? 'equipStrategy' : 'instantStrategy',
+    }
   }
 
   return { apiType: 'playCard', actionType: 'unknown' }
@@ -630,7 +927,17 @@ const needsPlayerTarget = computed(() => {
   if (card.category === 'strategy' || card._cat === 'strategy') {
     const id = card.id
     // Cards that target an enemy player
-    return ['A0004', 'A0013', 'A0015', 'B0002', 'C0010', 'C0011', 'C0012', 'D0011', 'D0014'].includes(id)
+    return [
+      'A0004',
+      'A0013',
+      'A0015',
+      'B0002',
+      'C0010',
+      'C0011',
+      'C0012',
+      'D0011',
+      'D0014',
+    ].includes(id)
   }
   return false
 })
@@ -690,8 +997,13 @@ function cardTypeLabel(card: any): string {
   if (card._cat === 'character') return '角色'
   if (card._cat === 'action') {
     const labels: Record<string, string> = {
-      attack: '攻击', armorPierce: '破甲', bigBlock: '防御',
-      smallBlock: '格挡', recovery: '回复', bigRecovery: '回复大', replenish: '补充',
+      attack: '攻击',
+      armorPierce: '破甲',
+      bigBlock: '防御',
+      smallBlock: '格挡',
+      recovery: '回复',
+      bigRecovery: '回复大',
+      replenish: '补充',
     }
     return labels[card.actionType] ?? card.actionType
   }
@@ -702,11 +1014,11 @@ function cardTypeLabel(card: any): string {
 }
 
 function getCharacterName(cardId: string): string {
-  return CHARACTER_CARDS.find(c => c.id === cardId)?.name ?? cardId
+  return CHARACTER_CARDS.find((c) => c.id === cardId)?.name ?? cardId
 }
 
 function getStrategyName(cardId: string): string {
-  return STRATEGY_CARDS.find(c => c.id === cardId)?.name ?? cardId
+  return STRATEGY_CARDS.find((c) => c.id === cardId)?.name ?? cardId
 }
 
 function getCardNameById(cardId: string): string {
@@ -723,13 +1035,21 @@ function handCardClass(c: CardInstance): string {
 }
 
 function stateName(s: string): string {
-  const map: Record<string, string> = { normal: '正常', nearDeath: '濒死', retired: '退场' }
+  const map: Record<string, string> = {
+    normal: '正常',
+    nearDeath: '濒死',
+    retired: '退场',
+  }
   return map[s] ?? s
 }
 
 function phaseName(p: string): string {
   const map: Record<string, string> = {
-    judgment: '判定', draw: '摸牌', action: '行动', discard: '弃牌', ended: '结束',
+    judgment: '判定',
+    draw: '摸牌',
+    action: '行动',
+    discard: '弃牌',
+    ended: '结束',
   }
   return map[p] ?? p
 }
@@ -799,7 +1119,10 @@ async function createGame() {
 async function createAiGame(aiCount: number) {
   stopAutoBattle()
   await store.createGame(0, aiCount)
-  lastResult.value = { success: true, message: `游戏已创建 (${aiCount}AI 对战)` }
+  lastResult.value = {
+    success: true,
+    message: `游戏已创建 (${aiCount}AI 对战)`,
+  }
 }
 
 async function startTurn() {
@@ -841,7 +1164,10 @@ function stopAutoBattle() {
 }
 
 function changeSpeed(delta: number) {
-  autoBattleSpeed.value = Math.max(100, Math.min(2000, autoBattleSpeed.value + delta))
+  autoBattleSpeed.value = Math.max(
+    100,
+    Math.min(2000, autoBattleSpeed.value + delta),
+  )
 }
 
 async function runAutoBattleStep() {
@@ -858,7 +1184,10 @@ async function runAutoBattleStep() {
   }
   if (game.value?.gameOver) {
     autoBattling.value = false
-    lastResult.value = { success: true, message: `对战结束! 胜者: ${game.value.winner}` }
+    lastResult.value = {
+      success: true,
+      message: `对战结束! 胜者: ${game.value.winner}`,
+    }
     return
   }
   autoBattleTimer = setTimeout(runAutoBattleStep, autoBattleSpeed.value)
@@ -896,9 +1225,16 @@ async function runBatchTest() {
       })
       const createData = await createRes.json()
 
-      if (!createData.success) {
-        stats.errors.push(`Battle ${i + 1}: Failed to create game`)
-        stats.battles.push({ index: i + 1, turns: 0, winner: null, timeout: false, error: '创建失败' })
+      if (!createRes.ok || !createData.success) {
+        const msg = createData.message || `HTTP ${createRes.status}`
+        stats.errors.push(`Battle ${i + 1}: ${msg}`)
+        stats.battles.push({
+          index: i + 1,
+          turns: 0,
+          winner: null,
+          timeout: false,
+          error: msg,
+        })
         continue
       }
 
@@ -917,8 +1253,8 @@ async function runBatchTest() {
         })
         const turnData = await turnRes.json()
 
-        if (!turnData.success) {
-          battleError = turnData.message || 'Unknown error'
+        if (!turnRes.ok || !turnData.success) {
+          battleError = turnData.message || `HTTP ${turnRes.status}`
           stats.errors.push(`Battle ${i + 1} Turn ${turns + 1}: ${battleError}`)
           break
         }
@@ -938,7 +1274,8 @@ async function runBatchTest() {
             for (const slot of winnerPlayer.deployed) {
               if (slot.character && slot.character.state !== 'retired') {
                 const charId = slot.character.cardId
-                stats.winnerCharacters[charId] = (stats.winnerCharacters[charId] || 0) + 1
+                stats.winnerCharacters[charId] =
+                  (stats.winnerCharacters[charId] || 0) + 1
               }
             }
           }
@@ -946,14 +1283,22 @@ async function runBatchTest() {
           // Collect card usage from battle log (check both action and details)
           for (const entry of state.battleLog || []) {
             const text = (entry.action || '') + ' ' + (entry.details || '')
-            for (const card of [...CHARACTER_CARDS, ...ACTION_CARDS, ...STRATEGY_CARDS]) {
+            for (const card of [
+              ...CHARACTER_CARDS,
+              ...ACTION_CARDS,
+              ...STRATEGY_CARDS,
+            ]) {
               if (text.includes(card.name)) {
                 stats.cardUsage[card.id] = (stats.cardUsage[card.id] || 0) + 1
               }
             }
             if (text.includes('穿甲=true')) {
-              const apCard = ACTION_CARDS.find(c => c.actionType === 'armorPierce')
-              if (apCard) stats.cardUsage[apCard.id] = (stats.cardUsage[apCard.id] || 0) + 1
+              const apCard = ACTION_CARDS.find(
+                (c) => c.actionType === 'armorPierce',
+              )
+              if (apCard)
+                stats.cardUsage[apCard.id] =
+                  (stats.cardUsage[apCard.id] || 0) + 1
             }
           }
         }
@@ -971,7 +1316,6 @@ async function runBatchTest() {
         timeout: isTimeout,
         error: battleError,
       })
-
     } catch (e) {
       stats.errors.push(`Battle ${i + 1}: ${String(e)}`)
     }
@@ -984,14 +1328,17 @@ async function runBatchTest() {
 
   // Find unused cards
   const allCardIds = [
-    ...CHARACTER_CARDS.map(c => c.id),
-    ...ACTION_CARDS.map(c => c.id),
-    ...STRATEGY_CARDS.map(c => c.id),
+    ...CHARACTER_CARDS.map((c) => c.id),
+    ...ACTION_CARDS.map((c) => c.id),
+    ...STRATEGY_CARDS.map((c) => c.id),
   ]
-  stats.unusedCards = allCardIds.filter(id => !stats.cardUsage[id])
+  stats.unusedCards = allCardIds.filter((id) => !stats.cardUsage[id])
 
   batchTesting.value = false
-  lastResult.value = { success: true, message: `批量测试完成: ${stats.totalBattles}局` }
+  lastResult.value = {
+    success: true,
+    message: `批量测试完成: ${stats.totalBattles}局`,
+  }
 }
 
 async function executeAction() {
@@ -1079,7 +1426,10 @@ async function executeAction() {
         lastResult.value = r
       } else {
         if (actionType === 'recovery' && !selectedTarget.value) {
-          lastResult.value = { success: false, message: '请选择要回复的己方角色' }
+          lastResult.value = {
+            success: false,
+            message: '请选择要回复的己方角色',
+          }
           return
         }
         const params: Record<string, any> = {}
@@ -1118,7 +1468,8 @@ async function executeAction() {
 
     const params: Record<string, any> = {}
     if (selectedTarget.value) params.targetCharUid = selectedTarget.value
-    if (selectedTargetPlayer.value) params.targetPlayerId = selectedTargetPlayer.value
+    if (selectedTargetPlayer.value)
+      params.targetPlayerId = selectedTargetPlayer.value
 
     const r = await store.submitAction('playCard', { cardUid, params })
     lastResult.value = r
@@ -1131,17 +1482,17 @@ async function executeAction() {
 <style scoped>
 .test-page {
   min-height: 100vh;
-  background: #0d0d1a;
-  color: #e0e0e0;
-  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg-gradient);
+  color: var(--text);
+  font-family: inherit;
   display: flex;
   flex-direction: column;
 }
 
 /* Header */
 .test-header {
-  background: #1a1a2e;
-  border-bottom: 2px solid #e94560;
+  background: var(--bg-primary);
+  border-bottom: 2px solid var(--accent);
   padding: 10px 16px;
   flex-shrink: 0;
 }
@@ -1149,7 +1500,7 @@ async function executeAction() {
 .test-title {
   font-size: 18px;
   font-weight: 800;
-  color: #e94560;
+  color: var(--accent);
   margin: 0 0 8px;
 }
 
@@ -1164,11 +1515,11 @@ async function executeAction() {
   display: flex;
   gap: 16px;
   font-size: 13px;
-  color: #aaa;
+  color: var(--text-dim);
 }
 
 .game-over {
-  color: #f5a623;
+  color: var(--warning);
   font-weight: bold;
 }
 
@@ -1192,19 +1543,48 @@ async function executeAction() {
   opacity: 0.85;
 }
 
-.btn-primary { background: #e94560; color: #fff; }
-.btn-green { background: #22c55e; color: #fff; }
-.btn-yellow { background: #f5a623; color: #000; }
-.btn-red { background: #dc2626; color: #fff; }
-.btn-purple { background: #8b5cf6; color: #fff; }
-.btn-gray { background: #444; color: #ccc; }
-.btn-orange { background: #f97316; color: #fff; }
-.btn-cyan { background: #06b6d4; color: #fff; }
-.btn-tiny { padding: 2px 8px; font-size: 11px; background: #555; color: #ccc; }
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+.btn-green {
+  background: var(--success);
+  color: #fff;
+}
+.btn-yellow {
+  background: var(--warning);
+  color: #000;
+}
+.btn-red {
+  background: var(--danger);
+  color: #fff;
+}
+.btn-purple {
+  background: var(--accent);
+  color: #fff;
+}
+.btn-gray {
+  background: var(--text-dim);
+  color: var(--text);
+}
+.btn-orange {
+  background: var(--warning);
+  color: #fff;
+}
+.btn-cyan {
+  background: var(--success);
+  color: #fff;
+}
+.btn-tiny {
+  padding: 2px 8px;
+  font-size: 11px;
+  background: var(--text-dim);
+  color: var(--text);
+}
 
 .action-divider {
   width: 1px;
-  background: #444;
+  background: var(--text-dim);
   margin: 0 4px;
 }
 
@@ -1213,7 +1593,7 @@ async function executeAction() {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: #06b6d4;
+  color: var(--success);
   font-weight: 600;
 }
 
@@ -1227,8 +1607,8 @@ async function executeAction() {
 /* Left panel */
 .card-panel {
   width: 260px;
-  background: #12121f;
-  border-right: 1px solid #2a2a40;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -1237,7 +1617,7 @@ async function executeAction() {
 .panel-title {
   font-size: 14px;
   font-weight: 700;
-  color: #888;
+  color: var(--text-dim);
   margin: 0;
   padding: 10px 12px 6px;
   text-transform: uppercase;
@@ -1253,18 +1633,18 @@ async function executeAction() {
 
 .filter-btn {
   padding: 3px 8px;
-  border: 1px solid #333;
+  border: 1px solid var(--border-strong);
   border-radius: 4px;
   background: transparent;
-  color: #aaa;
+  color: var(--text-dim);
   font-size: 11px;
   cursor: pointer;
 }
 
 .filter-btn.active {
-  background: #e94560;
+  background: var(--accent);
   color: #fff;
-  border-color: #e94560;
+  border-color: var(--accent);
 }
 
 .card-list {
@@ -1290,7 +1670,7 @@ async function executeAction() {
 
 .card-item-selected {
   background: rgba(233, 69, 96, 0.25) !important;
-  border-left: 3px solid #e94560;
+  border-left: 3px solid var(--accent);
 }
 
 .card-item-info {
@@ -1302,7 +1682,7 @@ async function executeAction() {
 .card-item-name {
   font-size: 13px;
   font-weight: 600;
-  color: #ddd;
+  color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1310,13 +1690,13 @@ async function executeAction() {
 
 .card-item-id {
   font-size: 10px;
-  color: #666;
+  color: var(--text-dim);
 }
 
 .card-item-type {
   font-size: 10px;
-  color: #888;
-  background: #1a1a2e;
+  color: var(--text-dim);
+  background: var(--bg-primary);
   padding: 2px 6px;
   border-radius: 4px;
   flex-shrink: 0;
@@ -1331,8 +1711,8 @@ async function executeAction() {
 
 /* Action panel */
 .action-panel {
-  background: #1a1a2e;
-  border: 1px solid #e94560;
+  background: var(--bg-primary);
+  border: 1px solid var(--accent);
   border-radius: 10px;
   padding: 14px;
   margin-bottom: 14px;
@@ -1341,24 +1721,24 @@ async function executeAction() {
 .action-title {
   font-size: 15px;
   font-weight: 700;
-  color: #f5a623;
+  color: var(--warning);
   margin: 0 0 6px;
 }
 
 .action-desc {
   font-size: 13px;
-  color: #aaa;
+  color: var(--text-dim);
   margin: 0 0 4px;
 }
 
 .action-type-hint {
   font-size: 11px;
-  color: #666;
+  color: var(--text-dim);
   margin: 0 0 10px;
 }
 
 .action-type-hint code {
-  color: #8b5cf6;
+  color: var(--accent);
   background: rgba(139, 92, 246, 0.1);
   padding: 1px 5px;
   border-radius: 3px;
@@ -1371,7 +1751,7 @@ async function executeAction() {
 .target-label {
   display: block;
   font-size: 12px;
-  color: #888;
+  color: var(--text-dim);
   margin-bottom: 4px;
 }
 
@@ -1383,22 +1763,22 @@ async function executeAction() {
 
 .target-btn {
   padding: 4px 10px;
-  border: 1px solid #444;
+  border: 1px solid var(--text-dim);
   border-radius: 5px;
-  background: #222;
-  color: #ccc;
+  background: var(--surface);
+  color: var(--text);
   font-size: 12px;
   cursor: pointer;
 }
 
 .target-btn:hover {
-  border-color: #e94560;
+  border-color: var(--accent);
 }
 
 .target-btn.active {
-  background: #e94560;
+  background: var(--accent);
   color: #fff;
-  border-color: #e94560;
+  border-color: var(--accent);
 }
 
 .action-buttons {
@@ -1415,14 +1795,14 @@ async function executeAction() {
 }
 
 .player-card {
-  background: #14142a;
-  border: 1px solid #2a2a40;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 10px;
 }
 
 .player-current {
-  border-color: #e94560;
+  border-color: var(--accent);
   box-shadow: 0 0 12px rgba(233, 69, 96, 0.2);
 }
 
@@ -1450,7 +1830,7 @@ async function executeAction() {
 }
 
 .player-retired {
-  color: #666;
+  color: var(--text-dim);
   font-size: 12px;
 }
 
@@ -1468,15 +1848,15 @@ async function executeAction() {
 }
 
 .deployed-char {
-  background: #1a1a2e;
-  border: 1px solid #333;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-strong);
   border-radius: 8px;
   padding: 6px 8px;
   font-size: 11px;
 }
 
 .char-near-death {
-  border-color: #f59e0b;
+  border-color: var(--warning);
   background: rgba(245, 158, 11, 0.08);
 }
 
@@ -1486,7 +1866,7 @@ async function executeAction() {
 
 .char-name {
   font-weight: 700;
-  color: #60a5fa;
+  color: var(--accent);
   font-size: 12px;
   margin-bottom: 3px;
 }
@@ -1497,21 +1877,28 @@ async function executeAction() {
   margin-bottom: 2px;
 }
 
-.stat-hp { color: #ff6b81; }
-.stat-atk { color: #f5a623; }
-.stat-armor { color: #60a5fa; }
+.stat-hp {
+  color: #ff6b81;
+}
+.stat-atk {
+  color: var(--warning);
+}
+.stat-armor {
+  color: var(--accent);
+}
 
 .char-state {
   font-size: 10px;
-  color: #888;
+  color: var(--text-dim);
 }
 
 .char-keywords {
   font-size: 10px;
-  color: #a78bfa;
+  color: var(--accent);
 }
 
-.char-buffs, .char-debuffs {
+.char-buffs,
+.char-debuffs {
   display: flex;
   gap: 3px;
   flex-wrap: wrap;
@@ -1521,7 +1908,7 @@ async function executeAction() {
 .buff-tag {
   font-size: 9px;
   background: rgba(34, 197, 94, 0.2);
-  color: #22c55e;
+  color: var(--success);
   padding: 1px 4px;
   border-radius: 3px;
 }
@@ -1529,26 +1916,26 @@ async function executeAction() {
 .debuff-tag {
   font-size: 9px;
   background: rgba(239, 68, 68, 0.2);
-  color: #ef4444;
+  color: var(--danger);
   padding: 1px 4px;
   border-radius: 3px;
 }
 
 .char-equip {
   font-size: 10px;
-  color: #f5a623;
+  color: var(--warning);
   margin-top: 2px;
 }
 
 .deploy-empty {
-  background: #111;
-  border: 1px dashed #333;
+  background: var(--surface-muted);
+  border: 1px dashed var(--border-strong);
   border-radius: 8px;
   height: 100px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #444;
+  color: var(--text-dim);
   font-size: 12px;
 }
 
@@ -1559,7 +1946,7 @@ async function executeAction() {
 
 .hand-label {
   font-size: 11px;
-  color: #666;
+  color: var(--text-dim);
   margin-bottom: 3px;
 }
 
@@ -1574,26 +1961,35 @@ async function executeAction() {
   padding: 2px 8px;
   border-radius: 4px;
   cursor: pointer;
-  background: #222;
-  border: 1px solid #333;
-  color: #ccc;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  color: var(--text);
   transition: border-color 0.1s;
 }
 
 .hand-card-tag:hover {
-  border-color: #e94560;
+  border-color: var(--accent);
 }
 
-.hc-char { border-color: #60a5fa; color: #60a5fa; }
-.hc-action { border-color: #e94560; color: #e94560; }
-.hc-strategy { border-color: #22c55e; color: #22c55e; }
+.hc-char {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.hc-action {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.hc-strategy {
+  border-color: var(--success);
+  color: var(--success);
+}
 
 /* Piles */
 .pile-info {
   display: flex;
   gap: 12px;
   font-size: 11px;
-  color: #555;
+  color: var(--text-dim);
 }
 
 /* Decks */
@@ -1601,14 +1997,14 @@ async function executeAction() {
   display: flex;
   gap: 16px;
   font-size: 12px;
-  color: #666;
+  color: var(--text-dim);
   padding: 8px 0;
 }
 
 /* Pending effects */
 .pending-effects {
-  background: #1a1a2e;
-  border: 1px solid #f59e0b;
+  background: var(--bg-primary);
+  border: 1px solid var(--warning);
   border-radius: 8px;
   padding: 10px;
   margin-top: 10px;
@@ -1616,21 +2012,21 @@ async function executeAction() {
 
 .pending-effects h3 {
   font-size: 13px;
-  color: #f59e0b;
+  color: var(--warning);
   margin: 0 0 6px;
 }
 
 .pending-item {
   font-size: 11px;
-  color: #aaa;
+  color: var(--text-dim);
   padding: 2px 0;
 }
 
 /* Right panel */
 .log-panel {
   width: 320px;
-  background: #12121f;
-  border-left: 1px solid #2a2a40;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -1654,14 +2050,14 @@ async function executeAction() {
 
 .result-ok {
   background: rgba(34, 197, 94, 0.1);
-  border: 1px solid #22c55e;
-  color: #22c55e;
+  border: 1px solid var(--success);
+  color: var(--success);
 }
 
 .result-fail {
   background: rgba(239, 68, 68, 0.1);
-  border: 1px solid #ef4444;
-  color: #ef4444;
+  border: 1px solid var(--danger);
+  color: var(--danger);
 }
 
 .log-list {
@@ -1673,17 +2069,29 @@ async function executeAction() {
 .log-entry {
   font-size: 11px;
   padding: 3px 0;
-  border-bottom: 1px solid #1a1a2e;
+  border-bottom: 1px solid var(--bg-primary);
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
 }
 
-.log-turn { color: #666; }
-.log-phase { color: #8b5cf6; }
-.log-player { color: #60a5fa; }
-.log-action { color: #ddd; }
-.log-details { color: #888; width: 100%; font-size: 10px; }
+.log-turn {
+  color: var(--text-dim);
+}
+.log-phase {
+  color: var(--accent);
+}
+.log-player {
+  color: var(--accent);
+}
+.log-action {
+  color: var(--text);
+}
+.log-details {
+  color: var(--text-dim);
+  width: 100%;
+  font-size: 10px;
+}
 
 .error-box {
   margin: 0 8px;
@@ -1691,23 +2099,26 @@ async function executeAction() {
   font-size: 12px;
   border-radius: 6px;
   background: rgba(239, 68, 68, 0.08);
-  color: #ef4444;
+  color: var(--danger);
 }
 
 .error-box.empty {
-  color: #444;
+  color: var(--text-dim);
   background: transparent;
 }
 
 /* Batch test */
-.btn-pink { background: #ec4899; color: #fff; }
+.btn-pink {
+  background: var(--accent);
+  color: #fff;
+}
 
 .batch-select {
   padding: 4px 8px;
-  border: 1px solid #444;
+  border: 1px solid var(--text-dim);
   border-radius: 4px;
-  background: #222;
-  color: #ccc;
+  background: var(--surface);
+  color: var(--text);
   font-size: 12px;
 }
 
@@ -1723,43 +2134,43 @@ async function executeAction() {
   align-items: center;
   gap: 4px;
   font-size: 12px;
-  color: #aaa;
+  color: var(--text-dim);
 }
 
 .param-input {
   width: 60px;
   padding: 3px 6px;
-  border: 1px solid #444;
+  border: 1px solid var(--text-dim);
   border-radius: 4px;
-  background: #222;
-  color: #ccc;
+  background: var(--surface);
+  color: var(--text);
   font-size: 12px;
   text-align: center;
 }
 
 .param-input:focus {
   outline: none;
-  border-color: #ec4899;
+  border-color: var(--accent);
 }
 
 /* Number input spin buttons */
-.param-input[type="number"]::-webkit-inner-spin-button,
-.param-input[type="number"]::-webkit-outer-spin-button {
+.param-input[type='number']::-webkit-inner-spin-button,
+.param-input[type='number']::-webkit-outer-spin-button {
   opacity: 1;
   height: 24px;
   filter: invert(1);
 }
 
-.param-input[type="number"]::-webkit-inner-spin-button {
-  background: #333;
+.param-input[type='number']::-webkit-inner-spin-button {
+  background: var(--border-strong);
   border-radius: 3px;
-  border: 1px solid #555;
+  border: 1px solid var(--text-dim);
 }
 
 /* Stats panel */
 .stats-panel {
-  background: #1a1a2e;
-  border: 2px solid #ec4899;
+  background: var(--bg-primary);
+  border: 2px solid var(--accent);
   border-radius: 10px;
   padding: 16px;
   margin-top: 16px;
@@ -1773,8 +2184,8 @@ async function executeAction() {
 }
 
 .stat-card {
-  background: #14142a;
-  border: 1px solid #333;
+  background: var(--surface-muted);
+  border: 1px solid var(--border-strong);
   border-radius: 8px;
   padding: 12px;
   text-align: center;
@@ -1783,28 +2194,32 @@ async function executeAction() {
 .stat-value {
   font-size: 24px;
   font-weight: 800;
-  color: #ec4899;
+  color: var(--accent);
   margin-bottom: 4px;
 }
 
 .stat-label {
   font-size: 11px;
-  color: #888;
+  color: var(--text-dim);
 }
 
-.text-yellow { color: #f59e0b; }
-.text-red { color: #ef4444; }
+.text-yellow {
+  color: var(--warning);
+}
+.text-red {
+  color: var(--danger);
+}
 
 .stats-section {
   margin-top: 16px;
   padding-top: 12px;
-  border-top: 1px solid #333;
+  border-top: 1px solid var(--border-strong);
 }
 
 .stats-section h3 {
   font-size: 14px;
   font-weight: 700;
-  color: #f5a623;
+  color: var(--warning);
   margin: 0 0 10px;
 }
 
@@ -1818,21 +2233,21 @@ async function executeAction() {
 .win-player {
   width: 80px;
   font-size: 12px;
-  color: #ccc;
+  color: var(--text);
   flex-shrink: 0;
 }
 
 .win-bar-track {
   flex: 1;
   height: 20px;
-  background: #222;
+  background: var(--surface);
   border-radius: 4px;
   overflow: hidden;
 }
 
 .win-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, #ec4899, #f59e0b);
+  background: var(--accent);
   border-radius: 4px;
   transition: width 0.3s;
 }
@@ -1840,7 +2255,7 @@ async function executeAction() {
 .win-count {
   width: 120px;
   font-size: 12px;
-  color: #aaa;
+  color: var(--text-dim);
   text-align: right;
 }
 
@@ -1855,28 +2270,28 @@ async function executeAction() {
   justify-content: space-between;
   align-items: center;
   padding: 4px 8px;
-  background: #14142a;
+  background: var(--surface-muted);
   border-radius: 4px;
 }
 
 .card-usage-name {
   font-size: 12px;
-  color: #ccc;
+  color: var(--text);
 }
 
 .card-usage-count {
   font-size: 12px;
-  color: #ec4899;
+  color: var(--accent);
   font-weight: 600;
 }
 
 .count-zero {
-  color: #666;
+  color: var(--text-dim);
 }
 
 .winner-char {
-  background: #1a1a3a;
-  border-left: 3px solid #10b981;
+  background: var(--surface-muted);
+  border-left: 3px solid var(--success);
 }
 
 .clickable-title {
@@ -1885,7 +2300,7 @@ async function executeAction() {
 }
 
 .clickable-title:hover {
-  color: #fbbf24;
+  color: var(--warning);
 }
 
 .toggle-icon {
@@ -1900,10 +2315,10 @@ async function executeAction() {
 .usage-group-title {
   font-size: 12px;
   font-weight: 600;
-  color: #888;
+  color: var(--text-dim);
   margin: 0 0 6px;
   padding-bottom: 4px;
-  border-bottom: 1px dashed #333;
+  border-bottom: 1px dashed var(--border-strong);
 }
 
 .unused-cards-list {
@@ -1916,9 +2331,9 @@ async function executeAction() {
   font-size: 11px;
   padding: 2px 8px;
   background: rgba(239, 68, 68, 0.15);
-  border: 1px solid #ef4444;
+  border: 1px solid var(--danger);
   border-radius: 4px;
-  color: #ef4444;
+  color: var(--danger);
 }
 
 .battle-details-list {
@@ -1930,10 +2345,10 @@ async function executeAction() {
 .battle-details-header {
   display: flex;
   padding: 4px 8px;
-  background: #222;
+  background: var(--surface);
   border-radius: 4px 4px 0 0;
   font-weight: 700;
-  color: #888;
+  color: var(--text-dim);
   position: sticky;
   top: 0;
 }
@@ -1941,20 +2356,34 @@ async function executeAction() {
 .battle-detail-row {
   display: flex;
   padding: 3px 8px;
-  border-bottom: 1px solid #1a1a2e;
+  border-bottom: 1px solid var(--bg-primary);
 }
 
 .battle-detail-row:nth-child(odd) {
-  background: #14142a;
+  background: var(--surface-muted);
 }
 
-.bd-timeout { color: #f59e0b; }
-.bd-error { color: #ef4444; }
+.bd-timeout {
+  color: var(--warning);
+}
+.bd-error {
+  color: var(--danger);
+}
 
-.bd-col { flex-shrink: 0; }
-.bd-idx { width: 40px; text-align: center; }
-.bd-turns { width: 60px; text-align: center; }
-.bd-result { flex: 1; }
+.bd-col {
+  flex-shrink: 0;
+}
+.bd-idx {
+  width: 40px;
+  text-align: center;
+}
+.bd-turns {
+  width: 60px;
+  text-align: center;
+}
+.bd-result {
+  flex: 1;
+}
 
 .error-list {
   max-height: 200px;
@@ -1967,13 +2396,93 @@ async function executeAction() {
   margin-bottom: 4px;
   background: rgba(239, 68, 68, 0.08);
   border-radius: 4px;
-  color: #ef4444;
+  color: var(--danger);
 }
 
 .error-more {
   font-size: 11px;
-  color: #888;
+  color: var(--text-dim);
   text-align: center;
   padding: 4px;
+}
+
+.test-page {
+  min-width: 0;
+}
+.test-header {
+  padding: 24px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.test-title {
+  color: var(--text);
+  font-size: 24px;
+  margin: 0 0 16px;
+}
+.btn,
+.filter-btn,
+.target-btn,
+.tab-btn {
+  min-height: 44px;
+}
+.btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+.btn-primary,
+.btn-pink {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.btn-green,
+.btn-cyan {
+  color: var(--success);
+}
+.btn-yellow,
+.btn-orange {
+  color: var(--warning);
+}
+.btn-red {
+  color: var(--danger);
+}
+.game-panel {
+  min-width: 0;
+}
+.game-info,
+.batch-params {
+  flex-wrap: wrap;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 1000px) {
+  .test-body {
+    flex-direction: column;
+    overflow: visible;
+  }
+  .card-panel,
+  .log-panel {
+    width: 100%;
+    max-height: 360px;
+    border: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .game-panel {
+    overflow-x: auto;
+  }
+}
+@media (max-width: 600px) {
+  .test-header {
+    padding: 16px;
+  }
+  .test-actions {
+    gap: 8px;
+  }
+  .btn {
+    padding: 8px 10px;
+  }
+  .batch-params {
+    width: 100%;
+  }
 }
 </style>

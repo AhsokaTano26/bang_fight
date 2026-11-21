@@ -1,0 +1,2484 @@
+{
+  "version": "V1.9-test inside",
+  "sourceDirectory": "卡牌资源包V1.9-test inside",
+  "assetBase": "cards/v1.9",
+  "factions": [
+    {
+      "id": "PPP",
+      "name": "Poppin'Party",
+      "color": "#ee3377"
+    },
+    {
+      "id": "AG",
+      "name": "Afterglow",
+      "color": "#e52c43"
+    },
+    {
+      "id": "PAS",
+      "name": "Pastel*Palettes",
+      "color": "#52b99c"
+    },
+    {
+      "id": "ROS",
+      "name": "Roselia",
+      "color": "#33449f"
+    },
+    {
+      "id": "HHW",
+      "name": "Hello, Happy World!",
+      "color": "#eacb13"
+    },
+    {
+      "id": "MOR",
+      "name": "Morfonica",
+      "color": "#419fd6"
+    },
+    {
+      "id": "RAS",
+      "name": "RAISE A SUILEN",
+      "color": "#32b5bc"
+    },
+    {
+      "id": "MG",
+      "name": "MyGO!!!!!",
+      "color": "#2d83b2"
+    },
+    {
+      "id": "AM",
+      "name": "Ave Mujica",
+      "color": "#8e1949"
+    },
+    {
+      "id": "YM",
+      "name": "梦限大MewType",
+      "color": "#ef7184"
+    }
+  ],
+  "entries": [
+    {
+      "id": "AG1001",
+      "sourceFile": "角色/AG1001.png",
+      "name": "元祖兰",
+      "category": "character",
+      "faction": "AG",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "一直摸兜里",
+          "description": "即时牌打出时，消耗行动点并弃置一张手牌，无效该即时牌。",
+          "consumeActionPoint": true
+        }
+      ]
+    },
+    {
+      "id": "AG1002",
+      "sourceFile": "角色/AG1002.png",
+      "name": "元祖摩卡",
+      "category": "character",
+      "faction": "AG",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "积分卡兑换",
+          "description": "己方回合外，消耗行动点并弃置一张手牌，获得一张除己方以外即将进入弃牌堆的同花色手牌。",
+          "consumeActionPoint": true
+        }
+      ]
+    },
+    {
+      "id": "AG1003",
+      "sourceFile": "角色/AG1003.png",
+      "name": "元祖绯玛丽",
+      "category": "character",
+      "faction": "AG",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "一呼零应",
+          "description": "己方回合，打出的第一张手牌不会触发其他角色的技能和其他手牌的效果。",
+          "consumeActionPoint": false
+        }
+      ]
+    },
+    {
+      "id": "AG1004",
+      "sourceFile": "角色/AG1004.png",
+      "name": "元祖巴",
+      "category": "character",
+      "faction": "AG",
+      "maxHp": 4,
+      "attack": 3,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "SOIYA",
+          "description": "被指定为攻击对象且进入攻击判定时，消耗行动点并弃置一张手牌，对攻击方该角色进行一次点数判定概率固定为1/3的攻击。",
+          "consumeActionPoint": true
+        }
+      ]
+    },
+    {
+      "id": "AG1005",
+      "sourceFile": "角色/AG1005.png",
+      "name": "元祖鸫",
+      "category": "character",
+      "faction": "AG",
+      "maxHp": 5,
+      "attack": 0,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "查卡",
+          "description": "己方回合，消耗行动点，获得一名玩家随机一张手牌。",
+          "consumeActionPoint": true
+        }
+      ]
+    },
+    {
+      "id": "AM1001",
+      "sourceFile": "角色/AM1001.png",
+      "name": "元祖初华",
+      "category": "character",
+      "faction": "AM",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "观星",
+          "description": "己方回合，消耗行动点且己方下回合摸牌阶段-1摸牌，获得摸牌堆顶五张手牌中的两张，并弃置剩余牌。",
+          "consumeActionPoint": true
+        },
+        {
+          "name": "独占欲",
+          "description": "「祥子」在场时，「祥子」每次受击时，将本次攻击目标转为自己。",
+          "consumeActionPoint": false
+        }
+      ]
+    },
+    {
+      "id": "AM1002",
+      "sourceFile": "角色/AM1002.png",
+      "name": "元祖睦",
+      "category": "character",
+      "faction": "AM",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "一秒四破",
+          "description": "己方回合，消耗行动点并弃置一张手牌，指定一名角色视为对该角色打出一张“破”，并结束本回合。",
+          "consumeActionPoint": true
+        }
+      ]
+    },
+    {
+      "id": "AM1003",
+      "sourceFile": "角色/AM1003.png",
+      "name": "元祖海铃",
+      "category": "character",
+      "faction": "AM",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "请相信我吧",
+          "description": "玩家打出手牌时，消耗行动点，选择一张手牌并令该玩家猜花色，随后弃置。若猜错则无效该手牌。",
+          "consumeActionPoint": true
+        }
+      ]
+    },
+    {
+      "id": "AM1004",
+      "sourceFile": "角色/AM1004.png",
+      "name": "元祖若麦",
+      "category": "character",
+      "faction": "AM",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "蹭流量",
+          "description": "一名角色受击时，消耗行动点，将本次攻击目标转为自己。若未因此进入濒死状态则抽取一张手牌。",
+          "consumeActionPoint": true
+        }
+      ]
+    },
+    {
+      "id": "AM1005",
+      "sourceFile": "角色/AM1005.png",
+      "name": "元祖祥子",
+      "category": "character",
+      "faction": "AM",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "我来成为神明",
+          "description": "场上出现判定时，消耗行动点，重新进行判定。",
+          "consumeActionPoint": true
+        }
+      ]
+    },
+    {
+      "id": "HHW1001",
+      "sourceFile": "角色/HHW1001.png",
+      "name": "元祖心",
+      "category": "character",
+      "faction": "HHW",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "弦卷家的大手",
+          "description": "每个己方回合限一次，弃置两张手牌，指定一名疲惫状态角色恢复成正常状态。",
+          "consumeActionPoint": false
+        }
+      ]
+    },
+    {
+      "id": "HHW1002",
+      "sourceFile": "角色/HHW1002.png",
+      "name": "元祖美咲",
+      "category": "character",
+      "faction": "HHW",
+      "maxHp": 4,
+      "attack": 1,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "米歇尔本尊",
+          "description": "首次部署时，该角色获得《诡异米歇尔》并立即装备。（《诡异米歇尔》一旦离开装备槽将移出本次对局）",
+          "consumeActionPoint": false
+        },
+        {
+          "name": "脱不下的玩偶服",
+          "description": "「心」在场时，「美咲」装备的道具牌不可离开装备槽。",
+          "consumeActionPoint": false
+        }
+      ]
+    },
+    {
+      "id": "HHW1003",
+      "sourceFile": "角色/HHW1003.png",
+      "name": "元祖育美",
+      "category": "character",
+      "faction": "HHW",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "不限量可乐饼",
+          "description": "己方回合，消耗行动点，从摸牌堆抽取两张手牌，并弃置一张手牌。",
+          "consumeActionPoint": true
+        }
+      ]
+    },
+    {
+      "id": "HHW1004",
+      "sourceFile": "角色/HHW1004.png",
+      "name": "元祖薰",
+      "category": "character",
+      "faction": "HHW",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "梦幻怪盗",
+          "description": "场上出现点数判定时，消耗行动点并复制该结果，再次出现点数判定时，消耗该复制结果并改为对应点数。（复制结果上限为1，消耗或退场后失效）",
+          "consumeActionPoint": true
+        }
+      ]
+    },
+    {
+      "id": "HHW1005",
+      "sourceFile": "角色/HHW1005.png",
+      "name": "元祖花音",
+      "category": "character",
+      "faction": "HHW",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [
+        "guardian"
+      ],
+      "skills": [
+        {
+          "name": "迷宫水母",
+          "description": "［守护］。受击时优先进行一次点数判定。若判定结果为6则指定攻击方任意一名角色，将本次攻击目标转为该角色。（转移攻击将［无视守护］）",
+          "consumeActionPoint": false
+        }
+      ]
+    },
+    {
+      "id": "MG1001",
+      "sourceFile": "角色/MG1001.png",
+      "name": "元祖灯",
+      "category": "character",
+      "faction": "MG",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "拼命歌唱",
+          "description": "每个己方回合限一次，消耗行动点，指定一名玩家并进行一次点数判定，根据判定结果点数令对应角色槽角色+1或-1攻击力，持续一轮。（若判定结果为6则重新进行判定）",
+          "consumeActionPoint": true
+        }
+      ]
+    },
+    {
+      "id": "MG1002",
+      "sourceFile": "角色/MG1002.png",
+      "name": "元祖爱音",
+      "category": "character",
+      "faction": "MG",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "爱门",
+          "description": "［1号位］，己方回合开始时，每名玩家抽取一张手牌。",
+          "consumeActionPoint": false
+        },
+        {
+          "name": "东京阿诺",
+          "description": "［3号位］，攻击同号角色槽的角色时攻击力翻倍，反之则减半。",
+          "consumeActionPoint": false
+        }
+      ]
+    },
+    {
+      "id": "MG1003",
+      "sourceFile": "角色/MG1003.png",
+      "name": "元祖乐奈",
+      "category": "character",
+      "faction": "MG",
+      "maxHp": 3,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "迷途之猫",
+          "description": "受击时优先进行一次点数判定，1/3概率无效攻击。",
+          "consumeActionPoint": false
+        },
+        {
+          "name": "家猫",
+          "description": "［5号位］，该角色退场不会扣除玩家体力值。",
+          "consumeActionPoint": false
+        }
+      ]
+    },
+    {
+      "id": "MG1004",
+      "sourceFile": "角色/MG1004.png",
+      "name": "元祖素世",
+      "category": "character",
+      "faction": "MG",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "惊世智慧",
+          "description": "［2号位］，每个己方回合限一次，消耗行动点，指定一名玩家角色槽中的两名角色互换角色牌和修正槽。（角色状态不互换）",
+          "consumeActionPoint": true
+        },
+        {
+          "name": "惊世一跪",
+          "description": "「祥子」在场时，「素世」无法指定「祥子」为目标。",
+          "consumeActionPoint": false
+        }
+      ]
+    },
+    {
+      "id": "MG1005",
+      "sourceFile": "角色/MG1005.png",
+      "name": "元祖立希",
+      "category": "character",
+      "faction": "MG",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "完美社交",
+          "description": "［4号位］，［守护］、［无视守护］。",
+          "consumeActionPoint": false
+        },
+        {
+          "name": "竟敢无视灯",
+          "description": "「灯」在场时，「灯」获得［守护］。",
+          "consumeActionPoint": false
+        }
+      ]
+    },
+    {
+      "id": "MOR1001",
+      "sourceFile": "角色/MOR1001.png",
+      "name": "元祖真白",
+      "category": "character",
+      "faction": "MOR",
+      "maxHp": 4,
+      "attack": 1,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "诶，癔症",
+          "description": "己方回合，消耗行动点，在该角色牌上放置一枚菌子。若该角色有六枚菌子则变更为《大蛇真白》并恢复成正常状态。",
+          "consumeActionPoint": true
+        }
+      ]
+    },
+    {
+      "id": "MOR1002",
+      "sourceFile": "角色/MOR1002.png",
+      "name": "元祖透子",
+      "category": "character",
+      "faction": "MOR",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "更衣人偶",
+          "description": "己方回合，消耗行动点，弃置场上一张道具牌。若弃置一张相同花色的手牌或该角色的两枚菌子，则获得该道具牌。",
+          "consumeActionPoint": true
+        }
+      ]
+    },
+    {
+      "id": "MOR1003",
+      "sourceFile": "角色/MOR1003.png",
+      "name": "元祖七深",
+      "category": "character",
+      "faction": "MOR",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "概率学博士",
+          "description": "每个己方回合限一次，消耗行动点并弃置一张Happy花色手牌或该角色的两枚菌子，进行三次点数判定，并触发《老虎机模式》对应效果。",
+          "consumeActionPoint": true
+        }
+      ]
+    },
+    {
+      "id": "MOR1004",
+      "sourceFile": "角色/MOR1004.png",
+      "name": "元祖筑紫",
+      "category": "character",
+      "faction": "MOR",
+      "maxHp": 4,
+      "attack": 1,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "小仓鼠",
+          "description": "每次部署时，消耗行动点，将该角色的活力、攻击力分别变为场上所有角色牌中活力、攻击力的最大值。",
+          "consumeActionPoint": true
+        }
+      ]
+    },
+    {
+      "id": "MOR1005",
+      "sourceFile": "角色/MOR1005.png",
+      "name": "元祖瑠唯",
+      "category": "character",
+      "faction": "MOR",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "老艺术家",
+          "description": "该角色可将Cool或Pure花色的牌当作“肘”打出。使用该技能攻击时，额外弃置该角色的一枚菌子将本次攻击变为“破”。",
+          "consumeActionPoint": false
+        }
+      ]
+    },
+    {
+      "id": "PAS1001",
+      "sourceFile": "角色/PAS1001.png",
+      "name": "元祖彩",
+      "category": "character",
+      "faction": "PAS",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [
+        "armorPierce",
+        "ignoreGuardian"
+      ],
+      "skills": [
+        {
+          "name": "劈瓦",
+          "description": "［破甲］、［无视守护］。",
+          "consumeActionPoint": false
+        },
+        {
+          "name": "修哇修哇",
+          "description": "己方角色退场时，可进行四次花色判定。若判定结果都不相同，则该角色牌以疲惫状态返场。",
+          "consumeActionPoint": false
+        }
+      ]
+    },
+    {
+      "id": "PAS1002",
+      "sourceFile": "角色/PAS1002.png",
+      "name": "元祖千圣",
+      "category": "character",
+      "faction": "PAS",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "该说教了",
+          "description": "己方回合，消耗行动点，指定一名角色进行一次点数判定概率固定为1/3的攻击，并结束本回合。",
+          "consumeActionPoint": true
+        }
+      ]
+    },
+    {
+      "id": "PAS1003",
+      "sourceFile": "角色/PAS1003.png",
+      "name": "元祖日菜",
+      "category": "character",
+      "faction": "PAS",
+      "maxHp": 5,
+      "attack": 1,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "中大奖噜",
+          "description": "消耗行动点，展示一张非道具手牌并进行一次花色判定。若结果与该手牌相同则打出该手牌并额外打出一次，随后再进入一次花色判定。若结果仍与该手牌相同则该角色牌变更为《邪神日菜》。（若该手牌不满足发动条件则无法生效）",
+          "consumeActionPoint": true
+        }
+      ]
+    },
+    {
+      "id": "PAS1004",
+      "sourceFile": "角色/PAS1004.png",
+      "name": "元祖麻弥",
+      "category": "character",
+      "faction": "PAS",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "技术宅",
+          "description": "场上出现花色判定时，消耗行动点并弃置一张手牌，将判定结果改为弃置手牌的花色。",
+          "consumeActionPoint": true
+        }
+      ]
+    },
+    {
+      "id": "PAS1005",
+      "sourceFile": "角色/PAS1005.png",
+      "name": "元祖伊芙",
+      "category": "character",
+      "faction": "PAS",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "求雨",
+          "description": "己方回合，消耗行动点，获得摸牌堆顶四张手牌中一张，并弃置剩余牌。",
+          "consumeActionPoint": true
+        }
+      ]
+    },
+    {
+      "id": "PPP1001",
+      "sourceFile": "角色/PPP1001.png",
+      "name": "元祖香澄",
+      "category": "character",
+      "faction": "PPP",
+      "maxHp": 4,
+      "attack": 1,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "CDD",
+          "description": "己方回合，消耗行动点并弃置一张攻击牌，视为同时对一名玩家场上所有角色分别打出一张“肘”，并以任意顺序结算。",
+          "consumeActionPoint": true
+        },
+        {
+          "name": "ARS",
+          "description": "「有咲」在场时，「有咲」-1活力。",
+          "consumeActionPoint": false
+        }
+      ]
+    },
+    {
+      "id": "PPP1002",
+      "sourceFile": "角色/PPP1002.png",
+      "name": "元祖有咲",
+      "category": "character",
+      "faction": "PPP",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "仓库大王",
+          "description": "每次己方角色攻击令受击角色进入濒死状态时，抽取一张手牌。",
+          "consumeActionPoint": false
+        }
+      ]
+    },
+    {
+      "id": "PPP1003",
+      "sourceFile": "角色/PPP1003.png",
+      "name": "元祖多惠",
+      "category": "character",
+      "faction": "PPP",
+      "maxHp": 5,
+      "attack": 1,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "追兔花园",
+          "description": "消耗行动点，在装备槽中装备《欧酱》。（场上最多存在一只《欧酱》）",
+          "consumeActionPoint": true
+        },
+        {
+          "name": "不哭",
+          "description": "「瑞依」在场时，「瑞依」-1活力，+1攻击力。",
+          "consumeActionPoint": false
+        }
+      ]
+    },
+    {
+      "id": "PPP1004",
+      "sourceFile": "角色/PPP1004.png",
+      "name": "元祖沙绫",
+      "category": "character",
+      "faction": "PPP",
+      "maxHp": 5,
+      "attack": 1,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "面包圣母",
+          "description": "每个己方回合限一次，消耗行动点，指定一名角色攻击时攻击差值-1且受击时攻击差值+1，持续一轮。",
+          "consumeActionPoint": true
+        }
+      ]
+    },
+    {
+      "id": "PPP1005",
+      "sourceFile": "角色/PPP1005.png",
+      "name": "元祖里美",
+      "category": "character",
+      "faction": "PPP",
+      "maxHp": 6,
+      "attack": 1,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "螺包狂热者",
+          "description": "攻击时，弃置一张手牌，本次攻击的攻击力翻倍。若该手牌为“巧克力螺”，则该角色在本次对局+1攻击力。",
+          "consumeActionPoint": false
+        }
+      ]
+    },
+    {
+      "id": "RAS1001",
+      "sourceFile": "角色/RAS1001.png",
+      "name": "元祖瑞依",
+      "category": "character",
+      "faction": "RAS",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "大姐头",
+          "description": "当濒死状态角色受击时，弃置一张手牌，将本次攻击目标转为自己。",
+          "consumeActionPoint": false
+        }
+      ]
+    },
+    {
+      "id": "RAS1002",
+      "sourceFile": "角色/RAS1002.png",
+      "name": "元祖六花",
+      "category": "character",
+      "faction": "RAS",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "吉他狂战士",
+          "description": "己方回合，该角色装备道具牌时可选择获得1T缴械标记，随后每次攻击都可额外指定一名角色。",
+          "consumeActionPoint": false
+        }
+      ]
+    },
+    {
+      "id": "RAS1003",
+      "sourceFile": "角色/RAS1003.png",
+      "name": "元祖益木",
+      "category": "character",
+      "faction": "RAS",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "嗜血狂犬",
+          "description": "攻击时，若攻击目标没有因本次攻击进入濒死状态或退场，可弃置一张手牌进行一次点数判定概率固定为1/3的攻击。",
+          "consumeActionPoint": false
+        }
+      ]
+    },
+    {
+      "id": "RAS1004",
+      "sourceFile": "角色/RAS1004.png",
+      "name": "元祖令王那",
+      "category": "character",
+      "faction": "RAS",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "百变PAREO",
+          "description": "每个己方回合限一次，消耗行动点，指定场上一个消耗行动点发动的技能，临时获得该技能并立即发动。（若不满足发动条件或技能已发动则移除该临时技能）",
+          "consumeActionPoint": true
+        }
+      ]
+    },
+    {
+      "id": "RAS1005",
+      "sourceFile": "角色/RAS1005.png",
+      "name": "元祖知由",
+      "category": "character",
+      "faction": "RAS",
+      "maxHp": 7,
+      "attack": 0,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "普罗丢瑟",
+          "description": "每个己方回合限一次，进入地藏状态一轮，弃置5张手牌，在本次对局-2活力并获得场上一名非「友希那」角色。",
+          "consumeActionPoint": false
+        }
+      ]
+    },
+    {
+      "id": "ROS1001",
+      "sourceFile": "角色/ROS1001.png",
+      "name": "元祖友希那",
+      "category": "character",
+      "faction": "ROS",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "压",
+          "description": "该角色在场时，所有濒死状态角色只能通过打出回复牌来恢复成正常状态。",
+          "consumeActionPoint": false
+        }
+      ]
+    },
+    {
+      "id": "ROS1002",
+      "sourceFile": "角色/ROS1002.png",
+      "name": "元祖纱夜",
+      "category": "character",
+      "faction": "ROS",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "忧伤节拍器",
+          "description": "该角色每次进入濒死状态+1攻击力，无视负伤标记和｛压｝。",
+          "consumeActionPoint": false
+        },
+        {
+          "name": "冰川打火机",
+          "description": "每个己方回合限一次，消耗行动点，进入濒死状态并从弃牌堆获得一张“肘”。",
+          "consumeActionPoint": true
+        }
+      ]
+    },
+    {
+      "id": "ROS1003",
+      "sourceFile": "角色/ROS1003.png",
+      "name": "元祖莉莎",
+      "category": "character",
+      "faction": "ROS",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "秘制小饼干",
+          "description": "每个己方回合限一次，消耗行动点并弃置两张手牌，回复一点体力值或指定一名角色视为对该角色打出一张“mini”。",
+          "consumeActionPoint": true
+        }
+      ]
+    },
+    {
+      "id": "ROS1004",
+      "sourceFile": "角色/ROS1004.png",
+      "name": "元祖燐子",
+      "category": "character",
+      "faction": "ROS",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "服化道",
+          "description": "己方疲惫状态角色受击时攻击差值+1。",
+          "consumeActionPoint": false
+        },
+        {
+          "name": "提词姬",
+          "description": "「亚子」在场时，「亚子」+1攻击力。",
+          "consumeActionPoint": false
+        }
+      ]
+    },
+    {
+      "id": "ROS1005",
+      "sourceFile": "角色/ROS1005.png",
+      "name": "元祖亚子",
+      "category": "character",
+      "faction": "ROS",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "大魔姬封印",
+          "description": "消耗行动点技能发动时，消耗行动点并扣除一点体力值，无效该技能。",
+          "consumeActionPoint": true
+        }
+      ]
+    },
+    {
+      "id": "YM1001",
+      "sourceFile": "角色/YM1001.png",
+      "name": "元祖阿拉蕾",
+      "category": "character",
+      "faction": "YM",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "U咩哇抛瓦",
+          "description": "该角色可将一张“肘”当“挡”或一张“挡”当“肘”打出。",
+          "consumeActionPoint": false
+        }
+      ]
+    },
+    {
+      "id": "YM1002",
+      "sourceFile": "角色/YM1002.png",
+      "name": "元祖野乃花",
+      "category": "character",
+      "faction": "YM",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "笨笨国王",
+          "description": "攻击时，额外进行一次点数判定。若判定结果≥4，则本次攻击的攻击力翻倍，反之则减半。",
+          "consumeActionPoint": false
+        }
+      ]
+    },
+    {
+      "id": "YM1003",
+      "sourceFile": "角色/YM1003.png",
+      "name": "元祖律",
+      "category": "character",
+      "faction": "YM",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "优等生",
+          "description": "己方场上有四名及以上角色，攻击时攻击差值-1。",
+          "consumeActionPoint": false
+        },
+        {
+          "name": "转会期",
+          "description": "每个己方回合限一次，消耗行动点，抽取x张手牌，并弃置x张手牌。（x为己方空置角色数量）",
+          "consumeActionPoint": true
+        }
+      ]
+    },
+    {
+      "id": "YM1004",
+      "sourceFile": "角色/YM1004.png",
+      "name": "元祖都子",
+      "category": "character",
+      "faction": "YM",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "劳动",
+          "description": "每个己方回合限两次，-1活力并+1攻击力。",
+          "consumeActionPoint": false
+        },
+        {
+          "name": "过劳",
+          "description": "该角色在己方回合第二次使用“劳动”将进入濒死状态。",
+          "consumeActionPoint": false
+        }
+      ]
+    },
+    {
+      "id": "YM1005",
+      "sourceFile": "角色/YM1005.png",
+      "name": "元祖由乃",
+      "category": "character",
+      "faction": "YM",
+      "maxHp": 5,
+      "attack": 2,
+      "keywords": [],
+      "skills": [
+        {
+          "name": "豆乃生成",
+          "description": "摸牌阶段-1摸牌，并将摸牌堆顶的一张牌放在该角色牌下。",
+          "consumeActionPoint": false
+        },
+        {
+          "name": "豆乃AI",
+          "description": "即时牌打出时，弃置该角色牌下的一张牌，无效该即时牌。",
+          "consumeActionPoint": false
+        }
+      ]
+    },
+    {
+      "id": "C1001",
+      "sourceFile": "道具+即时/C1001.png",
+      "name": "星光魔方",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Cool",
+      "description": "抽取一张角色牌并展示，若己方场上有同组合角色则获得该角色牌，反之则送入休息室。",
+      "legacyIds": [
+        "B0004"
+      ]
+    },
+    {
+      "id": "C1002",
+      "sourceFile": "道具+即时/C1002.png",
+      "name": "麻里奈的礼物箱",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Cool",
+      "description": "抽取两张手牌并展示，若与该牌花色相同则再抽取一张手牌。",
+      "legacyIds": [
+        "E0001",
+        "E0005",
+        "E0009"
+      ]
+    },
+    {
+      "id": "C1003",
+      "sourceFile": "道具+即时/C1003.png",
+      "name": "诡异的蘑菇",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Cool",
+      "description": "指定一名角色获得2T沉默标记。",
+      "legacyIds": [
+        "B0011"
+      ]
+    },
+    {
+      "id": "C1004",
+      "sourceFile": "道具+即时/C1004.png",
+      "name": "灵魂互换",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Cool",
+      "description": "指定场上两名角色互换角色牌和修正槽。（角色状态不互换）",
+      "legacyIds": [
+        "B0015"
+      ]
+    },
+    {
+      "id": "C1005",
+      "sourceFile": "道具+即时/C1005.png",
+      "name": "折叠椅",
+      "category": "strategy",
+      "strategyType": "deployable",
+      "attribute": "Cool",
+      "description": "装备时：+1攻击力。「友希那」装备时：拥有上述效果同时，攻击时，额外进行一次点数判定，若判定结果≥5，则本次攻击攻击力翻倍。",
+      "legacyIds": [
+        "B0009"
+      ]
+    },
+    {
+      "id": "C1006",
+      "sourceFile": "道具+即时/C1006.png",
+      "name": "钢巴歇尔",
+      "category": "strategy",
+      "strategyType": "deployable",
+      "attribute": "Cool",
+      "description": "装备时：获得［守护］。「美咲」装备时：拥有上述效果同时，+2活力。每次装备限一次，己方回合，消耗行动点，同时弃置六张含有四种花色手牌，指定一名角色退场，并令该角色两侧角色进入濒死状态。",
+      "legacyIds": [
+        "B0001"
+      ]
+    },
+    {
+      "id": "C1007",
+      "sourceFile": "道具+即时/C1007.png",
+      "name": "复活赛",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Cool",
+      "description": "抽取休息室里一张角色牌。",
+      "legacyIds": [
+        "B0006"
+      ]
+    },
+    {
+      "id": "C1008",
+      "sourceFile": "道具+即时/C1008.png",
+      "name": "石头",
+      "category": "strategy",
+      "strategyType": "deployable",
+      "attribute": "Cool",
+      "description": "装备时：+1护甲。「灯」装备时：除自己外，己方角色+1护甲。",
+      "legacyIds": [
+        "B0007"
+      ]
+    },
+    {
+      "id": "C1009",
+      "sourceFile": "道具+即时/C1009.png",
+      "name": "轨迹展",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Cool",
+      "description": "获得弃牌堆里一张即时牌。",
+      "legacyIds": [
+        "B0003"
+      ]
+    },
+    {
+      "id": "C1010",
+      "sourceFile": "道具+即时/C1010.png",
+      "name": "小·珍妮弗",
+      "category": "strategy",
+      "strategyType": "deployable",
+      "attribute": "Cool",
+      "description": "装备时：进入濒死状态时，可弃置该牌并恢复为疲惫状态。",
+      "legacyIds": [
+        "B0008"
+      ]
+    },
+    {
+      "id": "C1011",
+      "sourceFile": "道具+即时/C1011.png",
+      "name": "拆弹专家",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Cool",
+      "description": "己方回合开始时，弃置任意判定区一张牌。",
+      "legacyIds": [
+        "B0005"
+      ]
+    },
+    {
+      "id": "C1012",
+      "sourceFile": "道具+即时/C1012.png",
+      "name": "阿提斯特",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Cool",
+      "description": "己方角色攻击时，本次攻击攻击力翻倍。",
+      "legacyIds": [
+        "B0010"
+      ]
+    },
+    {
+      "id": "C1013",
+      "sourceFile": "道具+即时/C1013.png",
+      "name": "五字不行",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Cool",
+      "description": "放入一名玩家的判定区，该玩家判定阶段将进行一次点数判定。若结果为5则失去5点体力值，反之则将该卡顺次移动到下一名玩家判定区，直到有玩家掷出5。",
+      "legacyIds": [
+        "B0002"
+      ]
+    },
+    {
+      "id": "C1014",
+      "sourceFile": "道具+即时/C1014.png",
+      "name": "何意味",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Cool",
+      "description": "指定一名角色和一名己方角色，令对方指定一种花色后，进行一次花色判定。若对方玩家所指定花色与判定结果相同则己方被指定的角色退场，反之则该玩家被指定角色退场。",
+      "legacyIds": [
+        "B0012"
+      ]
+    },
+    {
+      "id": "C1015",
+      "sourceFile": "道具+即时/C1015.png",
+      "name": "丸君",
+      "category": "strategy",
+      "strategyType": "deployable",
+      "attribute": "Cool",
+      "description": "装备时：+1攻击力。「都子」装备时：+2护甲。",
+      "legacyIds": [
+        "B0013"
+      ]
+    },
+    {
+      "id": "C1016",
+      "sourceFile": "道具+即时/C1016.png",
+      "name": "铁打的距离感",
+      "category": "strategy",
+      "strategyType": "deployable",
+      "attribute": "Cool",
+      "description": "装备时：该角色攻击与受击点数判定概率固定为1/3。",
+      "legacyIds": [
+        "B0014"
+      ]
+    },
+    {
+      "id": "C1017",
+      "sourceFile": "道具+即时/C1017.png",
+      "name": "是不想说话吗",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Cool",
+      "description": "指定两名角色，分别进行一次点数判定。若结果大于等于3，则该角色获得nT沉默标记。（n为在场玩家数量）",
+      "legacyIds": [
+        "B0016"
+      ]
+    },
+    {
+      "id": "H1001",
+      "sourceFile": "道具+即时/H1001.png",
+      "name": "星光魔方",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Happy",
+      "description": "抽取一张角色牌并展示，若己方场上有同组合角色则获得该角色牌，反之则送入休息室。",
+      "legacyIds": []
+    },
+    {
+      "id": "H1002",
+      "sourceFile": "道具+即时/H1002.png",
+      "name": "麻里奈的礼物箱",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Happy",
+      "description": "抽取两张手牌并展示，若与该牌花色相同则再抽取一张手牌。",
+      "legacyIds": [
+        "E0002",
+        "E0006",
+        "E0010"
+      ]
+    },
+    {
+      "id": "H1003",
+      "sourceFile": "道具+即时/H1003.png",
+      "name": "诡异的蘑菇",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Happy",
+      "description": "指定一名角色获得2T虚弱标记。",
+      "legacyIds": []
+    },
+    {
+      "id": "H1004",
+      "sourceFile": "道具+即时/H1004.png",
+      "name": "视奸",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Happy",
+      "description": "查看一名玩家所有手牌和角色牌。",
+      "legacyIds": [
+        "C0001"
+      ]
+    },
+    {
+      "id": "H1005",
+      "sourceFile": "道具+即时/H1005.png",
+      "name": "灵光一闪",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Happy",
+      "description": "选择一名玩家失去1点体力值。",
+      "legacyIds": [
+        "C0008"
+      ]
+    },
+    {
+      "id": "H1006",
+      "sourceFile": "道具+即时/H1006.png",
+      "name": "熊霸米歇尔",
+      "category": "strategy",
+      "strategyType": "deployable",
+      "attribute": "Happy",
+      "description": "装备时：+1护甲。「美咲」装备时：+2活力，+2护甲。",
+      "legacyIds": [
+        "C0009"
+      ]
+    },
+    {
+      "id": "H1007",
+      "sourceFile": "道具+即时/H1007.png",
+      "name": "Fever!!!!!",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Happy",
+      "description": "以下效果二选一发动：1.抽取三张手牌。2.己方场上存在组合技时，选择一名玩家失去x点体力值。（x为组成组合技角色数量）",
+      "legacyIds": [
+        "C0015"
+      ]
+    },
+    {
+      "id": "H1008",
+      "sourceFile": "道具+即时/H1008.png",
+      "name": "屹立不倒",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Happy",
+      "description": "一名角色退场时，该角色牌以疲惫状态返场。",
+      "legacyIds": [
+        "C0006"
+      ]
+    },
+    {
+      "id": "H1009",
+      "sourceFile": "道具+即时/H1009.png",
+      "name": "武士刀",
+      "category": "strategy",
+      "strategyType": "deployable",
+      "attribute": "Happy",
+      "description": "装备时：获得［破甲］。「伊芙」装备时：拥有上述效果同时，+2攻击力。",
+      "legacyIds": [
+        "C0007"
+      ]
+    },
+    {
+      "id": "H1010",
+      "sourceFile": "道具+即时/H1010.png",
+      "name": "地狱火炸弹",
+      "category": "strategy",
+      "strategyType": "deployable",
+      "attribute": "Happy",
+      "description": "装备时：不会获得缴械标记，且只能因装备该道具牌角色退场而离开装备槽。触发事件《民主力量》，若达成事件，本次对局结束且达成事件玩家将获得胜利。",
+      "legacyIds": [
+        "C0003"
+      ]
+    },
+    {
+      "id": "H1011",
+      "sourceFile": "道具+即时/H1011.png",
+      "name": "恩！情！",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Happy",
+      "description": "每名玩家抽取一张手牌。",
+      "legacyIds": [
+        "C0005"
+      ]
+    },
+    {
+      "id": "H1012",
+      "sourceFile": "道具+即时/H1012.png",
+      "name": "老虎机",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Happy",
+      "description": "进行三次点数判定，触发《老虎机模式》对应效果。",
+      "legacyIds": [
+        "C0002"
+      ]
+    },
+    {
+      "id": "H1013",
+      "sourceFile": "道具+即时/H1013.png",
+      "name": "孔雀",
+      "category": "strategy",
+      "strategyType": "deployable",
+      "attribute": "Happy",
+      "description": "装备时：获得［守护］。",
+      "legacyIds": [
+        "C0004"
+      ]
+    },
+    {
+      "id": "H1014",
+      "sourceFile": "道具+即时/H1014.png",
+      "name": "金玉",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Happy",
+      "description": "放入一名玩家判定区，该玩家判定阶段将进行一次花色判定。若结果不为Happy，则跳过摸牌阶段。",
+      "legacyIds": [
+        "C0010"
+      ]
+    },
+    {
+      "id": "H1015",
+      "sourceFile": "道具+即时/H1015.png",
+      "name": "不仲蕾",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Happy",
+      "description": "［扭蛋机］无效一个组合技，直到组成该组合技角色发生变化。",
+      "legacyIds": [
+        "C0011"
+      ]
+    },
+    {
+      "id": "H1016",
+      "sourceFile": "道具+即时/H1016.png",
+      "name": "街边的星星贴纸",
+      "category": "strategy",
+      "strategyType": "deployable",
+      "attribute": "Happy",
+      "description": "装备时：每个己方回合限一次，消耗行动点，获得摸牌堆顶三张手牌中一张，并弃置剩余牌。",
+      "legacyIds": [
+        "C0014"
+      ]
+    },
+    {
+      "id": "H1017",
+      "sourceFile": "道具+即时/H1017.png",
+      "name": "做了！",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Happy",
+      "description": "指定两名角色，分别进行一次点数判定。若结果大于等于3，则该角色获得nT虚弱标记。（n为在场玩家数量）",
+      "legacyIds": [
+        "C0012"
+      ]
+    },
+    {
+      "id": "H1018",
+      "sourceFile": "道具+即时/H1018.png",
+      "name": "村好剑",
+      "category": "strategy",
+      "strategyType": "deployable",
+      "attribute": "Happy",
+      "description": "装备时：-2活力，+2攻击力。",
+      "legacyIds": [
+        "C0013"
+      ]
+    },
+    {
+      "id": "P1001",
+      "sourceFile": "道具+即时/P1001.png",
+      "name": "星光魔方",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Powerful",
+      "description": "抽取一张角色牌并展示，若己方场上有同组合角色则获得该角色牌，反之则送入休息室。",
+      "legacyIds": []
+    },
+    {
+      "id": "P1002",
+      "sourceFile": "道具+即时/P1002.png",
+      "name": "麻里奈的礼物箱",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Powerful",
+      "description": "抽取两张手牌并展示，若与该牌花色相同则再抽取一张手牌。",
+      "legacyIds": [
+        "E0003",
+        "E0007",
+        "E0011"
+      ]
+    },
+    {
+      "id": "P1003",
+      "sourceFile": "道具+即时/P1003.png",
+      "name": "诡异的蘑菇",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Powerful",
+      "description": "指定一名角色获得2T缴械标记。",
+      "legacyIds": []
+    },
+    {
+      "id": "P1004",
+      "sourceFile": "道具+即时/P1004.png",
+      "name": "财团B的阴谋",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Powerful",
+      "description": "将一名玩家手上一张角色牌送入休息室。",
+      "legacyIds": [
+        "A0004"
+      ]
+    },
+    {
+      "id": "P1005",
+      "sourceFile": "道具+即时/P1005.png",
+      "name": "战斗用Random star",
+      "category": "strategy",
+      "strategyType": "deployable",
+      "attribute": "Powerful",
+      "description": "装备时：+1攻击力。「香澄」装备时：+2攻击力。",
+      "legacyIds": [
+        "A0009"
+      ]
+    },
+    {
+      "id": "P1006",
+      "sourceFile": "道具+即时/P1006.png",
+      "name": "原装米歇尔",
+      "category": "strategy",
+      "strategyType": "deployable",
+      "attribute": "Powerful",
+      "description": "装备时：+1活力。「美咲」装备时：拥有上述效果同时，+1攻击力，+1护甲。",
+      "legacyIds": [
+        "A0007"
+      ]
+    },
+    {
+      "id": "P1007",
+      "sourceFile": "道具+即时/P1007.png",
+      "name": "禁止事项",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Powerful",
+      "description": "指定一名角色，该角色获得nT缴械标记。（n为在场玩家数量）",
+      "legacyIds": [
+        "A0003"
+      ]
+    },
+    {
+      "id": "P1008",
+      "sourceFile": "道具+即时/P1008.png",
+      "name": "我有异议",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Powerful",
+      "description": "即时牌打出时，无效该即时牌。",
+      "legacyIds": [
+        "A0008"
+      ]
+    },
+    {
+      "id": "P1009",
+      "sourceFile": "道具+即时/P1009.png",
+      "name": "无限制live格斗",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Powerful",
+      "description": "指定一名角色和一名己方角色，从对方开始，双方轮流弃置攻击牌，直到有一方不能弃置攻击牌为止，该玩家被指定角色退场。",
+      "legacyIds": [
+        "A0005"
+      ]
+    },
+    {
+      "id": "P1010",
+      "sourceFile": "道具+即时/P1010.png",
+      "name": "黑色笔记本",
+      "category": "strategy",
+      "strategyType": "deployable",
+      "attribute": "Powerful",
+      "description": "装备时：每个己方回合限一次，消耗行动点，指定一名角色和一种花色，随后进行一次花色判定。若所指定花色与判定牌相同则该角色退场，反之则装备该牌角色进入濒死状态。「亚子」装备时：花色不相同可重新指定并判定一次。「真白」装备时：花色不相同也不会进入濒死状态。",
+      "legacyIds": [
+        "A0010"
+      ]
+    },
+    {
+      "id": "P1011",
+      "sourceFile": "道具+即时/P1011.png",
+      "name": "难绷假面",
+      "category": "strategy",
+      "strategyType": "deployable",
+      "attribute": "Powerful",
+      "description": "装备时：不会获得沉默标记。「AM」装备时：拥有上述效果同时，获得对应《假面》。",
+      "legacyIds": [
+        "A0002"
+      ]
+    },
+    {
+      "id": "P1012",
+      "sourceFile": "道具+即时/P1012.png",
+      "name": "破坏者之钳",
+      "category": "strategy",
+      "strategyType": "deployable",
+      "attribute": "Powerful",
+      "description": "装备时：攻击时，可弃置该牌，并弃置受击角色道具牌。",
+      "legacyIds": [
+        "A0001"
+      ]
+    },
+    {
+      "id": "P1013",
+      "sourceFile": "道具+即时/P1013.png",
+      "name": "米歇尔红豆饼",
+      "category": "strategy",
+      "strategyType": "deployable",
+      "attribute": "Powerful",
+      "description": "装备时：+1手牌上限。",
+      "legacyIds": [
+        "A0006"
+      ]
+    },
+    {
+      "id": "P1014",
+      "sourceFile": "道具+即时/P1014.png",
+      "name": "俄罗斯轮盘",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Powerful",
+      "description": "指定一名角色和一名己方角色，从己方开始，双方轮流进行最多六次点数判定，一旦判定成功，对应角色立即退场。第一次判定成功概率为1/6，每次判定失败都会令成功概率增加1/6。",
+      "legacyIds": [
+        "A0015"
+      ]
+    },
+    {
+      "id": "P1015",
+      "sourceFile": "道具+即时/P1015.png",
+      "name": "巧克力螺",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Powerful",
+      "description": "己方角色攻击时，本次攻击获得［破甲］。攻击方为「里美」则额外清空标记槽。",
+      "legacyIds": [
+        "A0014"
+      ]
+    },
+    {
+      "id": "P1016",
+      "sourceFile": "道具+即时/P1016.png",
+      "name": "乐",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Powerful",
+      "description": "放入一名玩家判定区，该玩家判定阶段将进行一次花色判定。若结果不为Powerful或Cool，则跳过行动阶段。",
+      "legacyIds": [
+        "A0013"
+      ]
+    },
+    {
+      "id": "P1017",
+      "sourceFile": "道具+即时/P1017.png",
+      "name": "世界守护者",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Powerful",
+      "description": "［扭蛋机］己方组合技变更时，维持现有组合技直到下一个己方场上该组合角色退场。",
+      "legacyIds": [
+        "A0011"
+      ]
+    },
+    {
+      "id": "P1018",
+      "sourceFile": "道具+即时/P1018.png",
+      "name": "拿来吧你",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Powerful",
+      "description": "指定一名装备道具牌角色，获得该道具牌。",
+      "legacyIds": [
+        "A0012"
+      ]
+    },
+    {
+      "id": "P1019",
+      "sourceFile": "道具+即时/P1019.png",
+      "name": "小星星无限loop",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Powerful",
+      "description": "进行一次花色判定并获得该判定牌。若判定牌花色为Powerful则再次触发上述效果，反之则弃置新判定牌。",
+      "legacyIds": [
+        "A0016"
+      ]
+    },
+    {
+      "id": "U1001",
+      "sourceFile": "道具+即时/U1001.png",
+      "name": "星光魔方",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Pure",
+      "description": "抽取一张角色牌并展示，若己方场上有同组合角色则获得该角色牌，反之则送入休息室。",
+      "legacyIds": []
+    },
+    {
+      "id": "U1002",
+      "sourceFile": "道具+即时/U1002.png",
+      "name": "麻里奈的礼物箱",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Pure",
+      "description": "抽取两张手牌并展示，若与该牌花色相同则再抽取一张手牌。",
+      "legacyIds": [
+        "E0004",
+        "E0008",
+        "E0012"
+      ]
+    },
+    {
+      "id": "U1003",
+      "sourceFile": "道具+即时/U1003.png",
+      "name": "诡异的蘑菇",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Pure",
+      "description": "指定一名角色，清空该角色标记槽。",
+      "legacyIds": []
+    },
+    {
+      "id": "U1004",
+      "sourceFile": "道具+即时/U1004.png",
+      "name": "巴巴恩波神之力",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Pure",
+      "description": "指定一名己方角色退场，并回复五点体力值。",
+      "legacyIds": [
+        "D0009"
+      ]
+    },
+    {
+      "id": "U1005",
+      "sourceFile": "道具+即时/U1005.png",
+      "name": "幸运四叶草",
+      "category": "strategy",
+      "strategyType": "deployable",
+      "attribute": "Pure",
+      "description": "装备时：攻击时，攻击差值为1或2则受击角色直接进入濒死状态；受击时，攻击差值若小于3则变为3。",
+      "legacyIds": [
+        "D0008"
+      ]
+    },
+    {
+      "id": "U1006",
+      "sourceFile": "道具+即时/U1006.png",
+      "name": "野蛮米歇尔",
+      "category": "strategy",
+      "strategyType": "deployable",
+      "attribute": "Pure",
+      "description": "装备时：+1攻击力。「美咲」装备时：+3攻击力。",
+      "legacyIds": [
+        "D0007"
+      ]
+    },
+    {
+      "id": "U1007",
+      "sourceFile": "道具+即时/U1007.png",
+      "name": "维修扳手",
+      "category": "strategy",
+      "strategyType": "deployable",
+      "attribute": "Pure",
+      "description": "装备时：+1攻击力。「彩」装备时：拥有上述效果同时，攻击时，若攻击目标没有因本次攻击进入濒死状态或退场，则攻击目标进入疲惫状态。",
+      "legacyIds": [
+        "D0010"
+      ]
+    },
+    {
+      "id": "U1008",
+      "sourceFile": "道具+即时/U1008.png",
+      "name": "利根川",
+      "category": "strategy",
+      "strategyType": "deployable",
+      "attribute": "Pure",
+      "description": "装备时：可弃置该牌抽取一张手牌。「有咲」装备时：+1攻击力，可弃置该牌抽取两张手牌。",
+      "legacyIds": [
+        "D0005"
+      ]
+    },
+    {
+      "id": "U1009",
+      "sourceFile": "道具+即时/U1009.png",
+      "name": "禁止947",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Pure",
+      "description": "［扭蛋机］「邪神」角色立即退场。",
+      "legacyIds": [
+        "D0006"
+      ]
+    },
+    {
+      "id": "U1010",
+      "sourceFile": "道具+即时/U1010.png",
+      "name": "筹码",
+      "category": "strategy",
+      "strategyType": "deployable",
+      "attribute": "Pure",
+      "description": "装备时：每个己方回合限一次，消耗行动点，将x张手牌背面朝上放在该道具牌下。场上出现判定时，可猜测该判定结果。若猜对，则摸取x张手牌并取回该道具牌下的手牌；反之则弃置这些手牌。（x最多为3，该道具牌下的手牌不计入手牌上限）",
+      "legacyIds": [
+        "D0003"
+      ]
+    },
+    {
+      "id": "U1011",
+      "sourceFile": "道具+即时/U1011.png",
+      "name": "我是纯良",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Pure",
+      "description": "指定一名己方角色进入地藏状态一轮。",
+      "legacyIds": [
+        "D0004"
+      ]
+    },
+    {
+      "id": "U1012",
+      "sourceFile": "道具+即时/U1012.png",
+      "name": "家虎根绝",
+      "category": "strategy",
+      "strategyType": "deployable",
+      "attribute": "Pure",
+      "description": "装备时：获得［不可选中］，该牌将在己方下回合开始时被弃置。",
+      "legacyIds": [
+        "D0001"
+      ]
+    },
+    {
+      "id": "U1013",
+      "sourceFile": "道具+即时/U1013.png",
+      "name": "抹茶巴菲",
+      "category": "strategy",
+      "strategyType": "deployable",
+      "attribute": "Pure",
+      "description": "装备时：获得［无视守护］。「乐奈」装备时：拥有上述效果同时，攻击时，若攻击目标没有因本次攻击进入濒死状态或退场，额外进行一次点数判定概率固定为1/3攻击。",
+      "legacyIds": [
+        "D0015"
+      ]
+    },
+    {
+      "id": "U1014",
+      "sourceFile": "道具+即时/U1014.png",
+      "name": "噜不动了",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Pure",
+      "description": "放入一名玩家判定区，该玩家判定阶段将进行一次花色判定。若结果不为Pure，则选择两名己方角色进入地藏状态一轮。",
+      "legacyIds": [
+        "D0014"
+      ]
+    },
+    {
+      "id": "U1015",
+      "sourceFile": "道具+即时/U1015.png",
+      "name": "苦瓜",
+      "category": "strategy",
+      "strategyType": "deployable",
+      "attribute": "Pure",
+      "description": "装备时：+1攻击力。「睦」装备时：拥有上述效果同时，获得［无视守护］。",
+      "legacyIds": [
+        "D0013"
+      ]
+    },
+    {
+      "id": "U1016",
+      "sourceFile": "道具+即时/U1016.png",
+      "name": "朝日啤酒",
+      "category": "strategy",
+      "strategyType": "deployable",
+      "attribute": "Pure",
+      "description": "装备时：-1活力，+2护甲。攻击时，可额外进行六次点数判定，若六次结果都相同，则非己方玩家失去168亿点体力值。",
+      "legacyIds": [
+        "D0017"
+      ]
+    },
+    {
+      "id": "U1017",
+      "sourceFile": "道具+即时/U1017.png",
+      "name": "黄瓜",
+      "category": "strategy",
+      "strategyType": "deployable",
+      "attribute": "Pure",
+      "description": "装备时：+1攻击力。「睦」或「素世」装备时：拥有上述效果同时，进入濒死状态时，弃置该牌并恢复为疲惫状态。",
+      "legacyIds": [
+        "D0016"
+      ]
+    },
+    {
+      "id": "U1018",
+      "sourceFile": "道具+即时/U1018.png",
+      "name": "绿接粉",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Pure",
+      "description": "消耗行动点技能发动时，无效该技能。",
+      "legacyIds": [
+        "D0012"
+      ]
+    },
+    {
+      "id": "U1019",
+      "sourceFile": "道具+即时/U1019.png",
+      "name": "啥是XXX",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Pure",
+      "description": "［扭蛋机］无效一个组合技一轮。",
+      "legacyIds": [
+        "D0011"
+      ]
+    },
+    {
+      "id": "U1020",
+      "sourceFile": "道具+即时/U1020.png",
+      "name": "回收站",
+      "category": "strategy",
+      "strategyType": "instant",
+      "attribute": "Pure",
+      "description": "获得弃牌堆里一张手牌。",
+      "legacyIds": [
+        "D0002"
+      ]
+    },
+    {
+      "id": "ATK_1",
+      "sourceFile": "行动/肘.png",
+      "name": "肘击",
+      "category": "action",
+      "actionType": "attack",
+      "requiresTarget": true,
+      "affectsAll": false,
+      "armorPierce": false,
+      "description": "对目标造成等于使用者基础攻击力的伤害。消耗攻击角色的行动点。",
+      "legacyIds": [
+        "ATK20_1",
+        "ATK20_5",
+        "ATK20_9",
+        "ATK20_13",
+        "ATK20_17"
+      ]
+    },
+    {
+      "id": "ATK_2",
+      "sourceFile": "行动/肘2.png",
+      "name": "肘击",
+      "category": "action",
+      "actionType": "attack",
+      "requiresTarget": true,
+      "affectsAll": false,
+      "armorPierce": false,
+      "description": "对目标造成等于使用者基础攻击力的伤害。消耗攻击角色的行动点。",
+      "legacyIds": [
+        "ATK20_2",
+        "ATK20_6",
+        "ATK20_10",
+        "ATK20_14",
+        "ATK20_18"
+      ]
+    },
+    {
+      "id": "ATK_3",
+      "sourceFile": "行动/肘3.png",
+      "name": "肘击",
+      "category": "action",
+      "actionType": "attack",
+      "requiresTarget": true,
+      "affectsAll": false,
+      "armorPierce": false,
+      "description": "对目标造成等于使用者基础攻击力的伤害。消耗攻击角色的行动点。",
+      "legacyIds": [
+        "ATK20_3",
+        "ATK20_7",
+        "ATK20_11",
+        "ATK20_15",
+        "ATK20_19"
+      ]
+    },
+    {
+      "id": "ATK_4",
+      "sourceFile": "行动/肘4.png",
+      "name": "肘击",
+      "category": "action",
+      "actionType": "attack",
+      "requiresTarget": true,
+      "affectsAll": false,
+      "armorPierce": false,
+      "description": "对目标造成等于使用者基础攻击力的伤害。消耗攻击角色的行动点。",
+      "legacyIds": [
+        "ATK20_4",
+        "ATK20_8",
+        "ATK20_12",
+        "ATK20_16",
+        "ATK20_20"
+      ]
+    },
+    {
+      "id": "ARMOR_1",
+      "sourceFile": "行动/破.png",
+      "name": "破甲攻击",
+      "category": "action",
+      "actionType": "armorPierce",
+      "requiresTarget": true,
+      "affectsAll": false,
+      "armorPierce": true,
+      "description": "无视护甲进行攻击。消耗攻击角色的行动点。",
+      "legacyIds": [
+        "ARMOR4_1"
+      ]
+    },
+    {
+      "id": "ARMOR_2",
+      "sourceFile": "行动/破2.png",
+      "name": "破甲攻击",
+      "category": "action",
+      "actionType": "armorPierce",
+      "requiresTarget": true,
+      "affectsAll": false,
+      "armorPierce": true,
+      "description": "无视护甲进行攻击。消耗攻击角色的行动点。",
+      "legacyIds": [
+        "ARMOR4_2"
+      ]
+    },
+    {
+      "id": "ARMOR_3",
+      "sourceFile": "行动/破3.png",
+      "name": "破甲攻击",
+      "category": "action",
+      "actionType": "armorPierce",
+      "requiresTarget": true,
+      "affectsAll": false,
+      "armorPierce": true,
+      "description": "无视护甲进行攻击。消耗攻击角色的行动点。",
+      "legacyIds": [
+        "ARMOR4_3"
+      ]
+    },
+    {
+      "id": "ARMOR_4",
+      "sourceFile": "行动/破4.png",
+      "name": "破甲攻击",
+      "category": "action",
+      "actionType": "armorPierce",
+      "requiresTarget": true,
+      "affectsAll": false,
+      "armorPierce": true,
+      "description": "无视护甲进行攻击。消耗攻击角色的行动点。",
+      "legacyIds": [
+        "ARMOR4_4"
+      ]
+    },
+    {
+      "id": "BIG_BLOCK_1",
+      "sourceFile": "行动/防.png",
+      "name": "防御",
+      "category": "action",
+      "actionType": "bigBlock",
+      "requiresTarget": false,
+      "affectsAll": true,
+      "armorPierce": false,
+      "description": "保护己方所有部署角色，各抵挡一次伤害。即时触发，不保留。消耗行动点。",
+      "legacyIds": []
+    },
+    {
+      "id": "BIG_BLOCK_2",
+      "sourceFile": "行动/防2.png",
+      "name": "防御",
+      "category": "action",
+      "actionType": "bigBlock",
+      "requiresTarget": false,
+      "affectsAll": true,
+      "armorPierce": false,
+      "description": "保护己方所有部署角色，各抵挡一次伤害。即时触发，不保留。消耗行动点。",
+      "legacyIds": []
+    },
+    {
+      "id": "BIG_BLOCK_3",
+      "sourceFile": "行动/防3.png",
+      "name": "防御",
+      "category": "action",
+      "actionType": "bigBlock",
+      "requiresTarget": false,
+      "affectsAll": true,
+      "armorPierce": false,
+      "description": "保护己方所有部署角色，各抵挡一次伤害。即时触发，不保留。消耗行动点。",
+      "legacyIds": []
+    },
+    {
+      "id": "BIG_BLOCK_4",
+      "sourceFile": "行动/防4.png",
+      "name": "防御",
+      "category": "action",
+      "actionType": "bigBlock",
+      "requiresTarget": false,
+      "affectsAll": true,
+      "armorPierce": false,
+      "description": "保护己方所有部署角色，各抵挡一次伤害。即时触发，不保留。消耗行动点。",
+      "legacyIds": []
+    },
+    {
+      "id": "SMALL_BLOCK_1",
+      "sourceFile": "行动/挡.png",
+      "name": "格挡",
+      "category": "action",
+      "actionType": "smallBlock",
+      "requiresTarget": true,
+      "affectsAll": false,
+      "armorPierce": false,
+      "description": "保护己方一名角色，抵挡一次伤害。即时触发，不保留。消耗行动点。",
+      "legacyIds": []
+    },
+    {
+      "id": "SMALL_BLOCK_2",
+      "sourceFile": "行动/挡2.png",
+      "name": "格挡",
+      "category": "action",
+      "actionType": "smallBlock",
+      "requiresTarget": true,
+      "affectsAll": false,
+      "armorPierce": false,
+      "description": "保护己方一名角色，抵挡一次伤害。即时触发，不保留。消耗行动点。",
+      "legacyIds": []
+    },
+    {
+      "id": "SMALL_BLOCK_3",
+      "sourceFile": "行动/挡3.png",
+      "name": "格挡",
+      "category": "action",
+      "actionType": "smallBlock",
+      "requiresTarget": true,
+      "affectsAll": false,
+      "armorPierce": false,
+      "description": "保护己方一名角色，抵挡一次伤害。即时触发，不保留。消耗行动点。",
+      "legacyIds": []
+    },
+    {
+      "id": "SMALL_BLOCK_4",
+      "sourceFile": "行动/挡4.png",
+      "name": "格挡",
+      "category": "action",
+      "actionType": "smallBlock",
+      "requiresTarget": true,
+      "affectsAll": false,
+      "armorPierce": false,
+      "description": "保护己方一名角色，抵挡一次伤害。即时触发，不保留。消耗行动点。",
+      "legacyIds": []
+    },
+    {
+      "id": "RECOVERY_1",
+      "sourceFile": "行动/mini.png",
+      "name": "回复",
+      "category": "action",
+      "actionType": "recovery",
+      "requiresTarget": true,
+      "affectsAll": false,
+      "armorPierce": false,
+      "description": "恢复角色行动点和血量变为正常状态；或恢复玩家2点体力值。",
+      "legacyIds": []
+    },
+    {
+      "id": "RECOVERY_2",
+      "sourceFile": "行动/mini2.png",
+      "name": "回复",
+      "category": "action",
+      "actionType": "recovery",
+      "requiresTarget": true,
+      "affectsAll": false,
+      "armorPierce": false,
+      "description": "恢复角色行动点和血量变为正常状态；或恢复玩家2点体力值。",
+      "legacyIds": []
+    },
+    {
+      "id": "RECOVERY_3",
+      "sourceFile": "行动/mini3.png",
+      "name": "回复",
+      "category": "action",
+      "actionType": "recovery",
+      "requiresTarget": true,
+      "affectsAll": false,
+      "armorPierce": false,
+      "description": "恢复角色行动点和血量变为正常状态；或恢复玩家2点体力值。",
+      "legacyIds": []
+    },
+    {
+      "id": "RECOVERY_4",
+      "sourceFile": "行动/mini4.png",
+      "name": "回复",
+      "category": "action",
+      "actionType": "recovery",
+      "requiresTarget": true,
+      "affectsAll": false,
+      "armorPierce": false,
+      "description": "恢复角色行动点和血量变为正常状态；或恢复玩家2点体力值。",
+      "legacyIds": []
+    },
+    {
+      "id": "BIG_RECOVERY_1",
+      "sourceFile": "行动/all.png",
+      "name": "回复大",
+      "category": "action",
+      "actionType": "bigRecovery",
+      "requiresTarget": false,
+      "affectsAll": true,
+      "armorPierce": false,
+      "description": "恢复所有部署角色行动点和血量变为正常状态；或恢复玩家5点体力值。",
+      "legacyIds": []
+    },
+    {
+      "id": "BIG_RECOVERY_2",
+      "sourceFile": "行动/all2.png",
+      "name": "回复大",
+      "category": "action",
+      "actionType": "bigRecovery",
+      "requiresTarget": false,
+      "affectsAll": true,
+      "armorPierce": false,
+      "description": "恢复所有部署角色行动点和血量变为正常状态；或恢复玩家5点体力值。",
+      "legacyIds": []
+    },
+    {
+      "id": "BIG_RECOVERY_3",
+      "sourceFile": "行动/all3.png",
+      "name": "回复大",
+      "category": "action",
+      "actionType": "bigRecovery",
+      "requiresTarget": false,
+      "affectsAll": true,
+      "armorPierce": false,
+      "description": "恢复所有部署角色行动点和血量变为正常状态；或恢复玩家5点体力值。",
+      "legacyIds": []
+    },
+    {
+      "id": "BIG_RECOVERY_4",
+      "sourceFile": "行动/all4.png",
+      "name": "回复大",
+      "category": "action",
+      "actionType": "bigRecovery",
+      "requiresTarget": false,
+      "affectsAll": true,
+      "armorPierce": false,
+      "description": "恢复所有部署角色行动点和血量变为正常状态；或恢复玩家5点体力值。",
+      "legacyIds": []
+    },
+    {
+      "id": "REPLENISH_1",
+      "sourceFile": "行动/补1.png",
+      "name": "补充",
+      "category": "action",
+      "actionType": "replenish",
+      "requiresTarget": false,
+      "affectsAll": false,
+      "armorPierce": false,
+      "description": "从牌堆摸2张牌；或消耗3点体力值补充1名角色进入手牌（每回合限2次）。",
+      "legacyIds": []
+    },
+    {
+      "id": "REPLENISH_2",
+      "sourceFile": "行动/补2.png",
+      "name": "补充",
+      "category": "action",
+      "actionType": "replenish",
+      "requiresTarget": false,
+      "affectsAll": false,
+      "armorPierce": false,
+      "description": "从牌堆摸2张牌；或消耗3点体力值补充1名角色进入手牌（每回合限2次）。",
+      "legacyIds": []
+    },
+    {
+      "id": "REPLENISH_3",
+      "sourceFile": "行动/补3.png",
+      "name": "补充",
+      "category": "action",
+      "actionType": "replenish",
+      "requiresTarget": false,
+      "affectsAll": false,
+      "armorPierce": false,
+      "description": "从牌堆摸2张牌；或消耗3点体力值补充1名角色进入手牌（每回合限2次）。",
+      "legacyIds": []
+    },
+    {
+      "id": "REPLENISH_4",
+      "sourceFile": "行动/补4.png",
+      "name": "补充",
+      "category": "action",
+      "actionType": "replenish",
+      "requiresTarget": false,
+      "affectsAll": false,
+      "armorPierce": false,
+      "description": "从牌堆摸2张牌；或消耗3点体力值补充1名角色进入手牌（每回合限2次）。",
+      "legacyIds": []
+    },
+    {
+      "id": "FZ1",
+      "sourceFile": "辅助/FZ1.png",
+      "name": "欧酱",
+      "category": "auxiliary",
+      "description": "注：1.《欧酱》在场上时视为道具牌，且只能装备在「元祖多惠」的装备槽中，否则将被移除。2.《欧酱》被弃置时，不进入弃牌区。【元祖多惠专用】装备时：+1活力，+1攻击力，获得［守护］，且不会获得沉默标记。己方角色受到攻击时，可弃置《欧酱》，并无效本次攻击。"
+    },
+    {
+      "id": "FZ2",
+      "sourceFile": "辅助/FZ2.png",
+      "name": "老虎机模式",
+      "category": "auxiliary",
+      "description": "【老虎机专用】1.掷出三个不同数字且不为514时：无效果发生。2.掷出两个相同数字且不为114时：抽取两张手牌。3.掷出三个相同数字且不为111或666：抽取五张手牌。4.掷出666时：将己方所有部署角色恢复至正常状态，且己方玩家体力值回满，同时抽取十张手牌。5.掷出114时：己方弃置三张部署的装备牌。6.掷出514时：己方弃置三张手牌。7.掷出111时：己方三名角色退场并失去所有手牌。"
+    },
+    {
+      "id": "FZ3",
+      "sourceFile": "辅助/FZ3.png",
+      "name": "Mortis",
+      "category": "auxiliary",
+      "description": "【元祖睦专用】我，毋畏死亡：受到攻击时，攻击方需要进行两次攻击判定，只要出现判定失败则本次攻击无效。"
+    },
+    {
+      "id": "FZ4",
+      "sourceFile": "辅助/FZ4.png",
+      "name": "Doloris",
+      "category": "auxiliary",
+      "description": "【元祖初华专用】我，毋畏悲伤：己方回合外失去手牌时，立即抽取一张手牌。"
+    },
+    {
+      "id": "FZ5",
+      "sourceFile": "辅助/FZ5.png",
+      "name": "Timoris",
+      "category": "auxiliary",
+      "description": "【元祖海铃专用】我，毋畏恐惧：标记槽中不会获得任何标记。"
+    },
+    {
+      "id": "FZ6",
+      "sourceFile": "辅助/FZ6.png",
+      "name": "Amoris",
+      "category": "auxiliary",
+      "description": "【元祖若麦专用】我，毋畏爱：受到攻击时，若攻击判定大于1/3，则将本次判定概率固定为1/3。"
+    },
+    {
+      "id": "FZ7",
+      "sourceFile": "辅助/FZ7.png",
+      "name": "Oblivionis",
+      "category": "auxiliary",
+      "description": "【元祖祥子专用】我，毋畏忘却：该角色不可获得［守护］。己方场上有其他「AM」角色时，则获得［不可选中］。"
+    },
+    {
+      "id": "FZ8",
+      "sourceFile": "辅助/FZ8.png",
+      "name": "Poppin'Party组合技",
+      "category": "auxiliary",
+      "description": "【Poppin'Party组合技】Popipa（三人触发）：「PPP」角色的攻击令角色退场时，回复一点体力值。闪闪发光心动不已（五人触发）：「PPP」角色令非己方角色退场时，指定一名角色恢复为正常状态。",
+      "faction": "PPP"
+    },
+    {
+      "id": "FZ9",
+      "sourceFile": "辅助/FZ9.png",
+      "name": "Afterglow组合技",
+      "category": "auxiliary",
+      "description": "【Afterglow组合技】青梅竹马（三人触发）：消耗己方场上两名「AG」角色的行动点，并将一名「AG」角色恢复为正常状态。我们的天空紧紧相连（五人触发）：「AG」角色共享行动点。（角色消耗行动点时，可选择消耗其他角色的行动点）",
+      "faction": "AG"
+    },
+    {
+      "id": "FZ10",
+      "sourceFile": "辅助/FZ10.png",
+      "name": "Pastel*Palettes组合技",
+      "category": "auxiliary",
+      "description": "【Pastel*Palettes组合技】修哇修哇（三人触发）：「PAS」角色进入濒死状态时，可弃置两张手牌令其恢复为疲惫状态。朝着我们的梦想前进（五人触发）：「PAS」角色进入濒死状态时，可弃置一张手牌令其恢复为疲惫状态。",
+      "faction": "PAS"
+    },
+    {
+      "id": "FZ11",
+      "sourceFile": "辅助/FZ11.png",
+      "name": "Roselia组合技",
+      "category": "auxiliary",
+      "description": "【Roselia组合技】觉悟（三人触发）：每次失去体力值时，抽取一张手牌。顶点（五人触发）：己方回合结束时，场上每有一名濒死状态的角色，则抽取一张手牌。",
+      "faction": "ROS"
+    },
+    {
+      "id": "FZ12",
+      "sourceFile": "辅助/FZ12.png",
+      "name": "Hello, Happy World!组合技",
+      "category": "auxiliary",
+      "description": "【Hello, Happy World!组合技】大家都笑起来吧！（三人触发）：若本轮己方回合中没有打出攻击牌，则回合结束时无需弃牌。HAPPY LUCKY SMILE YEAH！（五人触发）：无视手牌上限，且以任意方式抽取手牌时，抽取手牌的数量+1。",
+      "faction": "HHW"
+    },
+    {
+      "id": "FZ13",
+      "sourceFile": "辅助/FZ13.png",
+      "name": "Morfonica组合技",
+      "category": "auxiliary",
+      "description": "【Morfonica组合技】幻觉来了（三人触发）：「MOR」角色攻击时，在该角色牌上放置一枚菌子。爆爆爆（五人触发）：「MOR」角色攻击时，在该角色牌上放置一枚菌子，并额外在另一张「MOR」角色牌上放置一枚菌子。",
+      "faction": "MOR"
+    },
+    {
+      "id": "FZ14",
+      "sourceFile": "辅助/FZ14.png",
+      "name": "RAISE A SUILEN组合技",
+      "category": "auxiliary",
+      "description": "【RAISE A SUILEN组合技】揭开帷幕（三人触发）：非己方玩家回合开始时，需要赠予一张手牌以维持本轮的组合技。改变世界（五人触发）：每个己方回合限一次，指定一名角色获得nT沉默标记或nT缴械标记或nT虚弱标记。（n为在场玩家数量）",
+      "faction": "RAS"
+    },
+    {
+      "id": "FZ15",
+      "sourceFile": "辅助/FZ15.png",
+      "name": "MyGO!!!!!组合技",
+      "category": "auxiliary",
+      "description": "【MyGO!!!!!组合技】迷途之子（三人触发）：每个己方回合限一次，指定己方场上两名「MG」角色互换角色牌和修正槽。（角色状态不互换）即使迷茫也要前进（五人触发）：己方回合不限次数，指定己方场上两名「MG」角色互换角色牌和修正槽。（角色状态不互换）",
+      "faction": "MG"
+    },
+    {
+      "id": "FZ16",
+      "sourceFile": "辅助/FZ16.png",
+      "name": "Ave Mujica组合技",
+      "category": "auxiliary",
+      "description": "【Ave Mujica组合技】假面舞会（三人触发）：每个己方回合开始时，己方场上两名「AM」角色获得对应假面，持续一轮。毋惧假面（五人触发）：「AM」角色获得对应假面。",
+      "faction": "AM"
+    },
+    {
+      "id": "FZ17",
+      "sourceFile": "辅助/FZ17.png",
+      "name": "梦限大MewType组合技",
+      "category": "auxiliary",
+      "description": "【梦限大MewType组合技】梦限无限大（三人触发）：每个己方回合开始时，可指定一名没有［守护］的己方角色获得［不可选中］，持续一轮。梦限妄想（五人触发）：己方角色攻击力与活力数值互换。",
+      "faction": "YM"
+    },
+    {
+      "id": "FZ18",
+      "sourceFile": "辅助/FZ18.png",
+      "name": "邪神日菜",
+      "category": "auxiliary",
+      "description": "【元祖日菜专用】玖肆柒：+7护甲。使用非道具手牌时，该手牌发动两次。"
+    },
+    {
+      "id": "FZ19",
+      "sourceFile": "辅助/FZ19.png",
+      "name": "大蛇真白",
+      "category": "auxiliary",
+      "description": "【元祖真白专用】活力8。破茧：攻击力是该角色牌上菌子数量的1/2。该角色每次消耗行动点时，在该角色牌上放置一枚菌子。"
+    },
+    {
+      "id": "FZ20",
+      "sourceFile": "辅助/FZ20.png",
+      "name": "民主力量",
+      "category": "auxiliary",
+      "description": "【地狱火炸弹专用】1.装备《地狱火炸弹》时先将该牌倒置，后续按照Cool、Powerful、Pure、Cool、Powerful、Happy、Cool、Powerful的顺序将对应花色的牌放置于该牌下。每回合最多放两张且顺序错误将清空重来。2.完成步骤1可立即回正该牌，并在己方回合弃置六张牌，该牌进入激活状态，并在下一个己方回合开始时引爆炸弹（全场玩家的体力值清零），达成事件。3.若进入激活状态且尚未达成事件时该牌离开装备槽，立即引爆炸弹并达成事件，提前引爆炸弹的玩家进行一次1/6概率的点数判定。若判定成功，改为该玩家获得胜利。"
+    },
+    {
+      "id": "FZ21",
+      "sourceFile": "辅助/FZ21.png",
+      "name": "诡异米歇尔",
+      "category": "auxiliary",
+      "description": "注：《诡异米歇尔》在场上时视为道具牌，且只能装备在「元祖美咲」的装备槽中，否则将被移出本次对局。【元祖美咲专用】装备时：+1活力，+1攻击力，且不会获得沉默标记。"
+    },
+    {
+      "id": "OTHER_BD-B",
+      "sourceFile": "其他/BD-B.png",
+      "name": "蓝色对战板",
+      "category": "board",
+      "description": "判定区、角色槽与组合技区域。"
+    },
+    {
+      "id": "OTHER_BD-G",
+      "sourceFile": "其他/BD-G.png",
+      "name": "绿色对战板",
+      "category": "board",
+      "description": "判定区、角色槽与组合技区域。"
+    },
+    {
+      "id": "OTHER_BD-R",
+      "sourceFile": "其他/BD-R.png",
+      "name": "红色对战板",
+      "category": "board",
+      "description": "判定区、角色槽与组合技区域。"
+    },
+    {
+      "id": "OTHER_BD-Y",
+      "sourceFile": "其他/BD-Y.png",
+      "name": "黄色对战板",
+      "category": "board",
+      "description": "判定区、角色槽与组合技区域。"
+    },
+    {
+      "id": "OTHER_永久+1",
+      "sourceFile": "其他/永久+1.png",
+      "name": "永久+1",
+      "category": "marker",
+      "description": "永久+1标记。"
+    },
+    {
+      "id": "OTHER_永久-1",
+      "sourceFile": "其他/永久-1.png",
+      "name": "永久-1",
+      "category": "marker",
+      "description": "永久-1标记。"
+    },
+    {
+      "id": "OTHER_沉默",
+      "sourceFile": "其他/沉默.png",
+      "name": "沉默",
+      "category": "marker",
+      "description": "沉默标记。"
+    },
+    {
+      "id": "OTHER_玩家体力值",
+      "sourceFile": "其他/玩家体力值.png",
+      "name": "玩家体力值",
+      "category": "marker",
+      "description": "玩家体力值标记。"
+    },
+    {
+      "id": "OTHER_玩家体力值归零",
+      "sourceFile": "其他/玩家体力值归零.png",
+      "name": "玩家体力值归零",
+      "category": "marker",
+      "description": "玩家体力值归零标记。"
+    },
+    {
+      "id": "OTHER_缴械",
+      "sourceFile": "其他/缴械.png",
+      "name": "缴械",
+      "category": "marker",
+      "description": "缴械标记。"
+    },
+    {
+      "id": "OTHER_菌子标识（MOR）",
+      "sourceFile": "其他/菌子标识（MOR）.png",
+      "name": "菌子标识（MOR）",
+      "category": "marker",
+      "description": "菌子标识（MOR）标记。"
+    },
+    {
+      "id": "OTHER_虚弱",
+      "sourceFile": "其他/虚弱.png",
+      "name": "虚弱",
+      "category": "marker",
+      "description": "虚弱标记。"
+    },
+    {
+      "id": "OTHER_负伤",
+      "sourceFile": "其他/负伤.png",
+      "name": "负伤",
+      "category": "marker",
+      "description": "负伤标记。"
+    }
+  ]
+}

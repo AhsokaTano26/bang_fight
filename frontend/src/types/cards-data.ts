@@ -1,100 +1,23 @@
 // ============================================================
-// Complete card data for 邦邦武斗传 V1.0
-// Extracted from card images and rulebook
+// Battle-supported card definitions for 邦邦武斗传
+// V1.9 printed metadata is applied from the complete card catalog.
 // ============================================================
 
 import type { CharacterCard, ActionCard, StrategyCard } from './card'
+import { CARD_CATALOG, withCardMetadata } from './card-catalog.generated'
 
 // 策略牌效果描述
-export const STRATEGY_CARD_DESCRIPTIONS: Record<string, string> = {
-  // A Series
-  A0001: '每次攻击有1/3概率拆除被攻击角色的道具牌',
-  A0002: '免疫沉默效果',
-  A0003: '缴械一名角色装备的道具牌一回合',
-  A0004: '将一名玩家手牌上尚未部署的角色送入休息室',
-  A0005: '指定一名己方角色和对方角色，双方轮流出攻击牌直到一方不能出',
-  A0006: '+1手牌上限',
-  A0007: '+1攻击力，+1护甲',
-  A0008: '使一张即将发动的即时牌失效',
-  A0009: '+1攻击力',
-  A0010: '消耗行动点，猜牌库顶花色，猜对目标退场，猜错自己濒死',
-  A0011: '当阵容技能失效时可立即使用，维持阵容技能直到下一个己方角色退场',
-  A0012: '指定一名有装备牌的角色，将该牌加入己方手牌',
-  A0013: '指定一名玩家放入判定区，花色判定不为Powerful则跳过行动阶段',
-  A0014: '指定一名己方角色在该回合获得1/3概率破甲效果',
-  A0015: '双方轮流进行概率判定，失败则强制退场',
-  A0016: '放入判定区，花色判定Powerful则返还手牌并获得花色牌',
-  // B Series
-  B0001: '+2血量，赋予"守护"',
-  B0002: '指定一名玩家放入判定区，概率判定投出5则失去行动能力',
-  B0003: '从弃牌堆里获取一张即时牌进入手牌',
-  B0004: '抽取一张角色卡并部署',
-  B0005: '弃置一张判定区的即时牌',
-  B0006: '随机抽取一名位于休息室的退场角色',
-  B0007: '+2护甲',
-  B0008: '濒死时可以弃置该牌恢复为正常状态',
-  B0009: '+1攻击力',
-  B0010: '指定一名己方角色在该回合获得暴击效果',
-  B0011: '本回合不限制行动点使用',
-  B0012: '选择手牌与玩家交换',
-  B0013: '+1攻击力',
-  B0014: '角色攻击与受击判定强制锁定为1/6',
-  B0015: '指定场上角色与己方角色进行位置互换',
-  B0016: '指定一名角色，概率判定沉默一回合',
-  // C Series
-  C0001: '查看一名玩家的所有手牌和角色牌',
-  C0002: '进入老虎机模式，进行三次投骰子触发相关效果',
-  C0003: '弃置所有手牌激活，下一回合结束全场角色退场',
-  C0004: '获得守护效果',
-  C0005: '所有玩家摸一张牌',
-  C0006: '部署角色退场前可打出此牌让其以正常状态继续存活',
-  C0007: '每次攻击附带"破甲"',
-  C0008: '1/2概率无视一次针对己方的角色技能',
-  C0009: '+2护甲',
-  C0010: '指定一名玩家放入判定区，花色判定不为Happy则跳过摸牌阶段',
-  C0011: '使指定玩家的阵营技失效',
-  C0012: '指定两个角色分别进行概率判定，结果虚弱',
-  C0013: '+2攻击力，-2血量',
-  C0014: '消耗行动点，翻出牌堆顶五张牌，选择其中两张加入手牌',
-  C0015: '抽取三张手牌；或五同阵营造成3伤害',
-  // D Series
-  D0001: '赋予"不可选中"',
-  D0002: '从弃牌堆里选择一张牌加入手牌',
-  D0003: '概率判定时可消耗行动点放置手牌',
-  D0004: '指定一名己方角色，将该角色翻面进入"地藏"一回合',
-  D0005: '可弃置该牌抽取一张手牌',
-  D0006: '抽取一张手牌，若场上存在邪神角色则将其送入休息室',
-  D0007: '+2攻击力',
-  D0008: '概率判定涉及到己方时强制成功或变为1/2',
-  D0009: '解除一个常规负面效果',
-  D0010: '每次攻击有1/3概率赋予被攻击角色一回合沉默',
-  D0011: '指定一名玩家，该玩家的阵营技失效一回合',
-  D0012: '在其他角色发动技能时，使本次发动的技能无效',
-  D0013: '+1攻击力',
-  D0014: '指定一名玩家放入判定区，花色判定不为Pure则角色地藏',
-  D0015: '赋予"无视守护"',
-  D0016: '+1攻击力',
-  D0017: '-1血量，+2护甲',
-  // V1.1 新增
-  E0001: '摸两张牌，若花色相同则再摸一张',
-  E0002: '摸两张牌，若花色相同则再摸一张',
-  E0003: '摸两张牌，若花色相同则再摸一张',
-  E0004: '摸两张牌，若花色相同则再摸一张',
-  E0005: '摸两张牌，若花色相同则再摸一张',
-  E0006: '摸两张牌，若花色相同则再摸一张',
-  E0007: '摸两张牌，若花色相同则再摸一张',
-  E0008: '摸两张牌，若花色相同则再摸一张',
-  E0009: '摸两张牌，若花色相同则再摸一张',
-  E0010: '摸两张牌，若花色相同则再摸一张',
-  E0011: '摸两张牌，若花色相同则再摸一张',
-  E0012: '摸两张牌，若花色相同则再摸一张',
-}
+export const STRATEGY_CARD_DESCRIPTIONS: Record<string, string> = Object.fromEntries(
+  CARD_CATALOG.filter(card => card.category === 'strategy').flatMap(card =>
+    [card.id, ...(card.legacyIds ?? [])].map(id => [id, card.description ?? '']),
+  ),
+)
 
 // ============================================================
 // Strategy Cards (策略牌) - 64 cards, A-D series
 // ============================================================
 
-export const STRATEGY_CARDS: StrategyCard[] = [
+const LEGACY_STRATEGY_CARDS: StrategyCard[] = [
   // A Series (16 cards)
   { id: 'A0001', name: '破坏者之钳', category: 'strategy', strategyType: 'deployable', imageFile: 'cards/策略牌/A0001.png', description: '每次攻击有1/3概率拆除被攻击角色的道具牌', requiresTarget: true },
   { id: 'A0002', name: '难绷假面', category: 'strategy', strategyType: 'deployable', imageFile: 'cards/策略牌/A0002.png', description: '免疫沉默效果', requiresTarget: true },
@@ -179,6 +102,8 @@ export const STRATEGY_CARDS: StrategyCard[] = [
   })),
 ]
 
+export const STRATEGY_CARDS: StrategyCard[] = LEGACY_STRATEGY_CARDS.map(withCardMetadata)
+
 // 行动牌效果描述
 export const ACTION_CARD_DESCRIPTIONS: Record<string, string> = {
   attack: '对目标造成等于使用者基础攻击力的伤害。消耗攻击角色的行动点。',
@@ -194,7 +119,7 @@ export const ACTION_CARD_DESCRIPTIONS: Record<string, string> = {
 // Character Cards (角色牌) - 20 characters, 5 factions
 // ============================================================
 
-export const CHARACTER_CARDS: CharacterCard[] = [
+const LEGACY_CHARACTER_CARDS: CharacterCard[] = [
   // ---- AG faction ----
   {
     id: 'AG1001',
@@ -566,11 +491,13 @@ export const CHARACTER_CARDS: CharacterCard[] = [
   },
 ]
 
+export const CHARACTER_CARDS: CharacterCard[] = LEGACY_CHARACTER_CARDS.map(withCardMetadata)
+
 // ============================================================
 // Action Cards (行动牌)
 // ============================================================
 
-export const ACTION_CARDS: ActionCard[] = [
+const LEGACY_ACTION_CARDS: ActionCard[] = [
   {
     id: 'ATK_1',
     name: '肘击',
@@ -855,6 +782,8 @@ export const ACTION_CARDS: ActionCard[] = [
     armorPierce: true,
   })),
 ]
+
+export const ACTION_CARDS: ActionCard[] = LEGACY_ACTION_CARDS.map(withCardMetadata)
 
 // ============================================================
 // Card lookup helpers

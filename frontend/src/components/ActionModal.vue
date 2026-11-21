@@ -1,301 +1,205 @@
 <template>
-  <Teleport to="body">
-    <Transition name="modal-fade">
-      <div v-if="visible" class="modal-overlay" @click.self="$emit('cancel')">
-        <div class="modal-container" @click.stop>
-          <button class="modal-close" @click="$emit('cancel')">&times;</button>
-
-          <!-- Card preview -->
-          <div class="modal-header">
-            <div class="modal-card-preview">
-              <img v-if="cardImage" :src="`/${cardImage}`" :alt="cardName" />
-            </div>
-            <div class="modal-card-info">
-              <h3 class="modal-card-name">{{ cardName }}</h3>
-              <span class="modal-card-type" :class="typeClass">{{ typeName }}</span>
-              <p class="modal-card-desc">{{ cardDesc }}</p>
-              <div v-if="cardHp !== undefined" class="modal-card-stats">
-                <span class="stat-hp">体力 {{ cardHp }}</span>
-                <span class="stat-atk">攻击 {{ cardAtk }}</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Step progress -->
-          <div class="step-progress" v-if="totalSteps > 1">
-            <div v-for="s in totalSteps" :key="s" class="step-item" :class="{ 'step-done': s < step, 'step-active': s === step }">
-              <div class="step-circle">
-                <span v-if="s < step">&#10003;</span>
-                <span v-else>{{ s }}</span>
-              </div>
-              <span v-if="s < totalSteps" class="step-line" :class="{ 'line-done': s < step }"></span>
-            </div>
-          </div>
-          <p class="step-label">{{ stepLabel }}</p>
-
-          <!-- Content -->
-          <div class="modal-content">
-            <!-- Select Attacker -->
-            <div v-if="stepType === 'selectAttacker'" class="select-grid">
-              <div
-                v-for="slot in myDeployed.filter(s => s.character)"
-                :key="slot.character!.uid"
-                class="select-card"
-                :class="{ 'sel-disabled': !slot.character!.hasActionPoint, 'sel-selected': slot.character!.uid === selectedUid }"
-                @click="slot.character!.hasActionPoint && $emit('select', slot.character!.uid)"
-              >
-                <img :src="`/${getCharImg(slot.character!.cardId)}`" class="sel-img" />
-                <div class="sel-info">
-                  <span class="sel-name">{{ getCharName(slot.character!.cardId) }}</span>
-                  <span class="sel-hp">HP {{ slot.character!.currentHp }}/{{ slot.character!.maxHp }}</span>
-                  <span class="sel-atk">ATK {{ slot.character!.attack }}</span>
-                  <span v-if="!slot.character!.hasActionPoint" class="sel-badge">AP 已用</span>
-                </div>
-              </div>
-              <p v-if="!myDeployed.some(s => s.character)" class="sel-empty">没有可用的角色</p>
-            </div>
-
-            <!-- Select Target (enemy) -->
-            <div v-if="stepType === 'selectTarget'" class="target-list">
-              <div v-for="enemy in enemyPlayers" :key="enemy.id" class="enemy-group">
-                <span class="enemy-label">{{ enemy.name }}</span>
-                <!-- Show deployed characters -->
-                <div class="select-grid" v-if="enemy.deployed.some(s => s.character)">
-                  <div
-                    v-for="slot in enemy.deployed.filter(s => s.character)"
-                    :key="slot.character!.uid"
-                    class="select-card sel-enemy"
-                    :class="{ 'sel-selected-enemy': slot.character!.uid === selectedUid }"
-                    @click="$emit('select', slot.character!.uid, enemy.id)"
-                  >
-                    <img :src="`/${getCharImg(slot.character!.cardId)}`" class="sel-img" />
-                    <div class="sel-info">
-                      <span class="sel-name">{{ getCharName(slot.character!.cardId) }}</span>
-                      <span class="sel-hp">HP {{ slot.character!.currentHp }}/{{ slot.character!.maxHp }}</span>
-                      <span class="sel-atk">ATK {{ slot.character!.attack }}</span>
-                      <span v-if="slot.character!.state === 'nearDeath'" class="sel-badge-s">濒死</span>
-                    </div>
-                  </div>
-                </div>
-                <!-- Show player as target when no deployed chars -->
-                <div v-else class="select-grid">
-                  <div
-                    class="select-card sel-enemy"
-                    :class="{ 'sel-selected-enemy': selectedUid === enemy.id }"
-                    @click="$emit('select', enemy.id, enemy.id)"
-                  >
-                    <div class="sel-info">
-                      <span class="sel-name">{{ enemy.name }}</span>
-                      <span class="sel-hp">HP {{ enemy.hp }}/{{ enemy.maxHp }}</span>
-                      <span class="sel-badge-s">直接攻击玩家</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <p v-if="!hasEnemies" class="sel-empty">没有可攻击的目标</p>
-            </div>
-
-            <!-- Select Ally (for block/heal) -->
-            <div v-if="stepType === 'selectAlly'" class="select-grid">
-              <div
-                v-for="slot in myDeployed.filter(s => s.character)"
-                :key="slot.character!.uid"
-                class="select-card"
-                :class="{ 'sel-selected': slot.character!.uid === selectedUid }"
-                @click="$emit('select', slot.character!.uid)"
-              >
-                <img :src="`/${getCharImg(slot.character!.cardId)}`" class="sel-img" />
-                <div class="sel-info">
-                  <span class="sel-name">{{ getCharName(slot.character!.cardId) }}</span>
-                  <span class="sel-hp">HP {{ slot.character!.currentHp }}/{{ slot.character!.maxHp }}</span>
-                  <span v-if="slot.character!.state === 'nearDeath'" class="sel-badge-s">濒死</span>
-                </div>
-              </div>
-              <p v-if="!myDeployed.some(s => s.character)" class="sel-empty">没有可选的角色</p>
-            </div>
-
-            <!-- Confirm -->
-            <div v-if="stepType === 'confirm'" class="confirm-box">
-              <p class="confirm-text">{{ confirmSummary }}</p>
-              <div v-if="selectedName" class="confirm-chip">
-                <img v-if="selectedImage" :src="`/${selectedImage}`" class="confirm-chip-img" />
-                <span>{{ selectedName }}</span>
-              </div>
-            </div>
-
-            <!-- Select Deploy Slot -->
-            <div v-if="stepType === 'selectSlot'" class="slot-grid">
-              <div
-                v-for="i in 5" :key="i"
-                class="slot-opt"
-                :class="{ 'slot-occupied': myDeployed[i-1]?.character, 'slot-sel': selectedSlot === i-1, 'slot-empty': !myDeployed[i-1]?.character }"
-                @click="!myDeployed[i-1]?.character && $emit('select', String(i-1))"
-              >
-                <template v-if="myDeployed[i-1]?.character">
-                  <img :src="`/${getCharImg(myDeployed[i-1].character!.cardId)}`" class="slot-img" />
-                  <span class="slot-name">{{ getCharName(myDeployed[i-1].character!.cardId) }}</span>
-                </template>
-                <template v-else>
-                  <span class="slot-num">{{ i }}</span>
-                  <span class="slot-hint">空位</span>
-                </template>
-              </div>
-            </div>
-
-            <!-- Select Replacement (choose deployed char to replace) -->
-            <div v-if="stepType === 'selectReplacement'" class="select-grid">
-              <div
-                v-for="slot in myDeployed.filter(s => s.character)"
-                :key="slot.character!.uid"
-                class="select-card"
-                :class="{ 'sel-selected': slot.character!.uid === selectedUid }"
-                @click="$emit('select', slot.character!.uid)"
-              >
-                <img :src="`/${getCharImg(slot.character!.cardId)}`" class="sel-img" />
-                <div class="sel-info">
-                  <span class="sel-name">{{ getCharName(slot.character!.cardId) }}</span>
-                  <span class="sel-hp">HP {{ slot.character!.currentHp }}/{{ slot.character!.maxHp }}</span>
-                </div>
-              </div>
-              <p v-if="!myDeployed.some(s => s.character)" class="sel-empty">没有可替换的角色</p>
-            </div>
-
-            <!-- Choose Replenish Mode -->
-            <div v-if="stepType === 'chooseReplenishMode'" class="mode-grid">
-              <div class="mode-card" :class="{ 'mode-selected': selectedMode === 'draw' }" @click="$emit('selectMode', 'draw')">
-                <div class="mode-icon">🃏</div>
-                <span class="mode-label">抽牌模式</span>
-                <span class="mode-desc">从牌堆抽取2张牌</span>
-              </div>
-              <div class="mode-card" :class="{ 'mode-selected': selectedMode === 'recruit' }" @click="$emit('selectMode', 'recruit')">
-                <div class="mode-icon">👤</div>
-                <span class="mode-label">招揽模式</span>
-                <span class="mode-desc">从角色池招揽1张角色牌</span>
-              </div>
-            </div>
-
-            <!-- Choose Recovery Mode -->
-            <div v-if="stepType === 'chooseRecoveryMode'" class="mode-grid">
-              <div class="mode-card" :class="{ 'mode-selected': selectedMode === 'character' }" @click="$emit('selectMode', 'character')">
-                <div class="mode-icon">⚔️</div>
-                <span class="mode-label">回复角色</span>
-                <span class="mode-desc">回复一名己方角色的体力</span>
-              </div>
-              <div class="mode-card" :class="{ 'mode-selected': selectedMode === 'player' }" @click="$emit('selectMode', 'player')">
-                <div class="mode-icon">💚</div>
-                <span class="mode-label">回复玩家</span>
-                <span class="mode-desc">回复玩家的体力值</span>
-              </div>
-            </div>
-
-            <!-- Select Player Target (when enemy has no deployed chars) -->
-            <div v-if="stepType === 'selectPlayerTarget'" class="target-list">
-              <div v-for="enemy in enemyPlayers" :key="enemy.id" class="enemy-group">
-                <span class="enemy-label">{{ enemy.name }}</span>
-                <div class="select-card sel-enemy" :class="{ 'sel-selected-enemy': selectedUid === enemy.id }" @click="$emit('select', enemy.id, enemy.id)">
-                  <div class="sel-info">
-                    <span class="sel-name">{{ enemy.name }}</span>
-                    <span class="sel-hp">HP {{ enemy.hp }}/{{ enemy.maxHp }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Select Equipment Target (for deployable strategy cards) -->
-            <div v-if="stepType === 'selectEquipmentTarget'" class="select-grid">
-              <div
-                v-for="slot in myDeployed.filter(s => s.character)"
-                :key="slot.character!.uid"
-                class="select-card"
-                :class="{
-                  'sel-selected': slot.character!.uid === selectedUid,
-                  'sel-disabled': !!slot.equipment
-                }"
-                @click="!slot.equipment && $emit('select', slot.character!.uid)"
-              >
-                <img :src="`/${getCharImg(slot.character!.cardId)}`" class="sel-img" />
-                <div class="sel-info">
-                  <span class="sel-name">{{ getCharName(slot.character!.cardId) }}</span>
-                  <span class="sel-hp">HP {{ slot.character!.currentHp }}/{{ slot.character!.maxHp }}</span>
-                  <span v-if="slot.equipment" class="sel-badge">已有装备</span>
-                </div>
-              </div>
-              <p v-if="!myDeployed.some(s => s.character)" class="sel-empty">没有可用的角色</p>
-            </div>
-
-            <!-- Select Strategy Target (for instant strategy cards with requiresTarget) -->
-            <div v-if="stepType === 'selectStrategyTarget'" class="target-list">
-              <div class="enemy-group">
-                <span class="enemy-label">己方角色</span>
-                <div class="select-grid" v-if="myDeployed.some(s => s.character)">
-                  <div
-                    v-for="slot in myDeployed.filter(s => s.character)"
-                    :key="slot.character!.uid"
-                    class="select-card"
-                    :class="{ 'sel-selected': slot.character!.uid === selectedUid }"
-                    @click="$emit('select', slot.character!.uid)"
-                  >
-                    <img :src="`/${getCharImg(slot.character!.cardId)}`" class="sel-img" />
-                    <div class="sel-info">
-                      <span class="sel-name">{{ getCharName(slot.character!.cardId) }}</span>
-                      <span class="sel-hp">HP {{ slot.character!.currentHp }}/{{ slot.character!.maxHp }}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div v-for="enemy in enemyPlayers" :key="enemy.id" class="enemy-group">
-                <span class="enemy-label">{{ enemy.name }}</span>
-                <div class="select-grid" v-if="enemy.deployed.some(s => s.character)">
-                  <div
-                    v-for="slot in enemy.deployed.filter(s => s.character)"
-                    :key="slot.character!.uid"
-                    class="select-card sel-enemy"
-                    :class="{ 'sel-selected-enemy': slot.character!.uid === selectedUid }"
-                    @click="$emit('select', slot.character!.uid, enemy.id)"
-                  >
-                    <img :src="`/${getCharImg(slot.character!.cardId)}`" class="sel-img" />
-                    <div class="sel-info">
-                      <span class="sel-name">{{ getCharName(slot.character!.cardId) }}</span>
-                      <span class="sel-hp">HP {{ slot.character!.currentHp }}/{{ slot.character!.maxHp }}</span>
-                    </div>
-                  </div>
-                </div>
-                <div v-else class="select-grid">
-                  <div class="select-card sel-enemy" :class="{ 'sel-selected-enemy': selectedUid === enemy.id }" @click="$emit('select', enemy.id, enemy.id)">
-                    <div class="sel-info">
-                      <span class="sel-name">{{ enemy.name }}</span>
-                      <span class="sel-hp">HP {{ enemy.hp }}/{{ enemy.maxHp }}</span>
-                      <span class="sel-badge-s">玩家</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Footer -->
-          <div class="modal-footer">
-            <button class="mbtn mbtn-cancel" @click="$emit('cancel')">取消</button>
-            <button v-if="step > 1" class="mbtn mbtn-back" @click="$emit('back')">上一步</button>
-            <button class="mbtn mbtn-ok" :disabled="!canConfirm || loading" @click="$emit('confirm')">
-              {{ step >= totalSteps ? '确认使用' : '下一步' }}
-            </button>
+  <AppDialog
+    :model-value="visible"
+    :title="cardName || '使用卡牌'"
+    :description="stepLabel"
+    @update:model-value="(open) => !open && $emit('cancel')"
+  >
+    <div class="action-modal-body" :aria-busy="loading">
+      <div class="modal-header">
+        <img
+          v-if="previewImage"
+          :src="`/${previewImage}`"
+          :alt="cardName"
+          class="modal-card-preview"
+        />
+        <div class="modal-card-info">
+          <span class="modal-card-type" :class="cardTypeClass">{{
+            cardTypeName
+          }}</span>
+          <p class="modal-card-desc">{{ cardDesc }}</p>
+          <div v-if="cardHp !== undefined" class="modal-card-stats">
+            <span>体力 {{ cardHp }}</span
+            ><span v-if="cardAtk !== undefined">攻击 {{ cardAtk }}</span>
           </div>
         </div>
       </div>
-    </Transition>
-  </Teleport>
+
+      <ol v-if="totalSteps > 1" class="step-progress" aria-label="出牌步骤">
+        <li
+          v-for="s in totalSteps"
+          :key="s"
+          :class="{ 'step-done': s < step, 'step-active': s === step }"
+          :aria-current="s === step ? 'step' : undefined"
+        >
+          <span>{{ s < step ? '✓' : s }}</span>
+        </li>
+      </ol>
+      <p class="step-label" role="status">
+        第 {{ step }} / {{ totalSteps }} 步 · {{ stepLabel }}
+      </p>
+
+      <div v-if="stepType === 'confirm'" class="confirm-box">
+        <p>{{ confirmSummary }}</p>
+        <div v-if="selectedName" class="confirm-chip">
+          <img
+            v-if="selectedThumbnail"
+            :src="`/${selectedThumbnail}`"
+            :alt="selectedName"
+          /><span>{{ selectedName }}</span>
+        </div>
+      </div>
+
+      <div
+        v-else-if="stepType === 'selectSlot'"
+        class="slot-grid"
+        aria-label="选择部署位置"
+      >
+        <button
+          v-for="i in 5"
+          :key="i"
+          type="button"
+          class="slot-opt"
+          :class="{
+            'slot-occupied': myDeployed[i - 1]?.character,
+            'slot-sel': selectedSlot === i - 1,
+          }"
+          :disabled="loading || !!myDeployed[i - 1]?.character"
+          :aria-pressed="selectedSlot === i - 1"
+          :aria-label="`位置${i}，${myDeployed[i - 1]?.character ? '已占用' : '空位'}`"
+          @click="$emit('select', String(i - 1))"
+        >
+          <template v-if="myDeployed[i - 1]?.character"
+            ><img
+              :src="`/${getCharImg(myDeployed[i - 1]!.character!.cardId)}`"
+              :alt="getCharName(myDeployed[i - 1]!.character!.cardId)"
+            /><span>{{
+              getCharName(myDeployed[i - 1]!.character!.cardId)
+            }}</span></template
+          >
+          <template v-else
+            ><strong>{{ i }}</strong
+            ><span>空位</span></template
+          >
+        </button>
+      </div>
+
+      <div v-else-if="modeOptions.length" class="mode-grid">
+        <button
+          v-for="mode in modeOptions"
+          :key="mode.id"
+          type="button"
+          class="mode-card"
+          :class="{ 'mode-selected': selectedMode === mode.id }"
+          :aria-pressed="selectedMode === mode.id"
+          :disabled="loading"
+          @click="$emit('selectMode', mode.id)"
+        >
+          <strong>{{ mode.name }}</strong
+          ><span>{{ mode.description }}</span>
+        </button>
+      </div>
+
+      <div v-else class="target-list">
+        <p v-if="excludedUid" class="target-note">
+          第一名：{{ excludedTargetName }}。请选择另一名角色。
+        </p>
+        <section
+          v-for="group in selectionGroups"
+          :key="group.id"
+          class="target-group"
+        >
+          <h3 v-if="group.label">{{ group.label }}</h3>
+          <div class="select-grid">
+            <button
+              v-for="choice in group.choices"
+              :key="choice.uid"
+              type="button"
+              class="select-card"
+              :class="{ 'sel-selected': choice.uid === selectedUid }"
+              :disabled="loading || choice.disabled"
+              :aria-pressed="choice.uid === selectedUid"
+              @click="$emit('select', choice.uid, choice.playerId)"
+            >
+              <img
+                v-if="choice.image"
+                :src="`/${choice.image}`"
+                :alt="choice.name"
+                class="sel-img"
+              />
+              <span class="sel-info"
+                ><strong>{{ choice.name }}</strong
+                ><span class="sel-hp"
+                  >HP {{ choice.hp }}/{{ choice.maxHp }}</span
+                ><span v-if="choice.attack !== undefined"
+                  >攻击 {{ choice.attack }}</span
+                ><span v-if="choice.badge" class="sel-badge">{{
+                  choice.badge
+                }}</span></span
+              >
+            </button>
+          </div>
+          <p v-if="!group.choices.length" class="sel-empty">没有可选的角色。</p>
+        </section>
+        <p v-if="!selectionGroups.length" class="sel-empty">没有可选的目标。</p>
+      </div>
+    </div>
+    <template #footer>
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="modal-button"
+          :disabled="loading"
+          @click="$emit('cancel')"
+        >
+          取消
+        </button>
+        <button
+          v-if="step > 1"
+          type="button"
+          class="modal-button"
+          :disabled="loading"
+          @click="$emit('back')"
+        >
+          上一步
+        </button>
+        <button
+          type="button"
+          class="modal-button modal-button-primary"
+          :disabled="!canConfirm || loading"
+          @click="$emit('confirm')"
+        >
+          {{
+            loading ? '处理中…' : stepType === 'confirm' ? '确认使用' : '下一步'
+          }}
+        </button>
+      </div>
+    </template>
+  </AppDialog>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
 import { CHARACTER_CARDS } from '../types/cards-data'
+import { CARD_CATALOG, getCatalogEntry } from '../types/card-catalog.generated'
 import type { DeployedSlot, PlayerState } from '../types/game'
+import AppDialog from './ui/AppDialog.vue'
 
-type StepType = 'selectAttacker' | 'selectTarget' | 'selectAlly' | 'confirm' | 'selectSlot'
-  | 'selectReplacement' | 'chooseReplenishMode' | 'chooseRecoveryMode' | 'selectPlayerTarget'
-  | 'selectEquipmentTarget' | 'selectStrategyTarget'
-
+type StepType =
+  | 'selectAttacker'
+  | 'selectTarget'
+  | 'selectAlly'
+  | 'confirm'
+  | 'selectSlot'
+  | 'selectReplacement'
+  | 'chooseReplenishMode'
+  | 'chooseRecoveryMode'
+  | 'selectPlayerTarget'
+  | 'selectEquipmentTarget'
+  | 'selectStrategyTarget'
+  | 'selectStrategyPlayer'
+  | 'selectStrategyTarget1'
+  | 'selectStrategyTarget2'
 const props = defineProps<{
   visible: boolean
   step: number
@@ -310,16 +214,17 @@ const props = defineProps<{
   cardHp?: number
   cardAtk?: number
   selectedUid?: string | null
+  excludedUid?: string | null
   selectedSlot?: number | null
   selectedName?: string
   selectedImage?: string
   selectedMode?: string | null
   confirmSummary: string
   myDeployed: DeployedSlot[]
+  myPlayer?: PlayerState | null
   enemyPlayers: PlayerState[]
   loading?: boolean
 }>()
-
 defineEmits<{
   select: [uid: string, playerId?: string]
   selectMode: [mode: string]
@@ -328,173 +233,517 @@ defineEmits<{
   back: []
 }>()
 
-const typeClass = computed(() => props.cardTypeClass)
-const typeName = computed(() => props.cardTypeName)
-const hasEnemies = computed(() => props.enemyPlayers.some(e => e.deployed.some(s => s.character)))
-
-const canConfirm = computed(() => {
-  if (props.stepType === 'selectAttacker' || props.stepType === 'selectTarget' || props.stepType === 'selectAlly'
-    || props.stepType === 'selectReplacement' || props.stepType === 'selectPlayerTarget'
-    || props.stepType === 'selectEquipmentTarget' || props.stepType === 'selectStrategyTarget') {
-    return !!props.selectedUid
+interface Choice {
+  uid: string
+  playerId?: string
+  name: string
+  image?: string
+  hp: number
+  maxHp: number
+  attack?: number
+  badge?: string
+  disabled?: boolean
+}
+interface SelectionGroup {
+  id: string
+  label?: string
+  choices: Choice[]
+}
+const faceByImage = new Map(CARD_CATALOG.map((card) => [card.imageFile, card]))
+const previewImage = computed(
+  () => faceByImage.get(props.cardImage)?.thumbnailFile ?? props.cardImage,
+)
+const selectedThumbnail = computed(
+  () =>
+    faceByImage.get(props.selectedImage ?? '')?.thumbnailFile ??
+    props.selectedImage,
+)
+function getCharImg(cardId: string) {
+  return (
+    getCatalogEntry(cardId)?.thumbnailFile ??
+    CHARACTER_CARDS.find((c) => c.id === cardId)?.thumbnailFile ??
+    ''
+  )
+}
+function getCharName(cardId: string) {
+  return CHARACTER_CARDS.find((c) => c.id === cardId)?.name ?? cardId
+}
+function characterChoices(slots: DeployedSlot[], playerId?: string): Choice[] {
+  return slots.flatMap((slot) => {
+    const char = slot.character
+    if (!char || char.state === 'retired') return []
+    const cannotAct =
+      char.state !== 'normal' ||
+      char.debuffs.some(
+        (debuff) => debuff.type === 'loseAbility' || debuff.type === 'disarm',
+      )
+    const unavailable =
+      props.stepType === 'selectAttacker' && (!char.hasActionPoint || cannotAct)
+    const untargetable =
+      props.stepType === 'selectTarget' &&
+      char.keywords.includes('untargetable')
+    const equipped =
+      props.stepType === 'selectEquipmentTarget' && !!slot.equipment
+    const alreadySelected = props.excludedUid === char.uid
+    return [
+      {
+        uid: char.uid,
+        playerId,
+        name: getCharName(char.cardId),
+        image: getCharImg(char.cardId),
+        hp: char.currentHp,
+        maxHp: char.maxHp,
+        attack: char.attack,
+        disabled: unavailable || equipped || untargetable || alreadySelected,
+        badge: alreadySelected
+          ? '已选为第一名'
+          : equipped
+            ? '已有装备'
+            : unavailable
+              ? !char.hasActionPoint
+                ? 'AP 已用'
+                : '无法攻击'
+              : untargetable
+                ? '不可选中'
+                : char.state === 'nearDeath'
+                  ? '濒死'
+                  : '',
+      },
+    ]
+  })
+}
+function playerChoice(player: PlayerState): Choice {
+  return {
+    uid: player.id,
+    playerId: player.id,
+    name: player.isAi ? player.name : '你',
+    hp: player.hp,
+    maxHp: player.maxHp,
+    badge: '玩家',
   }
-  if (props.stepType === 'selectSlot') {
-    return props.selectedSlot !== null && props.selectedSlot !== undefined
-  }
-  if (props.stepType === 'chooseReplenishMode' || props.stepType === 'chooseRecoveryMode') {
-    return !!props.selectedMode
-  }
-  return true
+}
+const excludedTargetName = computed(() => {
+  const slots = [
+    ...props.myDeployed,
+    ...props.enemyPlayers.flatMap((player) => player.deployed),
+  ]
+  const target = slots.find(
+    (slot) => slot.character?.uid === props.excludedUid,
+  )?.character
+  return target ? getCharName(target.cardId) : '已选角色'
 })
 
-function getCharImg(cardId: string): string {
-  return CHARACTER_CARDS.find(c => c.id === cardId)?.imageFile ?? ''
-}
-
-function getCharName(cardId: string): string {
-  return CHARACTER_CARDS.find(c => c.id === cardId)?.name ?? cardId
-}
+const selectionGroups = computed<SelectionGroup[]>(() => {
+  const type = props.stepType
+  if (
+    [
+      'selectAttacker',
+      'selectAlly',
+      'selectReplacement',
+      'selectEquipmentTarget',
+    ].includes(type)
+  )
+    return [{ id: 'ally', choices: characterChoices(props.myDeployed) }]
+  if (type === 'selectPlayerTarget')
+    return props.enemyPlayers.map((player) => ({
+      id: player.id,
+      choices: [playerChoice(player)],
+    }))
+  if (type === 'selectStrategyPlayer') {
+    const players = props.myPlayer
+      ? [props.myPlayer, ...props.enemyPlayers]
+      : props.enemyPlayers
+    return [
+      {
+        id: 'players',
+        choices: players.filter((player) => player.isAlive).map(playerChoice),
+      },
+    ]
+  }
+  if (type === 'selectStrategyTarget1' || type === 'selectStrategyTarget2') {
+    const groups: SelectionGroup[] = props.myPlayer?.isAlive
+      ? [
+          {
+            id: 'ally',
+            label: '你的角色',
+            choices: characterChoices(props.myDeployed),
+          },
+        ]
+      : []
+    return groups.concat(
+      props.enemyPlayers
+        .filter((player) => player.isAlive)
+        .map((player) => ({
+          id: player.id,
+          label: player.name,
+          choices: characterChoices(player.deployed, player.id),
+        })),
+    )
+  }
+  if (type === 'selectTarget' || type === 'selectStrategyTarget') {
+    const groups: SelectionGroup[] =
+      type === 'selectStrategyTarget'
+        ? [
+            {
+              id: 'ally',
+              label: '己方角色',
+              choices: characterChoices(props.myDeployed),
+            },
+          ]
+        : []
+    for (const player of props.enemyPlayers) {
+      const choices = characterChoices(player.deployed, player.id)
+      groups.push({
+        id: player.id,
+        label: player.name,
+        choices: choices.length ? choices : [playerChoice(player)],
+      })
+    }
+    return groups
+  }
+  return []
+})
+const modeOptions = computed(() => {
+  if (props.stepType === 'chooseReplenishMode')
+    return [
+      { id: 'draw', name: '抽牌', description: '从牌堆抽取 2 张牌' },
+      {
+        id: 'recruit',
+        name: '招揽角色',
+        description: '从角色池招揽 1 张角色牌',
+      },
+    ]
+  if (props.stepType === 'chooseRecoveryMode')
+    return [
+      { id: 'character', name: '回复角色', description: '回复己方角色的体力' },
+      { id: 'player', name: '回复玩家', description: '回复玩家的体力值' },
+    ]
+  return []
+})
+const canConfirm = computed(() => {
+  if (props.stepType === 'confirm') return true
+  if (props.stepType === 'selectSlot')
+    return (
+      props.selectedSlot != null &&
+      !props.myDeployed[props.selectedSlot]?.character
+    )
+  if (modeOptions.value.length)
+    return modeOptions.value.some((mode) => mode.id === props.selectedMode)
+  return selectionGroups.value.some((group) =>
+    group.choices.some(
+      (choice) => choice.uid === props.selectedUid && !choice.disabled,
+    ),
+  )
+})
 </script>
 
 <style scoped>
-.modal-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.85);
-  z-index: 1000;
-  display: flex; align-items: center; justify-content: center;
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
 }
-.modal-container {
-  background: #1a1a2e;
-  border: 2px solid rgba(233,69,96,0.4);
-  border-radius: 16px;
-  width: 520px; max-height: 80vh; overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.7);
-  position: relative; padding: 24px;
+.modal-card-preview {
+  width: 88px;
+  aspect-ratio: 110 / 156;
+  object-fit: contain;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  flex: 0 0 auto;
 }
-.modal-close {
-  position: absolute; top: 12px; right: 16px;
-  background: none; border: none; color: #666; font-size: 24px; cursor: pointer; z-index: 1;
+.modal-card-info {
+  min-width: 0;
 }
-.modal-close:hover { color: #fff; }
-
-/* Header */
-.modal-header { display: flex; gap: 16px; margin-bottom: 20px; }
-.modal-card-preview { width: 90px; height: 127px; border-radius: 8px; overflow: hidden; flex-shrink: 0; background: #2a1a3e; }
-.modal-card-preview img { width: 100%; height: 100%; object-fit: cover; }
-.modal-card-info { flex: 1; min-width: 0; }
-.modal-card-name { font-size: 18px; font-weight: 700; color: #fff; margin: 0 0 6px; }
-.modal-card-type { display: inline-block; padding: 2px 10px; border-radius: 4px; font-size: 12px; font-weight: 600; margin-bottom: 8px; }
-.type-character { background: rgba(167,139,250,0.2); color: #a78bfa; }
-.type-action { background: rgba(96,165,250,0.2); color: #60a5fa; }
-.type-strategy { background: rgba(74,222,128,0.2); color: #4ade80; }
-.modal-card-desc { font-size: 13px; color: #aaa; margin: 0 0 8px; line-height: 1.5; }
-.modal-card-stats { display: flex; gap: 8px; }
-.stat-hp { color: #ff6b81; font-size: 13px; font-weight: 600; }
-.stat-atk { color: #f5a623; font-size: 13px; font-weight: 600; }
-
-/* Step progress */
-.step-progress { display: flex; align-items: center; justify-content: center; margin-bottom: 8px; }
-.step-item { display: flex; align-items: center; }
-.step-circle {
-  width: 30px; height: 30px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 700; font-size: 13px;
-  background: rgba(255,255,255,0.1); color: #666;
+.modal-card-type {
+  display: inline-block;
+  margin-bottom: 8px;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 650;
 }
-.step-active .step-circle { background: #f5a623; color: #000; box-shadow: 0 0 12px rgba(245,166,35,0.4); }
-.step-done .step-circle { background: #4ade80; color: #000; }
-.step-line { width: 40px; height: 2px; background: rgba(255,255,255,0.1); margin: 0 4px; }
-.line-done { background: #4ade80; }
-.step-label { text-align: center; font-size: 14px; color: #f5a623; font-weight: 600; margin: 0 0 16px; }
-
-/* Content */
-.modal-content { min-height: 160px; margin-bottom: 20px; }
-.select-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+.modal-card-desc {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.75;
+  color: var(--text-dim);
+  overflow-wrap: anywhere;
+}
+.modal-card-stats {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+}
+.step-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+.step-progress li {
+  position: relative;
+}
+.step-progress li:not(:last-child)::after {
+  position: absolute;
+  top: 14px;
+  left: 32px;
+  width: 20px;
+  height: 1px;
+  content: '';
+  background: var(--border);
+}
+.step-progress li > span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--bg-primary);
+  color: var(--text-dim);
+  font-size: 12px;
+  font-weight: 650;
+}
+.step-progress .step-active > span {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent, #fff);
+}
+.step-progress .step-done > span {
+  color: var(--success, #32744a);
+}
+.step-label {
+  margin: 0 0 20px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+.target-list {
+  display: grid;
+  gap: 20px;
+}
+.target-note {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-primary);
+  color: var(--text-dim);
+  font-size: 13px;
+  line-height: 1.65;
+}
+.target-group h3 {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 650;
+}
+.select-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+  gap: 10px;
+}
 .select-card {
-  border: 2px solid transparent; border-radius: 10px; cursor: pointer;
-  transition: all 0.2s; background: rgba(255,255,255,0.03); padding: 8px;
-  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-height: 80px;
+  padding: 12px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
 }
-.select-card:hover { border-color: rgba(245,166,35,0.4); transform: translateY(-2px); }
-.sel-selected { border-color: #f5a623 !important; box-shadow: 0 0 15px rgba(245,166,35,0.3); animation: selected-glow 1.5s ease-in-out infinite; }
-.sel-selected-enemy { border-color: #e94560 !important; box-shadow: 0 0 15px rgba(233,69,96,0.3); animation: selected-glow-red 1.5s ease-in-out infinite; }
-
-@keyframes selected-glow {
-  0%, 100% { box-shadow: 0 0 15px rgba(245,166,35,0.3); }
-  50% { box-shadow: 0 0 25px rgba(245,166,35,0.6); }
+.select-card:hover:not(:disabled),
+.slot-opt:hover:not(:disabled),
+.mode-card:hover:not(:disabled) {
+  background: var(--bg-primary);
+  border-color: var(--accent);
 }
-
-@keyframes selected-glow-red {
-  0%, 100% { box-shadow: 0 0 15px rgba(233,69,96,0.3); }
-  50% { box-shadow: 0 0 25px rgba(233,69,96,0.6); }
+.sel-selected,
+.slot-sel,
+.mode-selected {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 1px var(--accent);
 }
-.sel-disabled { opacity: 0.4; cursor: not-allowed; }
-.sel-disabled:hover { border-color: transparent; transform: none; }
-.sel-enemy:hover { border-color: rgba(233,69,96,0.4); }
-.sel-img { width: 60px; height: 60px; border-radius: 6px; object-fit: cover; }
-.sel-info { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-.sel-name { font-size: 12px; font-weight: 600; color: #fff; }
-.sel-hp { font-size: 11px; color: #ff6b81; }
-.sel-atk { font-size: 11px; color: #f5a623; }
-.sel-badge { font-size: 10px; color: #666; background: rgba(255,255,255,0.1); padding: 1px 6px; border-radius: 3px; }
-.sel-badge-s { font-size: 10px; color: #e94560; background: rgba(233,69,96,0.2); padding: 1px 6px; border-radius: 3px; }
-.sel-empty { text-align: center; color: #666; font-size: 14px; padding: 30px; }
-
-/* Target list */
-.target-list { display: flex; flex-direction: column; gap: 16px; }
-.enemy-group { display: flex; flex-direction: column; gap: 8px; }
-.enemy-label { font-size: 13px; font-weight: 600; color: #e94560; padding-left: 4px; }
-
-/* Confirm */
-.confirm-box { text-align: center; padding: 20px; }
-.confirm-text { font-size: 16px; color: #ccc; margin: 0 0 16px; }
-.confirm-chip { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); padding: 8px 16px; border-radius: 8px; font-size: 14px; color: #fff; }
-.confirm-chip-img { width: 32px; height: 32px; border-radius: 4px; object-fit: cover; }
-
-/* Mode selection */
-.mode-grid { display: flex; gap: 16px; justify-content: center; }
+.select-card:disabled,
+.slot-opt:disabled,
+.mode-card:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.sel-img {
+  width: 64px;
+  height: 90px;
+  border-radius: 4px;
+  object-fit: contain;
+}
+.sel-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.sel-info strong {
+  color: var(--text);
+  font-size: 12px;
+}
+.sel-hp {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.sel-badge {
+  font-size: 10px;
+  color: var(--warning, #8b5f19);
+}
+.sel-empty {
+  margin: 16px 0;
+  color: var(--text-dim);
+  font-size: 13px;
+  text-align: center;
+}
+.confirm-box {
+  padding: 12px 0 20px;
+  text-align: center;
+}
+.confirm-box > p {
+  margin: 0 0 16px;
+  font-size: 15px;
+  line-height: 1.7;
+}
+.confirm-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 13px;
+}
+.confirm-chip img {
+  width: 36px;
+  height: 50px;
+  object-fit: contain;
+  border-radius: 4px;
+}
+.mode-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
 .mode-card {
-  flex: 1; max-width: 200px; border: 2px solid transparent; border-radius: 12px;
-  padding: 20px 16px; cursor: pointer; transition: all 0.2s;
-  background: rgba(255,255,255,0.03); text-align: center;
-  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  min-height: 108px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
 }
-.mode-card:hover { border-color: rgba(245,166,35,0.4); transform: translateY(-2px); }
-.mode-selected { border-color: #f5a623 !important; box-shadow: 0 0 15px rgba(245,166,35,0.3); background: rgba(245,166,35,0.08); }
-.mode-icon { font-size: 28px; }
-.mode-label { font-size: 14px; font-weight: 600; color: #fff; }
-.mode-desc { font-size: 12px; color: #999; }
-
-/* Deploy slots */
-.slot-grid { display: flex; gap: 10px; justify-content: center; }
+.mode-card strong {
+  font-size: 15px;
+}
+.mode-card > span {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-dim);
+}
+.slot-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
 .slot-opt {
-  width: 80px; height: 110px; border: 2px solid transparent; border-radius: 10px;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  min-height: 110px;
+  padding: 8px 4px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-dim);
+  cursor: pointer;
 }
-.slot-empty { border-style: dashed; border-color: rgba(245,166,35,0.3); background: rgba(245,166,35,0.05); }
-.slot-empty:hover { border-color: #f5a623; background: rgba(245,166,35,0.1); }
-.slot-occupied { border-color: rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); opacity: 0.5; cursor: not-allowed; }
-.slot-sel { border-color: #f5a623 !important; box-shadow: 0 0 12px rgba(245,166,35,0.3); }
-.slot-num { font-size: 22px; font-weight: 700; color: rgba(245,166,35,0.5); }
-.slot-hint { font-size: 11px; color: #666; margin-top: 4px; }
-.slot-img { width: 50px; height: 50px; border-radius: 6px; object-fit: cover; }
-.slot-name { font-size: 10px; color: #999; margin-top: 4px; text-align: center; }
-
-/* Footer */
-.modal-footer { display: flex; justify-content: flex-end; gap: 10px; }
-.mbtn { padding: 10px 24px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-.mbtn-cancel { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #999; }
-.mbtn-cancel:hover { border-color: rgba(255,255,255,0.4); color: #ccc; }
-.mbtn-back { background: rgba(255,255,255,0.1); color: #ccc; }
-.mbtn-back:hover { background: rgba(255,255,255,0.15); }
-.mbtn-ok { background: #e94560; color: #fff; }
-.mbtn-ok:hover:not(:disabled) { background: #d63a53; }
-.mbtn-ok:disabled { background: #444; color: #777; cursor: not-allowed; }
-
-/* Transition */
-.modal-fade-enter-active, .modal-fade-leave-active { transition: opacity 0.25s; }
-.modal-fade-enter-active .modal-container, .modal-fade-leave-active .modal-container { transition: transform 0.25s, opacity 0.25s; }
-.modal-fade-enter-from, .modal-fade-leave-to { opacity: 0; }
-.modal-fade-enter-from .modal-container { transform: scale(0.95); opacity: 0; }
-.modal-fade-leave-to .modal-container { transform: scale(0.95); opacity: 0; }
+.slot-opt strong {
+  font-size: 22px;
+  font-weight: 500;
+}
+.slot-opt span {
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+.slot-opt img {
+  width: 42px;
+  max-width: 100%;
+  height: 60px;
+  object-fit: contain;
+}
+.slot-occupied {
+  border-style: solid;
+}
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+}
+.modal-button {
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.modal-button-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent, #fff);
+}
+.modal-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+@media (max-width: 390px) {
+  .modal-header {
+    gap: 12px;
+  }
+  .modal-card-preview {
+    width: 68px;
+  }
+  .mode-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .slot-grid {
+    gap: 4px;
+  }
+  .modal-button {
+    padding: 10px 12px;
+  }
+  .select-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
 </style>

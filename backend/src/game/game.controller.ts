@@ -150,7 +150,7 @@ export class GameController {
 
       case 'attack': {
         const { attackerCharUid, targetPlayerId, targetCharUid, armorPierce } = params
-        result = this.combatService.resolveAttack(
+        result = this.gameService.attack(
           state,
           playerId,
           attackerCharUid,
@@ -163,7 +163,7 @@ export class GameController {
 
       case 'directAttack': {
         const { attackerCharUid, targetPlayerId } = params
-        result = this.combatService.resolveDirectAttack(
+        result = this.gameService.directAttack(
           state,
           playerId,
           attackerCharUid,
@@ -189,6 +189,7 @@ export class GameController {
         throw new HttpException(`未知操作类型: ${type}`, HttpStatus.BAD_REQUEST)
     }
 
+    if (result.success) this.gameService.checkGameOver(state)
     return {
       ...result,
       state: this.sanitizeState(state),
@@ -223,7 +224,7 @@ export class GameController {
     this.aiService.executeTurn(state, currentPlayer)
 
     // End AI's turn (advance to next player)
-    this.gameService.endTurn(state)
+    if (!state.gameOver) this.gameService.endTurn(state)
 
     return {
       success: true,

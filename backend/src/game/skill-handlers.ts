@@ -344,6 +344,24 @@ const handlers: Record<string, (
   },
 
   // ---- HHW1002 欧数尔万事: 部署时随机调整所有角色属性 ----
+  michelSearch: (state, _casterPlayerId, _casterUid) => {
+    // Simplified: random stat adjust (full michelSearch would search for Michelle equipment)
+    for (const player of state.players) {
+      for (const slot of player.deployed) {
+        if (slot.character && slot.character.state === 'normal') {
+          const atkAdj = randomInt(-1, 1)
+          slot.character.attack = Math.max(0, slot.character.attack + atkAdj)
+          const hpAdj = randomInt(-1, 1)
+          slot.character.currentHp = Math.max(1, Math.min(
+            slot.character.currentHp + hpAdj,
+            slot.character.maxHp,
+          ))
+        }
+      }
+    }
+    return { success: true, message: '欧数尔万事: 所有角色属性随机调整' }
+  },
+
   randomStatAdjust: (state, _casterPlayerId, _casterUid) => {
     for (const player of state.players) {
       for (const slot of player.deployed) {

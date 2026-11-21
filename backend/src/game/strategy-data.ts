@@ -3,8 +3,9 @@
 // ============================================================
 
 import type { StrategyCardDef } from './types'
+import { withCardMetadata } from './card-catalog.generated'
 
-export const STRATEGY_CARDS: StrategyCardDef[] = [
+const LEGACY_STRATEGY_CARDS: StrategyCardDef[] = [
   // ===========================================================
   // A Series (16 cards)
   // ===========================================================
@@ -843,3 +844,6 @@ export const STRATEGY_CARDS: StrategyCardDef[] = [
     instantType: 'drawWithBonus',
   })),
 ]
+
+// Keep effect dispatch and runtime IDs stable; use V1.9 names, faces and printed stats.
+export const STRATEGY_CARDS: StrategyCardDef[] = LEGACY_STRATEGY_CARDS.map(withCardMetadata)

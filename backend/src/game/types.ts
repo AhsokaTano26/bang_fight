@@ -9,7 +9,7 @@
 
 export type CardCategory = 'character' | 'action' | 'strategy' | 'auxiliary'
 
-export type Faction = 'AG' | 'HHW' | 'PAS' | 'PPP' | 'ROS'
+export type Faction = 'AG' | 'HHW' | 'PAS' | 'PPP' | 'ROS' | 'MOR' | 'RAS' | 'MG' | 'AM' | 'YM'
 
 export type ActionCardType =
   | 'attack'
@@ -183,6 +183,7 @@ export interface PlayerState {
   hpRecoveryUsed: number // how many times player recovered HP this turn (max 2)
   apUsedThisTurn: number // how many characters have used AP this turn (max 3)
   replacementCountThisTurn: number // V1.1: max 1 replacement per turn when field is full
+  factionSkillDisabled?: boolean // faction skill disabled by opponent's card
 }
 
 export interface DeployedSlot {

@@ -4,8 +4,9 @@
 // ============================================================
 
 import type { CharacterCardDef } from './types'
+import { withCardMetadata } from './card-catalog.generated'
 
-export const CHARACTER_CARDS: CharacterCardDef[] = [
+const LEGACY_CHARACTER_CARDS: CharacterCardDef[] = [
   // ---- AG faction ----
   {
     id: 'AG1001',
@@ -52,7 +53,7 @@ export const CHARACTER_CARDS: CharacterCardDef[] = [
     skills: [
       {
         name: '一呼零应',
-        description: '每回合使用的第一张手牌必定生效。',
+        description: '每回合使用的第一张手牌必定生效，且不会触发其他角色技能和玩家手牌的效果。',
         consumeActionPoint: false,
         effect: { type: 'firstCardGuaranteed', params: {} },
       },
@@ -173,7 +174,7 @@ export const CHARACTER_CARDS: CharacterCardDef[] = [
     skills: [
       {
         name: '螺包狂热者',
-        description: '弃置一张手牌，角色在本回合+1基础攻击力。',
+        description: '弃置一张手牌，角色在本回合+1基础攻击力。若弃置手牌为"巧克力螺"则持续时间为永久。',
         consumeActionPoint: false,
         effect: { type: 'sacrificeForPower', params: { atkBoost: 1, permanentIfChocolate: true } },
       },
@@ -226,7 +227,7 @@ export const CHARACTER_CARDS: CharacterCardDef[] = [
     skills: [
       {
         name: '魅惑女神',
-        description: '消耗行动点，该角色进入濒死状态，选择一名己方濒死角色恢复正常状态并恢复一点行动点。',
+        description: '消耗行动点，该角色进入濒死状态，选择一名己方濒死角色恢复正常状态并恢复一点行动点。无视初始友希那的【压】。',
         consumeActionPoint: true,
         effect: { type: 'sacrificeHealAlly', params: { selfNearDeath: true, restoreAlly: true, ignoreRestriction: true } },
       },
@@ -243,7 +244,7 @@ export const CHARACTER_CARDS: CharacterCardDef[] = [
     skills: [
       {
         name: '骑骑开花',
-        description: '消耗行动点，转移场上一名角色的一项负面效果至另一名角色。',
+        description: '消耗行动点，转移场上一名角色的一项负面效果至另一名角色，若该角色已存在相同负面效果则负面效果持续时间为永久。',
         consumeActionPoint: true,
         effect: { type: 'transferDebuff', params: {} },
       },
@@ -361,3 +362,6 @@ export const CHARACTER_CARDS: CharacterCardDef[] = [
 export function getCharacterDef(id: string): CharacterCardDef | undefined {
   return CHARACTER_CARDS.find((c) => c.id === id)
 }
+
+// Keep effect dispatch and runtime IDs stable; use V1.9 names, faces and printed stats.
+export const CHARACTER_CARDS: CharacterCardDef[] = LEGACY_CHARACTER_CARDS.map(withCardMetadata)

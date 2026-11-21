@@ -2,13 +2,58 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { GameState } from '../types/game'
 
+interface GameResponse {
+  success: boolean
+  message?: string
+  gameId?: string
+  state?: GameState
+}
+
+const HTTP_MESSAGES: Record<number, string> = {
+  400: '请求参数错误',
+  401: '未授权',
+  403: '禁止访问',
+  404: '资源未找到',
+  408: '请求超时',
+  409: '请求冲突',
+  429: '请求过于频繁',
+  500: '服务器内部错误',
+  502: '网关错误',
+  503: '服务不可用',
+}
+
+async function apiFetch(
+  url: string,
+  init?: RequestInit,
+): Promise<GameResponse> {
+  const res = await fetch(url, init)
+  if (!res.ok) {
+    let msg: string
+    try {
+      const body = (await res.json()) as { message?: string | string[] }
+      msg =
+        (Array.isArray(body.message)
+          ? body.message.join('；')
+          : body.message) ||
+        HTTP_MESSAGES[res.status] ||
+        `HTTP ${res.status}`
+    } catch {
+      msg = HTTP_MESSAGES[res.status] || `HTTP ${res.status}`
+    }
+    throw new Error(msg)
+  }
+  return res.json()
+}
+
 export const useGameStore = defineStore('game', () => {
   // State
   const gameState = ref<GameState | null>(null)
-  const loading = ref(false)
+  const loadingCount = ref(0)
+  const loading = computed(() => loadingCount.value > 0)
   const error = ref<string | null>(null)
   const selectedCardUid = ref<string | null>(null)
   const selectedTarget = ref<string | null>(null)
+  let gameGeneration = 0
 
   // Getters
   const currentPlayer = computed(() => {
@@ -17,17 +62,18 @@ export const useGameStore = defineStore('game', () => {
   })
 
   const isMyTurn = computed(() => {
-    return !currentPlayer.value?.isAi
+    if (!currentPlayer.value) return false
+    return !currentPlayer.value.isAi
   })
 
   const turnPhase = computed(() => gameState.value?.turnPhase ?? 'ended')
 
   const playerState = computed(() => {
-    return gameState.value?.players.find(p => !p.isAi) ?? null
+    return gameState.value?.players.find((p) => !p.isAi) ?? null
   })
 
   const aiPlayers = computed(() => {
-    return gameState.value?.players.filter(p => p.isAi) ?? []
+    return gameState.value?.players.filter((p) => p.isAi) ?? []
   })
 
   const handCards = computed(() => playerState.value?.hand ?? [])
@@ -36,32 +82,49 @@ export const useGameStore = defineStore('game', () => {
   // Actions
   const PLAYER_ID = 'player_0' // First human player
 
-  async function createGame(playerCount = 1, aiCount = 1) {
-    loading.value = true
+  async function createGame(
+    playerCount = 1,
+    aiCount = 1,
+    signal?: AbortSignal,
+  ) {
+    if (signal?.aborted) return
+    const generation = ++gameGeneration
+    gameState.value = null
+    selectedCardUid.value = null
+    selectedTarget.value = null
+    loadingCount.value++
     error.value = null
     try {
-      const res = await fetch('/game/create', {
+      const data = await apiFetch('/game/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ playerCount, aiCount }),
+        signal,
       })
-      const data = await res.json()
+      if (signal?.aborted || generation !== gameGeneration) return
       if (data.success && data.state) {
         gameState.value = data.state as GameState
       }
     } catch (e) {
-      error.value = String(e)
+      if (!signal?.aborted && generation === gameGeneration)
+        error.value = e instanceof Error ? e.message : String(e)
     } finally {
-      loading.value = false
+      loadingCount.value--
     }
   }
 
-  async function submitAction(type: string, params: Record<string, any> = {}): Promise<Record<string, any> | null> {
-    if (!gameState.value) return null
-    loading.value = true
+  async function submitAction(
+    type: string,
+    params: Record<string, any> = {},
+    signal?: AbortSignal,
+  ): Promise<GameResponse | null> {
+    if (!gameState.value || signal?.aborted) return null
+    const generation = gameGeneration
+    const gameId = gameState.value.gameId
+    loadingCount.value++
     error.value = null
     try {
-      const res = await fetch(`/game/${gameState.value.gameId}/action`, {
+      const data = await apiFetch(`/game/${gameId}/action`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -69,8 +132,14 @@ export const useGameStore = defineStore('game', () => {
           playerId: PLAYER_ID,
           params,
         }),
+        signal,
       })
-      const data = await res.json()
+      if (
+        signal?.aborted ||
+        generation !== gameGeneration ||
+        gameState.value?.gameId !== gameId
+      )
+        return null
       if (data.state) {
         gameState.value = data.state as GameState
       }
@@ -79,49 +148,67 @@ export const useGameStore = defineStore('game', () => {
       }
       return data
     } catch (e) {
-      error.value = String(e)
+      if (!signal?.aborted && generation === gameGeneration)
+        error.value = e instanceof Error ? e.message : String(e)
       return null
     } finally {
-      loading.value = false
+      loadingCount.value--
     }
   }
 
-  async function fetchState() {
-    if (!gameState.value) return
+  async function fetchState(signal?: AbortSignal) {
+    if (!gameState.value || signal?.aborted) return
+    const generation = gameGeneration
+    const gameId = gameState.value.gameId
     try {
-      const res = await fetch(`/game/${gameState.value.gameId}/state`)
-      const data = await res.json()
+      const data = await apiFetch(`/game/${gameId}/state`, { signal })
+      if (
+        signal?.aborted ||
+        generation !== gameGeneration ||
+        gameState.value?.gameId !== gameId
+      )
+        return
       if (data.state) {
         gameState.value = data.state as GameState
       }
     } catch (e) {
-      error.value = String(e)
+      if (!signal?.aborted && generation === gameGeneration)
+        error.value = e instanceof Error ? e.message : String(e)
     }
   }
 
-  async function triggerAiTurn() {
-    if (!gameState.value) return
-    loading.value = true
+  async function triggerAiTurn(signal?: AbortSignal) {
+    if (!gameState.value || signal?.aborted) return
+    const generation = gameGeneration
+    const gameId = gameState.value.gameId
+    loadingCount.value++
     error.value = null
     try {
-      const res = await fetch(`/game/${gameState.value.gameId}/ai-turn`, {
+      const data = await apiFetch(`/game/${gameId}/ai-turn`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}),
+        signal,
       })
-      const data = await res.json()
+      if (
+        signal?.aborted ||
+        generation !== gameGeneration ||
+        gameState.value?.gameId !== gameId
+      )
+        return
       if (data.state) {
         gameState.value = data.state as GameState
       }
     } catch (e) {
-      error.value = String(e)
+      if (!signal?.aborted && generation === gameGeneration)
+        error.value = e instanceof Error ? e.message : String(e)
     } finally {
-      loading.value = false
+      loadingCount.value--
     }
   }
 
-  async function startTurn() {
-    await submitAction('startTurn')
+  async function startTurn(signal?: AbortSignal) {
+    await submitAction('startTurn', {}, signal)
   }
 
   function selectCard(uid: string | null) {

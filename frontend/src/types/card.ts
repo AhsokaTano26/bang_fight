@@ -6,7 +6,7 @@
 export type CardCategory = 'character' | 'action' | 'strategy' | 'auxiliary'
 
 /** 阵营 */
-export type Faction = 'AG' | 'HHW' | 'PAS' | 'PPP' | 'ROS'
+export type Faction = 'AG' | 'HHW' | 'PAS' | 'PPP' | 'ROS' | 'MOR' | 'RAS' | 'MG' | 'AM' | 'YM'
 
 /** 行动牌类型 */
 export type ActionCardType =
@@ -63,6 +63,7 @@ export interface BaseCard {
   name: string            // 卡牌名称
   category: CardCategory  // 卡牌大类
   imageFile: string       // 图片文件名 (相对于 public/cards/)
+  thumbnailFile?: string  // 列表/手牌使用的小尺寸 WebP
   description?: string    // 卡牌描述文字
   suit?: Suit             // 花色 (行动牌/策略牌)
 }
